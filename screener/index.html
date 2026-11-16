@@ -77,6 +77,7 @@ footer{color:var(--muted);font-size:12.5px;padding:6px 0 40px;line-height:1.6}
 .pil i{display:block;height:6px;border-radius:4px;background:var(--soft);overflow:hidden}.pil i em{display:block;height:100%;background:var(--mint-d)}
 .pil span:last-child{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
 .flags{margin-top:8px;font-size:12.5px;color:var(--down)}
+.more{display:block;width:100%;border:0;border-top:1px solid var(--line);background:transparent;color:var(--mint-d);font:inherit;font-weight:700;padding:12px;cursor:pointer}
 .az{columns:3 220px;padding:12px 16px;font-size:14px}.az a{display:block;padding:5px 0;text-decoration:none;break-inside:avoid}
 .az a span{color:var(--muted);font-size:12px;margin-left:6px}
 @media (max-width:520px){h1{font-size:23px}.px{text-align:left}.keys{grid-template-columns:1fr}.keys div:nth-child(odd){border-right:0}.brand{letter-spacing:.06em;font-size:13px}}
@@ -141,7 +142,7 @@ dialog::backdrop{background:rgba(5,15,11,.6)}
   <select id="sector" aria-label="Sector"><option value="">All sectors</option></select>
   <input id="q" type="search" placeholder="Find a company">
 </div>
-<p class="note2">Growth numbers come from Yahoo Finance (consolidated) and fill in over a few hours after each result; grades marked on our Telegram cards are used where we posted one. Not investment advice.</p>
+<p class="note2">Quarter growth comes from Yahoo Finance and fills in a few hours after each result. 3Y/5Y = yearly growth of the last 12 months' sales or profit vs 3 or 5 years ago, from NSE filings; grades marked on our Telegram cards are used where we posted one. Not investment advice.</p>
 <div class="panel"><div class="tbl"><table id="t"></table></div><button class="more" id="more" hidden>Show more</button></div>
 <dialog id="dlg"><div class="mb" id="dlgB"></div></dialog>
 <script>
@@ -179,7 +180,7 @@ async function loadData() {
   sel.innerHTML = Object.keys(DATA.seasons).map(k => `<option>${k}</option>`).join("");
 }
 
-const COLS = [["name","Company"],["day","Results"],["rating","Grade"],["sales_yoy","Sales YoY"],["op_yoy","Op profit YoY"],["pat_yoy","Profit YoY"],["sales_qoq","Sales QoQ"],["pat_qoq","Profit QoQ"],["day1","Results day"],["move","Since results"],["mcap","M-cap"]];
+const COLS = [["name","Company"],["day","Results"],["rating","Grade"],["sales_yoy","Sales YoY"],["op_yoy","Op profit YoY"],["pat_yoy","Profit YoY"],["sales_qoq","Sales QoQ"],["pat_qoq","Profit QoQ"],["day1","Results day"],["move","Since results"],["sales_3y","Sales 3Y/yr"],["pat_3y","Profit 3Y/yr"],["sales_5y","Sales 5Y/yr"],["mcap","M-cap"]];
 const RANK = {Excellent:5,Great:4,Good:3,OK:2,Weak:1};
 const st = {sort: "day", dir: -1, shown: 60};
 function rowsNow() {
@@ -196,8 +197,8 @@ function draw() {
   $("#t").innerHTML = "<tr>" + COLS.map(([k, t]) => `<th data-k="${k}" class="${st.sort === k ? "on" : ""}">${t}${st.sort === k ? (st.dir > 0 ? " ▲" : " ▼") : ""}</th>`).join("") + "</tr>" +
     rs.slice(0, st.shown).map(r => `<tr data-s="${esc(r.sym)}"><td>${page(r.sym) ? `<a href="${page(r.sym)}">${esc(r.name)}</a>` : esc(r.name)}<small>${esc(r.sym)}</small></td>
       <td>${fmtDay(r.day)}</td><td>${r.rating ? GR[r.rating][0] + " " + r.rating : "–"}</td>
-      ${pcell(r.sales_yoy)}${pcell(r.op_yoy)}${pcell(r.pat_yoy)}${pcell(r.sales_qoq)}${pcell(r.pat_qoq)}${pcell(r.day1)}${pcell(r.move)}<td>${crs(r.mcap)}</td></tr>`).join("") +
-    (rs.length ? "" : `<tr><td colspan="11" class="empty">No companies match.</td></tr>`);
+      ${pcell(r.sales_yoy)}${pcell(r.op_yoy)}${pcell(r.pat_yoy)}${pcell(r.sales_qoq)}${pcell(r.pat_qoq)}${pcell(r.day1)}${pcell(r.move)}${pcell(r.sales_3y)}${pcell(r.pat_3y)}${pcell(r.sales_5y)}<td>${crs(r.mcap)}</td></tr>`).join("") +
+    (rs.length ? "" : `<tr><td colspan="14" class="empty">No companies match.</td></tr>`);
   $("#more").hidden = rs.length <= st.shown;
   $("#more").textContent = `Show more (${rs.length - st.shown} left)`;
 }
