@@ -8,6 +8,7 @@
 <meta property="og:title" content="Market Mint Dashboard">
 <meta property="og:description" content="Live order wins, quarterly results and results calendar for Indian stocks.">
 <meta property="og:image" content="logo.png">
+<meta name="robots" content="noindex,nofollow">
 <link rel="icon" href="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -45,6 +46,27 @@ header{background:var(--head);color:#fff;position:sticky;top:0;z-index:20}
 @keyframes pulse{70%{box-shadow:0 0 0 8px rgba(47,214,156,0)}100%{box-shadow:0 0 0 0 rgba(47,214,156,0)}}
 .join{background:var(--mint);color:#06281c;text-decoration:none;font-weight:700;font-size:13px;padding:8px 14px;border-radius:999px;white-space:nowrap}
 .join:hover{filter:brightness(1.07)}
+
+/* price strip */
+.strip{background:var(--card);border-bottom:1px solid var(--line);overflow:hidden;white-space:nowrap;font-size:13px;font-variant-numeric:tabular-nums;position:relative}
+.strip .run{display:inline-flex;gap:22px;padding:9px 0;animation:run 60s linear infinite}
+.strip:hover .run{animation-play-state:paused}
+.strip a{text-decoration:none;display:inline-flex;gap:6px}
+.strip b{font-weight:700}
+.strip .lbl{color:var(--muted);font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;align-self:center}
+@keyframes run{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){.strip .run{animation:none}.strip{overflow-x:auto}}
+.sbar{padding:9px 16px;border-bottom:1px solid var(--line);font-size:14px;cursor:pointer}
+.sbar:last-child{border-bottom:0}
+.sbar:hover{background:var(--soft)}
+.sbar .t{display:flex;justify-content:space-between;gap:8px}
+.sbar .t span:last-child{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.sbar .trk{height:6px;border-radius:4px;background:var(--soft);margin-top:6px;overflow:hidden}
+.sbar .trk i{display:block;height:100%;background:var(--mint-d);border-radius:4px}
+.sbar small{color:var(--muted);font-size:12px}
+.chip.on{background:var(--soft);color:var(--ink);border-color:var(--mint)}
+a.nm{text-decoration:none}
+a.nm:hover{text-decoration:underline}
 
 /* hero */
 .hero{padding:22px 0 6px}
@@ -150,6 +172,7 @@ footer{color:var(--muted);font-size:12.5px;padding:10px 0 40px;line-height:1.6}
     <a class="join" href="https://t.me/addlist/nbJ1it_56oo0MzM1" target="_blank" rel="noopener">Join on Telegram</a>
   </div>
 </header>
+<div class="strip" id="strip" hidden></div>
 
 <main class="wrap">
   <section class="hero">
@@ -190,6 +213,7 @@ footer{color:var(--muted);font-size:12.5px;padding:10px 0 40px;line-height:1.6}
     </div>
   </section>
 
+  <p style="margin:0 0 6px"><a href="stock/" style="color:var(--mint-d);font-weight:700;text-decoration:none">All companies A–Z →</a></p>
   <footer>
     Data from public NSE and BSE filings, read automatically. Companies with a market cap of ₹1,000 Cr or more, no SME stocks.
     Order size is shown against the company's last 12 months of revenue. Grades score sales, operating profit and net profit growth.
@@ -208,7 +232,9 @@ footer{color:var(--muted);font-size:12.5px;padding:10px 0 40px;line-height:1.6}
   const GRADE = Object.fromEntries(GRADES.map(g => [g[0], g]));
   const CAPS = ["All", "Large", "Mid", "Small", "Micro"];
   const PERIODS = [["today", "Today"], ["week", "7 days"], ["month", "This month"], ["all", "All"]];
-  const state = { tab: "orders", q: "", cap: "All", period: "week", co: null, data: null, shown: 40 };
+  const state = { tab: "orders", q: "", cap: "All", period: "week", co: null, data: null, shown: 40, osec: null };
+  const page = sym => (state.data.companies || []).includes(sym) ? `stock/${encodeURIComponent(sym)}/` : null;
+  const nameLink = (sym, name) => page(sym) ? `<a class="nm" href="${page(sym)}">${esc(name)}</a>` : `<span class="nm">${esc(name)}</span>`;
   try { const t = localStorage.getItem("mm-tab"); if (t) state.tab = t; } catch (e) {}
   { const t = new URLSearchParams(location.search).get("tab"); if (["orders", "results", "calendar"].includes(t)) state.tab = t; }
 
@@ -267,6 +293,7 @@ footer{color:var(--muted);font-size:12.5px;padding:10px 0 40px;line-height:1.6}
           <span><b>${pc(o.pct).replace("+", "")}</b> of revenue</span>
           ${o.pct_mcap != null ? `<span>${o.pct_mcap.toFixed(1)}% of m-cap</span>` : ""}
           ${o.reaction != null ? `<span class="${cls(o.reaction)}">Next day ${pc(o.reaction)}</span>` : ""}
+          ${o.osector ? `<span>${esc(o.osector)}</span>` : ""}
           ${o.cap ? `<span class="tag">${o.cap}</span>` : ""}
           <span>${ago(o.filed)}</span>
         </div>
@@ -275,7 +302,15 @@ footer{color:var(--muted);font-size:12.5px;padding:10px 0 40px;line-height:1.6}
 
   function renderOrders() {
     const all = state.data.orders.filter(match);
-    const list = all.filter(o => inPeriod(o.filed));
+    const inP = all.filter(o => inPeriod(o.filed));
+    const list = state.osec ? inP.filter(o => o.osector === state.osec) : inP;
+    const secs = {};
+    inP.forEach(o => { const k = o.osector || "Other"; const s = secs[k] || (secs[k] = { n: 0, v: 0 }); s.n++; s.v += o.value_cr || 0; });
+    const secList = Object.entries(secs).sort((a, b) => b[1].v - a[1].v);
+    const secMax = secList.length ? secList[0][1].v : 1;
+    const since90 = Date.now() - 90 * 864e5, rep = {};
+    all.filter(o => ist(o.filed) >= since90).forEach(o => { const r = rep[o.sym] || (rep[o.sym] = { sym: o.sym, name: o.name, n: 0, v: 0 }); r.n++; r.v += o.value_cr || 0; });
+    const repeat = Object.values(rep).filter(r => r.n >= 2).sort((a, b) => b.n - a.n || b.v - a.v).slice(0, 6);
     const total = list.reduce((a, o) => a + (o.value_cr || 0), 0);
     const big = list.slice().sort((a, b) => (b.value_cr || 0) - (a.value_cr || 0))[0];
     const top = list.slice().sort((a, b) => (b.pct || 0) - (a.pct || 0))[0];
@@ -299,12 +334,18 @@ footer{color:var(--muted);font-size:12.5px;padding:10px 0 40px;line-height:1.6}
         <div class="stat"><div class="k">Largest vs revenue</div><div class="v">${top ? pc(top.pct, 0).replace("+", "") : "–"}</div><div class="s">${top ? esc(top.name) : "–"}</div></div>
       </div>
       <div class="grid">
-        <div class="panel"><h3>Latest orders <small>${list.length} ${label}</small></h3>
+        <div class="panel"><h3>Latest orders <small>${state.osec ? `<button class="chip on" data-osec="">${esc(state.osec)} ✕</button> ` : ""}${list.length} ${label}</small></h3>
           ${list.length ? list.slice(0, state.shown).map(orderItem).join("") + (list.length > state.shown ? `<button class="more" data-more>Show more</button>` : "")
             : `<div class="empty">No orders ${label}${state.q ? " for “" + esc(state.q) + "”" : ""}. Try a longer period.</div>`}
         </div>
         <div>
-          <div class="panel"><h3>Biggest vs revenue <small>${label}</small></h3>
+          <div class="panel"><h3>Orders by sector <small>${label} · tap to filter</small></h3>
+            ${secList.length ? secList.map(([k, s]) => `<div class="sbar" data-osec="${esc(k)}"><div class="t"><span>${esc(k)} <small>${s.n} order${s.n > 1 ? "s" : ""}</small></span><span>${crs(s.v)}</span></div><div class="trk"><i style="width:${Math.max(3, s.v / secMax * 100)}%"></i></div></div>`).join("") : `<div class="empty">Nothing yet</div>`}
+          </div>
+          ${repeat.length ? `<div class="panel" style="margin-top:14px"><h3>Repeat winners <small>last 90 days</small></h3>
+            ${repeat.map(r => `<div class="mini" data-co="${esc(r.sym)}"><div class="l"><div><b>${esc(r.name)}</b></div><div style="color:var(--muted);font-size:12.5px">${r.n} orders</div></div><div class="r">${crs(r.v)}</div></div>`).join("")}
+          </div>` : ""}
+          <div class="panel" style="margin-top:14px"><h3>Biggest vs revenue <small>${label}</small></h3>
             ${best.length ? best.map(o => `<div class="mini" data-open="o:${esc(o.key)}"><div class="l"><div><b>${esc(o.name)}</b></div><div style="color:var(--muted);font-size:12.5px">${value(o)}</div></div><div class="r">${pc(o.pct, 1).replace("+", "")}<small>of revenue</small></div></div>`).join("") : `<div class="empty">Nothing yet</div>`}
           </div>
           <div class="panel" style="margin-top:14px"><h3>${mname} so far <small>total won</small></h3>
@@ -416,7 +457,7 @@ footer{color:var(--muted);font-size:12.5px;padding:10px 0 40px;line-height:1.6}
         <div class="meta"><span>NSE: <b>${esc(sym)}</b></span>${any.mcap ? `<span>M-cap <b>${lakhCr(any.mcap)}</b></span>` : ""}${any.sector ? `<span>${esc(any.sector)}</span>` : ""}
         ${os.length ? `<span><b>${os.length}</b> order${os.length > 1 ? "s" : ""} · <b>${crs(tot)}</b></span>` : ""}
         ${cs[0] ? `<span>Next result: <b>${fmtDay(cs[0].date)}</b></span>` : ""}</div></div>
-        <button class="x" data-close-co>Close</button></div>
+        <div style="display:flex;gap:8px;align-items:flex-start">${page(sym) ? `<a class="x" style="text-decoration:none;background:var(--mint);color:#06281c" href="${page(sym)}">Full page →</a>` : ""}<button class="x" data-close-co>Close</button></div></div>
       ${rs.map(resultItem).join("")}${os.map(orderItem).join("")}
     </div>`;
   }
@@ -433,7 +474,7 @@ footer{color:var(--muted);font-size:12.5px;padding:10px 0 40px;line-height:1.6}
         ${row("Order value", value(o))}${row("Client", esc(o.client))}${row("Work", esc(cleanWork(o.work)))}
         ${row("Share of yearly revenue", o.pct != null ? o.pct.toFixed(1) + "%" : null)}${row("Share of market cap", o.pct_mcap != null ? o.pct_mcap.toFixed(2) + "%" : null)}
         ${row("Market cap", lakhCr(o.mcap))}${row("Next-day stock move", o.reaction != null ? `<span class="${cls(o.reaction)}">${pc(o.reaction)}</span>` : null)}
-        ${row("Filed", fmtTime(o.filed))}`;
+        ${row("Sector", esc(o.osector))}${row("Filed", fmtTime(o.filed))}`;
     } else {
       const r = state.data.results.find(x => x.key === key); if (!r) return;
       html = `<div class="t1"><span class="nm" style="font-size:18px">${esc(r.name)}</span>${gradeTag(r)}</div>
@@ -445,10 +486,23 @@ footer{color:var(--muted);font-size:12.5px;padding:10px 0 40px;line-height:1.6}
         ${row("Filed", fmtTime(r.filed))}`;
     }
     const item = (kind === "o" ? state.data.orders : state.data.results).find(x => x.key === key);
-    html += `<div class="mact"><button class="btn" data-co="${esc(item.sym)}">All for ${esc(item.sym)}</button><a class="btn p" href="${esc(item.url)}" target="_blank" rel="noopener">Open on Telegram</a></div>
+    html += `<div class="mact">${page(item.sym) ? `<a class="btn" href="${page(item.sym)}">Company page</a>` : `<button class="btn" data-co="${esc(item.sym)}">All for ${esc(item.sym)}</button>`}${item.source ? `<a class="btn" href="${esc(item.source)}" target="_blank" rel="noopener">📄 Filing</a>` : ""}</div>
+      <div class="mact"><a class="btn p" href="${esc(item.url)}" target="_blank" rel="noopener">Open on Telegram</a></div>
       <div class="mact"><button class="btn" data-close-dlg>Close</button></div>`;
     $("#dlgBody").innerHTML = html;
     $("#dlg").showModal();
+  }
+
+  // ---------- price strip
+  function renderStrip() {
+    const m = state.data.movers || {};
+    const items = [...(m.up || []).slice(0, 8), ...(m.down || []).slice(0, 8)];
+    const box = $("#strip");
+    if (!items.length) { box.hidden = true; return; }
+    const one = `<span class="lbl">Top movers ${m.day ? fmtDay(m.day) : ""}</span>` + items.map(x =>
+      `<a ${page(x.sym) ? `href="${page(x.sym)}"` : ""}><b>${esc(x.sym)}</b><span class="${cls(x.chg)}">${pc(x.chg)}</span><span style="color:var(--muted)">₹${x.price.toLocaleString("en-IN")}</span></a>`).join("");
+    box.innerHTML = `<div class="run">${one}${one}</div>`;
+    box.hidden = false;
   }
 
   // ---------- draw
@@ -460,6 +514,7 @@ footer{color:var(--muted);font-size:12.5px;padding:10px 0 40px;line-height:1.6}
     $("#n-calendar").textContent = state.data.calendar.length || "";
     chips();
     renderCompany();
+    renderStrip();
     ({ orders: renderOrders, results: renderResults, calendar: renderCalendar })[state.tab]();
     $("#upd").textContent = lastPost() ? ago(lastPost()) : "–";
   }
@@ -477,7 +532,8 @@ footer{color:var(--muted);font-size:12.5px;padding:10px 0 40px;line-height:1.6}
 
   // ---------- events
   document.addEventListener("click", e => {
-    const t = e.target.closest("[data-tab],[data-period],[data-cap],[data-open],[data-co],[data-close-co],[data-close-dlg],[data-more]");
+    if (e.target.closest("a[href]")) return;
+    const t = e.target.closest("[data-tab],[data-period],[data-cap],[data-open],[data-co],[data-close-co],[data-close-dlg],[data-more],[data-osec]");
     if (!t) { if (e.target === $("#dlg")) $("#dlg").close(); return; }
     if (t.dataset.tab) { state.tab = t.dataset.tab; state.shown = 40; try { localStorage.setItem("mm-tab", state.tab); } catch (x) {} }
     else if (t.dataset.period) { state.period = t.dataset.period; state.shown = 40; }
@@ -487,6 +543,7 @@ footer{color:var(--muted);font-size:12.5px;padding:10px 0 40px;line-height:1.6}
     else if (t.hasAttribute("data-close-co")) { state.co = null; state.q = ""; $("#q").value = ""; }
     else if (t.hasAttribute("data-close-dlg")) { $("#dlg").close(); return; }
     else if (t.hasAttribute("data-more")) { state.shown += 40; }
+    else if (t.hasAttribute("data-osec")) { state.osec = t.dataset.osec || null; state.shown = 40; }
     render();
   });
   let timer;
