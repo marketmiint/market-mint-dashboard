@@ -210,6 +210,7 @@ footer{color:var(--muted);font-size:12.5px;padding:10px 0 40px;line-height:1.6}
   const PERIODS = [["today", "Today"], ["week", "7 days"], ["month", "This month"], ["all", "All"]];
   const state = { tab: "orders", q: "", cap: "All", period: "week", co: null, data: null, shown: 40 };
   try { const t = localStorage.getItem("mm-tab"); if (t) state.tab = t; } catch (e) {}
+  { const t = new URLSearchParams(location.search).get("tab"); if (["orders", "results", "calendar"].includes(t)) state.tab = t; }
 
   // ---------- helpers
   const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
