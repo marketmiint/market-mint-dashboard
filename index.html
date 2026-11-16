@@ -146,7 +146,7 @@ footer{color:var(--muted);font-size:12.5px;padding:10px 0 40px;line-height:1.6}
 <header>
   <div class="wrap bar">
     <a class="brand" href="./"><img src="logo.png" alt="">MARKET MINT</a>
-    <div class="live"><span class="dot"></span><span class="t">Updated </span><span id="upd">…</span></div>
+    <div class="live"><span class="dot"></span><span class="t">Last post </span><span id="upd">…</span></div>
     <a class="join" href="https://t.me/addlist/nbJ1it_56oo0MzM1" target="_blank" rel="noopener">Join on Telegram</a>
   </div>
 </header>
@@ -460,8 +460,9 @@ footer{color:var(--muted);font-size:12.5px;padding:10px 0 40px;line-height:1.6}
     chips();
     renderCompany();
     ({ orders: renderOrders, results: renderResults, calendar: renderCalendar })[state.tab]();
-    $("#upd").textContent = state.data.updated ? ago(state.data.updated) : "–";
+    $("#upd").textContent = lastPost() ? ago(lastPost()) : "–";
   }
+  const lastPost = () => [...state.data.orders, ...state.data.results].map(x => x.filed || "").sort().pop();
 
   async function load() {
     try {
@@ -495,7 +496,7 @@ footer{color:var(--muted);font-size:12.5px;padding:10px 0 40px;line-height:1.6}
 
   load();
   setInterval(load, 2 * 60 * 1000);                     // pick up new posts without a refresh
-  setInterval(() => state.data && ($("#upd").textContent = ago(state.data.updated)), 30 * 1000);
+  setInterval(() => state.data && lastPost() && ($("#upd").textContent = ago(lastPost())), 30 * 1000);
 })();
 </script>
 </body>
