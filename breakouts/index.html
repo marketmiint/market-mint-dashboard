@@ -413,18 +413,18 @@ function plan(r) {
 }
 
 /* ---------- charts that load on demand (played-out cards) ---------- */
-const LAZY = new Map(), LOADED = new Set();
-function lazy(r) { const id = "lz" + LAZY.size; LAZY.set(id, r); return `<div id="${id}" class="mut" style="padding:40px 0;text-align:center;font-size:13px">Loading chart…</div>`; }
+const LAZY = new Map(), LOADING = {};
+let lazyN = 0;
+function lazy(r) { const id = "lz" + (lazyN++); LAZY.set(id, r); return `<div id="${id}" class="mut" style="padding:40px 0;text-align:center;font-size:13px">Loading chart…</div>`; }
+const profFile = ch => LOADING[ch] || (LOADING[ch] = fetch(ALL + "p_" + ch + ".json?" + D.date).then(r => r.json()).then(j => Object.assign(PROF, j)).catch(() => {}));
 async function fillLazy() {
-  const todo = [...LAZY.entries()].filter(([id]) => document.getElementById(id));
-  if (!todo.length) return;
-  for (const ch of new Set(todo.map(([, r]) => r.sym[0]))) {
-    if (LOADED.has(ch)) continue;
-    LOADED.add(ch);
-    try { Object.assign(PROF, await (await fetch(ALL + "p_" + ch + ".json?" + D.date)).json()); } catch (e) {}
+  const todo = [...LAZY.entries()];
+  await Promise.all([...new Set(todo.map(([, r]) => r.sym[0]))].map(profFile));
+  for (const [id, r] of todo) {
+    LAZY.delete(id);
+    const el = document.getElementById(id);
+    if (el) el.outerHTML = chartOf(r.sym) ? svgChart(r) : `<div class="mut" style="padding:20px 0;text-align:center;font-size:13px">Chart not available</div>`;
   }
-  for (const [id, r] of todo) { const el = document.getElementById(id); if (el) el.outerHTML = chartOf(r.sym) ? svgChart(r) : `<div class="mut" style="padding:20px 0;text-align:center;font-size:13px">Chart not available</div>`; }
-  LAZY.clear();
 }
 
 /* ---------- cards ---------- */
@@ -491,7 +491,6 @@ function renderScreens() {
   $("lt").innerHTML = `${STAGES[S.stage][0]} <span>· ${rows.length}</span>`;
   const pg = pager(rows.length); $("pg1").innerHTML = pg; $("pg2").innerHTML = pg;
   const page = rows.slice((S.page - 1) * S.per, S.page * S.per);
-  LAZY.clear();
   $("list").innerHTML = !page.length ? `<div class="box empty">Nothing here${nFilters() ? " with these filters" : " today"}.</div>` : S.view === "cards" ? `<div class="cards">${page.map(card).join("")}</div>` : table(page);
   fillLazy();
   document.querySelectorAll("#view button").forEach(b => b.classList.toggle("on", b.dataset.v === S.view));
