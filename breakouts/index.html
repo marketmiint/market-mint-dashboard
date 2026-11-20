@@ -153,7 +153,7 @@ footer{color:var(--muted);font-size:12px;padding:6px 0 30px}
 </style></head><body>
 <div class="bgfx" aria-hidden="true"></div>
 <header><div class="wrap bar"><a class="brand" href="#screens"><img src="../logo.png" alt="">MARKET MINT</a>
-  <div class="srch"><input id="search" type="search" placeholder="Search any NSE stock" autocomplete="off" aria-label="Search any NSE stock"><div class="sug" id="sug"></div></div>
+  <div class="srch"><input id="search" type="search" placeholder="Search any stock" autocomplete="off" aria-label="Search any NSE stock"><div class="sug" id="sug"></div></div>
 </div>
 <nav class="tabsbar"><div class="wrap" id="nav">
   <a href="#screens" data-p="screens">Screens</a><a href="#market" data-p="market">Market</a><a href="#industries" data-p="industries">Industries</a>
@@ -242,14 +242,14 @@ const SCREENS = {
   bluesky: {t: "Blue sky", rules: [["Blue sky", "basing right under its 10-year high: no trapped sellers above."], ["A leader", "RS 70+."],
     ["Basing at the high", "3+ weeks under the high, within 20% of it, never more than 35% deep."]]},
   multiyear: {t: "Multi-year", rules: [["The long wait", "a lid that is 52+ weeks old."], ["Trend back up", "price above its 200-day average."],
-    ["Strength returning", "RS 50+, within 30% of the lid (the 3-year high)."]]},
+    ["Strength returning", "RS 60+, coiling within 20% of the lid."]]},
   ipo: {t: "IPO base", rules: [["Recently listed", "under 50 weeks on the market."], ["First real base", "3+ weeks, ≤ 35% deep, within 20% of the top."],
     ["Holding its 50-day", "above its 50-day average."]]}
 };
 const COMMON = [["Easy to trade", "₹1 cr+ traded a day."], ["Breakout", "price crosses the pivot. Entry = pivot (or the open on a gap)."],
   ["Exit", "8% stop-loss, or a close below the 50-day average."]];
 const STAGES = {forming: ["Forming", "tight range under its lid"], fresh: ["Fresh breakouts", "cleared it in the last 5 days"],
-  climbing: ["Climbing", "breakout is holding"], played: ["Played out", "exited in the last 20 days"]};
+  climbing: ["Climbing", "breakout is holding"], played: ["Played out", "ended in the last 12 months"]};
 const LIGHT = {green: ["Green", "Nifty above its 50- and 200-day, and half the market above its 50-day. Best time for breakouts."],
   amber: ["Amber", "Mixed market. Breakouts still work but less often: trade smaller, be choosy."],
   red: ["Red", "Nifty below its 200-day or under 30% of stocks above their 50-day. Most breakouts fail: sit tight or go very small."]};
@@ -280,7 +280,7 @@ const fmtD = s => s ? dD(s).toLocaleDateString("en-IN", {day: "numeric", month: 
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
 const save = () => store.set("bo2", {...S, page: 1});
 const daysTo = s => Math.round((dD(s) - dD(D.date)) / 864e5);
-const tvUrl = s => "https://www.tradingview.com/chart/?symbol=NSE:" + encodeURIComponent(s);
+const tvUrl = (s, ex) => "https://www.tradingview.com/chart/?symbol=" + (ex || "NSE") + ":" + encodeURIComponent(s);
 const lamp = l => `<span class="lamp l-${l}"></span>`;
 
 /* ---------- data ---------- */
@@ -412,6 +412,21 @@ function plan(r) {
   return `<div class="plan">${head} · stop <b class="n">${inr(stop)}</b> · <b>${qty.toLocaleString("en-IN")} shares</b> (${inr(qty * ref, 0)}) for ${inr(S.cap, 0)} at ${S.risk}% risk · exit on a close below the 50-day (now <b class="n">${inr(r.sma50)}</b>)</div>`;
 }
 
+/* ---------- charts that load on demand (played-out cards) ---------- */
+const LAZY = new Map(), LOADED = new Set();
+function lazy(r) { const id = "lz" + LAZY.size; LAZY.set(id, r); return `<div id="${id}" class="mut" style="padding:40px 0;text-align:center;font-size:13px">Loading chart…</div>`; }
+async function fillLazy() {
+  const todo = [...LAZY.entries()].filter(([id]) => document.getElementById(id));
+  if (!todo.length) return;
+  for (const ch of new Set(todo.map(([, r]) => r.sym[0]))) {
+    if (LOADED.has(ch)) continue;
+    LOADED.add(ch);
+    try { Object.assign(PROF, await (await fetch(ALL + "p_" + ch + ".json?" + D.date)).json()); } catch (e) {}
+  }
+  for (const [id, r] of todo) { const el = document.getElementById(id); if (el) el.outerHTML = chartOf(r.sym) ? svgChart(r) : `<div class="mut" style="padding:20px 0;text-align:center;font-size:13px">Chart not available</div>`; }
+  LAZY.clear();
+}
+
 /* ---------- cards ---------- */
 function keys(r) {
   if (r.stage === "fresh" || r.stage === "climbing") return [["Entry", inr(r.entry), ""], ["Gain", pct(r.gain), cls(r.gain)], ["RS", r.rs ?? "–", ""]];
@@ -434,11 +449,11 @@ function card(r) {
   for (const a of annOf(r.sym)) chips.push(`<span class="chip news">${a.url ? `<a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.t)}</a>` : esc(a.t)} · ${fmtD(a.d)}</span>`);
   const st = {forming: "Forming", fresh: "Fresh breakout", climbing: "Climbing", played: "Played out"}[r.stage];
   return `<article class="card">
-    <div class="ctop"><span class="badge s-${r.stage}">${st} · B${r.bnum}</span><a class="tv" href="${tvUrl(r.sym)}" target="_blank" rel="noopener">Open chart ↗</a></div>
+    <div class="ctop"><span class="badge s-${r.stage}">${st} · B${r.bnum}</span><a class="tv" href="${tvUrl(r.sym, r.ex)}" target="_blank" rel="noopener">Open chart ↗</a></div>
     <div class="cname"><button class="star ${on ? "on" : ""}" data-star="${esc(r.sym)}" aria-label="${on ? "Remove from" : "Add to"} watchlist">${on ? "★" : "☆"}</button>
-      <div class="nm"><a href="#" data-open="${esc(r.sym)}" style="text-decoration:none">${esc(r.name)}</a><span class="sub">${esc(r.sym)} · ${esc(r.ind)}${r.idx ? " · " + esc(r.idx) : ""}</span></div>
+      <div class="nm"><a href="#" data-open="${esc(r.sym)}" style="text-decoration:none">${esc(r.name)}</a><span class="sub">${esc(r.sym)}${r.ex === "BSE" ? " · BSE" : ""} · ${esc(r.ind)}${r.idx ? " · " + esc(r.idx) : ""}</span></div>
       <div class="px"><b class="n">${inr(r.close)}</b><span class="${cls(r.chg)}">${pct(r.chg, 2)}</span></div></div>
-    <div class="chart">${svgChart(r)}</div>
+    <div class="chart">${chartOf(r.sym) ? svgChart(r) : lazy(r)}</div>
     <div class="keys">${keys(r).map(([t, v, c]) => `<div class="key"><span>${t}</span><b class="n ${c}">${v}</b></div>`).join("")}</div>
     ${plan(r)}${chips.length ? `<div class="chips">${chips.join("")}</div>` : ""}
     <details class="more"><summary>More details</summary><div class="kv">${kvList(r).map(([t, v]) => `<div><span>${t}</span><b>${v}</b></div>`).join("")}</div></details></article>`;
@@ -446,7 +461,7 @@ function card(r) {
 function table(rows) {
   const live = S.stage === "fresh" || S.stage === "climbing", pl = S.stage === "played";
   let h = `<tr><th>Stock</th><th>Price</th><th>Day</th>${live ? "<th>Entry</th><th>Gain</th><th>Stop</th>" : ""}${pl ? "<th>Result</th><th>Why</th>" : ""}<th>Pivot</th><th>vs pivot</th><th>RS</th><th>Base</th><th>Industry</th></tr>`;
-  for (const r of rows) h += `<tr><td><button class="star ${WATCH.has(r.sym) ? "on" : ""}" data-star="${esc(r.sym)}" aria-label="Watchlist">${WATCH.has(r.sym) ? "★" : "☆"}</button> <a href="#" data-open="${esc(r.sym)}">${esc(r.sym)}</a></td>
+  for (const r of rows) h += `<tr><td><button class="star ${WATCH.has(r.sym) ? "on" : ""}" data-star="${esc(r.sym)}" aria-label="Watchlist">${WATCH.has(r.sym) ? "★" : "☆"}</button> <a href="#" data-open="${esc(r.sym)}">${esc(r.sym)}</a>${r.ex === "BSE" ? ' <span class="mut">BSE</span>' : ""}</td>
     <td class="n">${inr(r.close)}</td><td class="n ${cls(r.chg)}">${pct(r.chg)}</td>${live ? `<td class="n">${inr(r.entry)}</td><td class="n ${cls(r.gain)}">${pct(r.gain)}</td><td class="n">${inr(r.stop)}</td>` : ""}
     ${pl ? `<td class="n ${cls(r.result)}">${pct(r.result)}</td><td>${esc(r.why)}</td>` : ""}<td class="n">${inr(r.pivot)}</td><td class="n">${pct(r.vs_pivot)}</td><td class="n">${r.rs ?? "–"}</td><td>${r.base_weeks} wk</td><td style="text-align:left">${esc(r.ind)}</td></tr>`;
   return `<div class="tbl"><table>${h}</table></div>`;
@@ -476,7 +491,9 @@ function renderScreens() {
   $("lt").innerHTML = `${STAGES[S.stage][0]} <span>· ${rows.length}</span>`;
   const pg = pager(rows.length); $("pg1").innerHTML = pg; $("pg2").innerHTML = pg;
   const page = rows.slice((S.page - 1) * S.per, S.page * S.per);
+  LAZY.clear();
   $("list").innerHTML = !page.length ? `<div class="box empty">Nothing here${nFilters() ? " with these filters" : " today"}.</div>` : S.view === "cards" ? `<div class="cards">${page.map(card).join("")}</div>` : table(page);
+  fillLazy();
   document.querySelectorAll("#view button").forEach(b => b.classList.toggle("on", b.dataset.v === S.view));
   for (const k of FKEYS) $("f-" + k).classList.toggle("on", !!S[k]);
   feed(vis); how();
@@ -590,7 +607,7 @@ async function openStock(sym) {
   if (rows.length) html = rows.map(card).join("");
   else if (p) {
     const r = {...p, stage: "none", bnum: -1};
-    html = `<article class="card"><div class="ctop"><span class="badge">Not on a screen today</span><a class="tv" href="${tvUrl(sym)}" target="_blank" rel="noopener">Open chart ↗</a></div>
+    html = `<article class="card"><div class="ctop"><span class="badge">Not on a screen today</span><a class="tv" href="${tvUrl(sym, p.ex)}" target="_blank" rel="noopener">Open chart ↗</a></div>
       <div class="cname"><button class="star ${WATCH.has(sym) ? "on" : ""}" data-star="${esc(sym)}" aria-label="Watchlist">${WATCH.has(sym) ? "★" : "☆"}</button><div class="nm">${esc(p.name)}<span class="sub">${esc(sym)} · ${esc(p.ind)}${p.idx ? " · " + esc(p.idx) : ""}</span></div>
       <div class="px"><b class="n">${inr(p.close)}</b><span class="${cls(p.chg)}">${pct(p.chg, 2)}</span></div></div><div class="chart">${svgChart(r)}</div>
       <div class="keys"><div class="key"><span>RS</span><b class="n">${p.rs ?? "–"}</b></div><div class="key"><span>vs 6-mo high</span><b class="n">${pct(p.vs_pivot)}</b></div><div class="key"><span>52w high</span><b class="n">${pct(p.from_high)}</b></div></div>
@@ -676,7 +693,7 @@ Promise.all([fetch("data.json?" + Date.now()).then(r => r.json()), fetch("../dat
     for (const o of dash.orders || []) if (!ANN.ord[o.sym] || ANN.ord[o.sym].date < o.date) ANN.ord[o.sym] = o;
     for (const c of dash.calendar || []) ANN.cal[c.sym] = c;
   }
-  $("lead").textContent = `${d.liquid.toLocaleString("en-IN")} liquid NSE stocks scanned after every close. Only the few in a real setup make it here.`;
+  $("lead").textContent = `${d.liquid.toLocaleString("en-IN")} liquid NSE and BSE stocks scanned after every close. Only the few in a real setup make it here.`;
   $("foot").textContent = `Data for ${fmtD(d.date)} · updated ${d.made} IST · B# = bases · ▲ = breakout · grey line = 50-day average · personal research, not advice.`;
   buildControls(); wire(); show(location.hash.slice(1) || S.page_);
 }).catch(e => { $("lead").textContent = "Could not load today's data."; console.error(e); });
