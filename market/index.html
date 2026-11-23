@@ -4,87 +4,289 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Market health | Market Mint</title>
+<title>Market & indices | Market Mint</title>
+<meta name="description" content="Market health, 40 NSE indices with their breakout stage and member stocks, and your own custom index.">
 <link rel="icon" href="../logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/nav.css">
 <link rel="stylesheet" href="../assets/mm.css">
 <style>
-h1{font-size:26px;margin:22px 0 4px;letter-spacing:-.02em}
-.lead{color:var(--muted);margin:0 0 14px;font-size:14.5px}
-.hero{display:flex;gap:16px;flex-wrap:wrap;align-items:center;padding:18px 16px}
-.hero .light{font-size:20px}.hero .light i{width:16px;height:16px}
-.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--line)}
-.stats div{padding:12px 16px;border-right:1px solid var(--line)}.stats div:last-child{border-right:0}
-.stats small{display:block;color:var(--muted);font-size:12.5px}.stats b{font-size:20px;font-variant-numeric:tabular-nums}
-@media (max-width:700px){.stats{grid-template-columns:1fr 1fr}.stats div:nth-child(2){border-right:0}.stats div:nth-child(-n+2){border-bottom:1px solid var(--line)}}
+.hero{display:flex;gap:16px;flex-wrap:wrap;align-items:center;padding:16px 18px}
+.hero .light{font-size:18px}.hero .light i{width:14px;height:14px}
+.hs4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--line)}
+.hs4 div{padding:12px 18px;border-right:1px solid var(--line)}.hs4 div:last-child{border-right:0}
+.hs4 small{display:block;color:var(--muted);font-size:12.5px}.hs4 b{font-size:19px;font-variant-numeric:tabular-nums}
+@media (max-width:700px){.hs4{grid-template-columns:1fr 1fr}.hs4 div:nth-child(2){border-right:0}.hs4 div:nth-child(-n+2){border-bottom:1px solid var(--line)}}
 .chart{padding:8px}.chart svg{width:100%;height:auto;display:block}
-.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-@media (max-width:900px){.g2{grid-template-columns:1fr}}
-.spark{width:90px;height:26px;display:block}
-.stg{font-size:11px;font-weight:800;padding:3px 7px;border-radius:6px;color:#fff;text-transform:uppercase}
-.st-fresh{background:var(--up)}.st-climbing{background:var(--mint-d)}.st-forming{background:var(--amber)}.st-played,.st-none{background:var(--muted)}
-.rsb{display:inline-block;height:6px;border-radius:3px;background:var(--mint-d);vertical-align:middle;margin-right:6px}
+details.bd summary{cursor:pointer;padding:12px 18px;font-weight:600;font-size:14px;color:var(--mint-d);list-style:none}
+details.bd summary::-webkit-details-marker{display:none}
+h2.sec{font-size:20px;margin:26px 0 10px;letter-spacing:-.02em;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.igrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-bottom:16px}
+.icard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;text-decoration:none;display:flex;flex-direction:column;gap:8px;cursor:pointer;text-align:left;font:inherit;color:inherit}
+.icard:hover{border-color:var(--mint-d)}
+.icard.on{border-color:var(--mint-d);box-shadow:0 0 0 3px var(--acc-soft)}
+.icard .t{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.icard b{font-size:15px}.icard small{color:var(--muted);font-size:12.5px}
+.icard .nums{display:flex;justify-content:space-between;align-items:flex-end;gap:8px;font-size:13px;font-variant-numeric:tabular-nums}
+.icard .nums b{font-size:16px;display:block}
+.icard .cnt{display:flex;gap:6px;flex-wrap:wrap;font-size:11.5px}
+.icard .cnt span{padding:2px 7px;border-radius:6px}
+.icard.new{align-items:center;justify-content:center;border-style:dashed;color:var(--mint-d);font-weight:700;min-height:140px}
+#detail{scroll-margin-top:130px}
+.dh{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;padding:16px 18px;border-bottom:1px solid var(--line)}
+.dh h3{margin:0;font-size:20px;letter-spacing:-.02em;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.dh .lv{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;text-align:right}
+.dh .lv small{display:block;font-size:12px;font-weight:500;color:var(--muted)}
+.rets{display:flex;gap:6px;flex-wrap:wrap;padding:12px 18px 0}
+.rets span{background:var(--soft);border-radius:8px;padding:4px 10px;font-size:13px;font-variant-numeric:tabular-nums}
+.rets b{margin-left:4px}
+.crow{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;padding:12px 18px 0}
+.box2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0;border-top:1px solid var(--line)}
+.box2>div{padding:14px 18px}.box2>div:first-child{border-right:1px solid var(--line)}
+@media (max-width:760px){.box2{grid-template-columns:1fr}.box2>div:first-child{border-right:0;border-bottom:1px solid var(--line)}}
+.sb{display:flex;height:12px;border-radius:7px;overflow:hidden;margin:10px 0 8px;background:var(--soft)}
+.sb i{display:block;height:100%}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--muted)}
+.chips button.on{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:12px 18px;border-top:1px solid var(--line);background:var(--soft)}
+td input[type=checkbox]{width:16px;height:16px;accent-color:var(--mint-d)}
+/* builder */
+.dlg{position:fixed;inset:0;z-index:1500;background:rgba(15,23,42,.4);display:flex;align-items:flex-start;justify-content:center;padding:60px 12px;overflow:auto}
+.dlg[hidden]{display:none}
+.dlg .box{background:var(--card);color:var(--ink);border-radius:16px;width:min(620px,100%);box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.dlg h3{margin:0;padding:16px 18px;border-bottom:1px solid var(--line);font-size:18px;display:flex;justify-content:space-between}
+.dlg h3 button{border:0;background:none;font-size:22px;cursor:pointer;color:var(--muted)}
+.dlg .bd{padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.dlg label{font-size:13px;font-weight:600;color:var(--muted)}
+.dlg input[type=text],.dlg input[type=search]{width:100%;height:42px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:0 12px;font:inherit;font-size:15px;margin-top:5px}
+.sel{display:flex;gap:6px;flex-wrap:wrap;min-height:40px;padding:8px;border:1px dashed var(--line);border-radius:10px}
+.sel span{display:inline-flex;align-items:center;gap:6px;background:var(--soft);border-radius:999px;padding:3px 4px 3px 3px;font-size:13px;font-weight:600}
+.sel button{border:0;background:var(--card);border-radius:50%;width:20px;height:20px;cursor:pointer;line-height:1;color:var(--muted)}
+.dlg .ft{display:flex;justify-content:space-between;gap:8px;padding:14px 18px;border-top:1px solid var(--line)}
+.spark{display:block}
 </style>
 </head>
 <body data-root="../">
 <script src="../assets/mm.js"></script>
 <main class="wrap">
-  <h1>Market health</h1>
-  <p class="lead">Is it a good time to buy breakouts? How many stocks are rising, which industries lead and where the indices stand. Updated each evening after the close.</p>
-  <div class="panel" id="top"><div class="empty">Loading…</div></div>
-  <div class="panel"><h2>Stocks above their 50-day average <small>last 12 months, with Nifty 50</small></h2><div class="chart" id="bchart"></div></div>
-  <div class="g2">
-    <div class="panel"><h2>Indices <small>stage like the Breakout Desk</small></h2><div class="tscroll"><table><thead><tr><th>Index</th><th>Level</th><th>Day</th><th>1 mo</th><th>1 yr</th><th>Stage</th></tr></thead><tbody id="ix"></tbody></table></div></div>
-    <div class="panel"><h2>Industry ranking <small>by relative strength</small></h2><div class="tscroll"><table><thead><tr><th>Industry</th><th>RS</th><th>1 mo</th><th>3 mo</th><th>Above 50d</th><th>Trend</th></tr></thead><tbody id="ind"></tbody></table></div></div>
-  </div>
+  <h1 class="pt">Market &amp; Indices</h1>
+  <p class="lead">How healthy the market is, 40 NSE indices with their breakout stage, and your own custom index from any stocks.</p>
+
+  <section class="panel" id="top"><div class="empty">Loading…</div></section>
+
+  <h2 class="sec" id="indices"><span>Indices</span>
+    <span class="seg2" id="grp"><button data-g="Broad" class="on">Broad</button><button data-g="Sector">Sector</button><button data-g="Theme">Theme</button><button data-g="Strategy">Strategy</button><button data-g="Mine">My indices</button></span></h2>
+  <div class="igrid" id="grid"></div>
+
+  <section class="panel" id="detail" hidden></section>
+
+  <h2 class="sec"><span>Industries</span><small class="muted" style="font-size:13px;font-weight:500">ranked by relative strength</small></h2>
+  <section class="panel"><div class="tscroll"><table><thead><tr><th>Industry</th><th>RS</th><th>1 mo</th><th>3 mo</th><th>Above 50d</th><th>Trend</th></tr></thead><tbody id="ind"></tbody></table></div></section>
 </main>
+
+<div class="dlg" id="dlg" hidden><div class="box">
+  <h3><span id="dlgT">Create your index</span><button id="dlgX" aria-label="Close">×</button></h3>
+  <div class="bd">
+    <label>Name<input type="text" id="cname" maxlength="40" placeholder="e.g. My defence basket"></label>
+    <label style="position:relative">Add stocks<input type="search" id="cadd" placeholder="Search a company to add" autocomplete="off"></label>
+    <div class="sel" id="csel"></div>
+    <small class="muted">Equal weight, up to 40 stocks. Saved in this browser only.</small>
+  </div>
+  <div class="ft"><button class="btn" id="cdel" hidden style="color:var(--down)">Delete</button><span style="margin-left:auto;display:flex;gap:8px"><button class="btn" id="ccan">Cancel</button><button class="btn p" id="csave">Save index</button></span></div>
+</div></div>
+
 <script>
 (async () => {
-  const { esc, pct, cls, fmtDate } = MM;
-  const d = await (await fetch("../breakouts/data.json", { cache: "no-cache" })).json();
-  const m = d.market || {}, b = d.breadth || {};
+  const { esc, inr, crs, pct, cls, stockUrl, fmtDate, fmtShort, logo, co, STAGE, stagePill, stageOf, lineChart, spark } = MM;
+  const [d, ix, bo] = await Promise.all([MM.index(), MM.getJSON("indices.json"),
+    fetch("../breakouts/data.json", { cache: "no-cache" }).then(r => r.json()).catch(() => ({}))]);
+  const by = d.by;
+  const ORDER = ["fresh", "climbing", "forming", "played"];
+  const SC = { fresh: "#0f8f55", climbing: "#5b8fe0", forming: "#e0a63a", played: "#b8bec7" };
+
+  // ---------------- market health
+  const m = bo.market || d.market || {}, b = bo.breadth || {};
   const word = { green: ["Green", "Good market for breakouts. Most stocks are above their averages."],
                  amber: ["Amber", "Mixed market. Be choosy and keep positions smaller."],
                  red: ["Red", "Weak market. Most breakouts fail here; protect capital."] }[m.light] || ["–", ""];
-  document.getElementById("top").innerHTML = `<div class="hero"><span class="light l-${m.light}"><i></i>${word[0]}</span>
-      <span>${word[1]}${m.light_days ? ` <span class="muted">(${m.light_days} days in a row)</span>` : ""}</span>
-      <span class="muted" style="margin-left:auto;font-size:13px">As of ${fmtDate(d.date)}</span></div>
-    <div class="stats">
-      <div><small>Rising / falling today</small><b><span class="up">${m.adv ?? "–"}</span> / <span class="down">${m.dec ?? "–"}</span></b></div>
-      <div><small>New 52-week highs / lows</small><b>${m.highs ?? "–"} / ${m.lows ?? "–"}</b></div>
-      <div><small>Above 50-day average</small><b>${m.breadth50 != null ? Math.round(m.breadth50 * 100) + "%" : "–"}</b></div>
-      <div><small>Above 200-day average</small><b>${m.breadth200 != null ? Math.round(m.breadth200 * 100) + "%" : "–"}</b></div></div>
-    <div class="note">Safety light backtest (VCP breakouts, 2016–2026): average trade +4.3% when green, +2.9% amber, +1.6% red.</div>`;
-
-  // breadth % with Nifty on a second scale
+  let bchart = "";
   if (b.d && b.d.length > 2) {
-    const W = 760, H = 230, P = { l: 40, r: 60, t: 12, b: 22 }, n = b.d.length;
-    const X = i => P.l + i * (W - P.l - P.r) / (n - 1);
-    const Y = v => P.t + (1 - v) * (H - P.t - P.b);
-    const nl = Math.min(...b.nifty), nh = Math.max(...b.nifty);
-    const YN = v => P.t + (nh - v) / ((nh - nl) || 1) * (H - P.t - P.b);
+    const W = 760, H = 200, P = { l: 40, r: 60, t: 12, b: 22 }, n = b.d.length;
+    const X = i => P.l + i * (W - P.l - P.r) / (n - 1), Y = v => P.t + (1 - v) * (H - P.t - P.b);
+    const nl = Math.min(...b.nifty), nh = Math.max(...b.nifty), YN = v => P.t + (nh - v) / ((nh - nl) || 1) * (H - P.t - P.b);
     const path = (arr, f) => arr.map((v, i) => (i ? "L" : "M") + X(i).toFixed(1) + " " + f(v).toFixed(1)).join("");
-    const bands = b.light.map((l, i) => i ? `<rect x="${X(i - 1)}" y="${P.t}" width="${X(i) - X(i - 1) + .5}" height="${H - P.t - P.b}" fill="var(--${l === "green" ? "up" : l === "red" ? "down" : "amber"})" opacity=".07"/>` : "").join("");
     const grid = [0, .25, .5, .75, 1].map(v => `<line x1="${P.l}" x2="${W - P.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)" stroke-dasharray="3 4"/><text x="${P.l - 6}" y="${Y(v) + 4}" font-size="11" text-anchor="end" fill="var(--muted)">${v * 100}%</text>`).join("");
     const labs = [0, Math.floor(n / 2), n - 1].map(i => `<text x="${X(i)}" y="${H - 4}" font-size="11" fill="var(--muted)" text-anchor="${i === 0 ? "start" : i === n - 1 ? "end" : "middle"}">${fmtDate(b.d[i])}</text>`).join("");
-    document.getElementById("bchart").innerHTML = `<svg viewBox="0 0 ${W} ${H}">${bands}${grid}
-      <path d="${path(b.nifty, YN)}" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 3"/>
+    bchart = `<svg viewBox="0 0 ${W} ${H}">${grid}<path d="${path(b.nifty, YN)}" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 3"/>
       <path d="${path(b.a50, Y)}" fill="none" stroke="var(--mint-d)" stroke-width="2.2"/>
       <text x="${W - P.r + 6}" y="${YN(b.nifty[n - 1]) + 4}" font-size="11" fill="var(--muted)">Nifty</text>
       <text x="${W - P.r + 6}" y="${Y(b.a50[n - 1]) + 4}" font-size="11" font-weight="700" fill="var(--mint-d)">${Math.round(b.a50[n - 1] * 100)}%</text>${labs}</svg>`;
   }
+  document.getElementById("top").innerHTML = `<div class="hero"><span class="light l-${m.light}"><i></i>${word[0]}</span>
+      <span>${word[1]}${m.light_days ? ` <span class="muted">(${m.light_days} days in a row)</span>` : ""}</span>
+      <span class="muted" style="margin-left:auto;font-size:13px">As of ${fmtDate(bo.date || ix.day)}</span></div>
+    <div class="hs4">
+      <div><small>Rising / falling</small><b><span class="up">${m.adv ?? "–"}</span> / <span class="down">${m.dec ?? "–"}</span></b></div>
+      <div><small>52-week highs / lows</small><b>${m.highs ?? "–"} / ${m.lows ?? "–"}</b></div>
+      <div><small>Above 50-day average</small><b>${m.breadth50 != null ? Math.round(m.breadth50 * 100) + "%" : "–"}</b></div>
+      <div><small>Above 200-day average</small><b>${m.breadth200 != null ? Math.round(m.breadth200 * 100) + "%" : "–"}</b></div></div>
+    ${bchart ? `<details class="bd"><summary>Show breadth chart (stocks above 50-day average, 12 months) ▾</summary><div class="chart">${bchart}</div></details>` : ""}
+    <div class="note">Safety light backtest (VCP breakouts, 2016–2026): average trade +4.3% when green, +2.9% amber, +1.6% red.</div>`;
 
-  const spark = a => { if (!a || a.length < 2) return ""; const lo = Math.min(...a), hi = Math.max(...a);
-    const p = a.map((v, i) => (i ? "L" : "M") + (i * 90 / (a.length - 1)).toFixed(1) + " " + (24 - (v - lo) / ((hi - lo) || 1) * 22).toFixed(1)).join("");
-    return `<svg class="spark" viewBox="0 0 90 26"><path d="${p}" fill="none" stroke="${a[a.length - 1] >= a[0] ? "var(--up)" : "var(--down)"}" stroke-width="1.6"/></svg>`; };
-  document.getElementById("ix").innerHTML = (d.indices || []).map(x => `<tr><td>${esc(x.name)}</td><td>${Number(x.close).toLocaleString("en-IN", { maximumFractionDigits: 0 })}</td>
-    <td class="${cls(x.chg)}">${pct(x.chg * 100, 2)}</td><td class="${cls(x.r1m)}">${pct(x.r1m * 100)}</td><td class="${cls(x.r1y)}">${pct(x.r1y * 100)}</td>
-    <td><span class="stg st-${x.stage || "none"}">${esc(x.stage || "–")}</span></td></tr>`).join("");
-  document.getElementById("ind").innerHTML = (d.industries || []).slice().sort((a, b) => b.rs - a.rs).map(x => `<tr>
+  // ---------------- custom indices (this browser)
+  const loadMine = () => { try { return JSON.parse(localStorage.getItem("mm-custom") || "[]"); } catch (e) { return []; } };
+  const saveMine = a => { try { localStorage.setItem("mm-custom", JSON.stringify(a)); } catch (e) {} };
+  const coCache = {};
+  const getCo = s => coCache[s] || (coCache[s] = MM.getJSON("co/" + encodeURIComponent(s) + ".json").catch(() => null));
+  async function buildCustom(c) {
+    const docs = (await Promise.all(c.syms.map(getCo))).filter(x => x && x.px && x.px.c && x.px.c.length > 30);
+    const n = Math.max(0, ...docs.map(x => x.px.c.length));
+    const line = []; let lvl = 100;
+    for (let t = 0; t < n; t++) {
+      if (t) {
+        const rs = [];
+        for (const x of docs) {
+          const c2 = x.px.c, off = n - c2.length, a = c2[t - 1 - off], bb = c2[t - off];   // align on the latest day
+          if (a && bb && Math.abs(bb / a - 1) < 0.5) rs.push(bb / a - 1);
+        }
+        lvl *= 1 + (rs.length ? rs.reduce((p, q) => p + q, 0) / rs.length : 0);
+      }
+      line.push(+lvl.toFixed(2));
+    }
+    const ret = k => line.length > k ? +((line[line.length - 1] / line[line.length - 1 - k] - 1) * 100).toFixed(1) : null;
+    const syms = c.syms.filter(s => by[s]);
+    const counts = {}; syms.forEach(s => { const st = by[s].bo; if (st) counts[st] = (counts[st] || 0) + 1; });
+    const up = syms.filter(s => (by[s].c || 0) > 0).length;
+    return { id: c.id, name: c.name, group: "Mine", n: syms.length, syms, line, mine: true, d0: docs[0] && docs[0].px.d0,
+             r: { "1D": ret(1), "1W": ret(5), "1M": ret(21), "3M": ret(63), "6M": ret(126), "1Y": ret(line.length - 1) },
+             stage: stageOf(line), counts, adv: up, dec: syms.length - up };
+  }
+
+  // ---------------- index cards
+  const state = { g: "Broad", sel: null };
+  const stageOfIdx = x => (x.official && STAGE[x.official.stage]) ? x.official.stage : (x.stage || {}).stage;
+  const cntHtml = x => ORDER.filter(k => (x.counts || {})[k]).map(k => `<span class="st-${k}">${x.counts[k]} ${k === "played" ? "played out" : k}</span>`).join("");
+  async function drawGrid() {
+    document.querySelectorAll("#grp button").forEach(bb => bb.classList.toggle("on", bb.dataset.g === state.g));
+    let list;
+    if (state.g === "Mine") {
+      document.getElementById("grid").innerHTML = '<div class="empty">Loading your indices…</div>';
+      list = await Promise.all(loadMine().map(buildCustom));
+    } else list = ix.indices.filter(x => x.group === state.g);
+    document.getElementById("grid").innerHTML = list.map(x => {
+      const o = x.official, last = x.line.slice(-126);
+      return `<button class="icard ${state.sel && state.sel.id === x.id ? "on" : ""}" data-id="${esc(x.id)}">
+        <span class="t"><span><b>${esc(x.name)}</b><small style="display:block">${x.n} stocks${x.mine ? " · yours" : ""}</small></span>${stagePill(stageOfIdx(x))}</span>
+        <span class="nums"><span>${o ? `<b>${Number(o.close).toLocaleString("en-IN", { maximumFractionDigits: 0 })}</b><span class="${cls(o.chg)}">${pct(o.chg, 2)}</span>`
+          : `<b>${pct(x.r["1D"], 2)}</b><span class="muted">today</span>`}</span>
+          <span style="text-align:right">${spark(last)}<span class="${cls(x.r["1Y"])}">${pct(x.r["1Y"])} 1Y</span></span></span>
+        <span class="cnt">${cntHtml(x)}</span></button>`;
+    }).join("") + `<button class="icard new" id="newIdx">＋ Create your own index</button>`;
+    document.querySelectorAll("#grid .icard[data-id]").forEach(el => el.onclick = () => open(list.find(x => x.id === el.dataset.id)));
+    document.getElementById("newIdx").onclick = () => builder();
+  }
+  document.getElementById("grp").onclick = e => { const bb = e.target.closest("button"); if (!bb) return; state.g = bb.dataset.g; drawGrid(); };
+
+  // ---------------- index detail
+  const dt = { range: "1Y", f: "" };
+  function open(x) {
+    state.sel = x; dt.f = "";
+    document.querySelectorAll("#grid .icard").forEach(el => el.classList.toggle("on", el.dataset.id === x.id));
+    history.replaceState(null, "", x.mine ? location.pathname + "#indices" : `?i=${x.id}#indices`);
+    drawDetail();
+    document.getElementById("detail").scrollIntoView({ behavior: "smooth" });
+  }
+  function drawDetail() {
+    const x = state.sel, el = document.getElementById("detail");
+    el.hidden = false;
+    const o = x.official, s = x.stage || {}, offSt = o && STAGE[o.stage] ? o.stage : null;
+    const n = { "1M": 22, "3M": 64, "6M": 127, "1Y": x.line.length }[dt.range];
+    const pts = x.line.slice(-n);
+    const counts = x.counts || {}, tot = x.n || 1, none = tot - ORDER.reduce((a, k) => a + (counts[k] || 0), 0);
+    const mem = x.syms.map(sy => by[sy]).filter(Boolean)
+      .filter(r => !dt.f || (dt.f === "none" ? !r.bo : r.bo === dt.f))
+      .sort((a, b2) => (ORDER.indexOf(a.bo) + 1 || 9) - (ORDER.indexOf(b2.bo) + 1 || 9) || (b2.m || 0) - (a.m || 0));
+    const stageText = st => ({ fresh: "just broke above its base high", climbing: "is above its base high and still rising", forming: "is building a base under its high",
+                               played: "broke out earlier but has lost momentum", below: "is well below its base high (no setup)" }[st] || "");
+    el.innerHTML = `<div class="dh"><h3>${esc(x.name)} ${stagePill(offSt || s.stage)}</h3>
+        <div class="lv">${o ? Number(o.close).toLocaleString("en-IN", { maximumFractionDigits: 2 }) + ` <span class="${cls(o.chg)}" style="font-size:15px">${pct(o.chg, 2)}</span><small>Official level · ${fmtDate(ix.day)}</small>`
+          : `${x.line[x.line.length - 1].toFixed(2)}<small>Equal-weight line, 100 a year ago</small>`}</div></div>
+      <div class="rets">${Object.entries(x.r).map(([k, v]) => `<span>${k}<b class="${cls(v)}">${pct(v)}</b></span>`).join("")}</div>
+      <div class="crow"><b style="font-size:14px">Equal-weight line of its ${x.n} stocks</b>
+        <span class="seg2" id="rng">${["1M", "3M", "6M", "1Y"].map(r => `<button data-r="${r}" class="${r === dt.range ? "on" : ""}">${r}</button>`).join("")}</span></div>
+      <div class="chart">${lineChart(pts, { base: s.pivot && dt.range !== "1M" ? s.pivot : null, id: "ixg",
+        labels: [[0, ""], [pts.length - 1, fmtDate(ix.day)]] })}</div>
+      <div class="box2">
+        <div><b>Index breakout stage</b>
+          <p style="margin:6px 0 0;font-size:14px">${offSt ? `On the official index (Breakout Desk): <b>${STAGE[offSt]}</b>. ` : ""}
+            The equal-weight line ${stageText(s.stage)}${s.pivot ? ` · base high ${s.pivot.toFixed(1)}, now ${pct(s.vs_pivot * 100)} from it` : ""}.</p>
+          <p class="muted" style="margin:8px 0 0;font-size:12.5px">Rising <b class="up">${x.adv ?? "–"}</b> · Falling <b class="down">${x.dec ?? "–"}</b> today</p></div>
+        <div><b>Stocks by breakout stage</b>
+          <div class="sb">${ORDER.map(k => `<i title="${STAGE[k]}: ${counts[k] || 0}" style="width:${(counts[k] || 0) / tot * 100}%;background:${SC[k]}"></i>`).join("")}</div>
+          <div class="chips" id="sf"><button data-f="" class="${dt.f === "" ? "on" : ""}">All ${tot}</button>${ORDER.map(k => counts[k] ? `<button data-f="${k}" class="${dt.f === k ? "on" : ""}">${STAGE[k]} ${counts[k]}</button>` : "").join("")}<button data-f="none" class="${dt.f === "none" ? "on" : ""}">No setup ${none}</button></div></div>
+      </div>
+      <div class="tscroll"><table><thead><tr><th style="width:30px"><input type="checkbox" id="all" aria-label="Select all"></th><th style="text-align:left">Company</th><th>Price</th><th>Day</th><th>1 yr</th><th>Mint</th><th>Breakout stage</th></tr></thead>
+        <tbody>${mem.map(r => `<tr><td><input type="checkbox" class="pick" value="${esc(r.s)}"></td><td style="text-align:left">${co(r.s, r.n, r.lg, `${esc(r.s)} · ${crs(r.m)}`)}</td>
+          <td>${inr(r.p)}</td><td class="${cls(r.c)}">${pct(r.c, 2)}</td><td class="${cls(r.r1y)}">${pct(r.r1y)}</td><td>${r.sc ?? "–"}</td><td>${stagePill(r.bo) || '<span class="muted">–</span>'}</td></tr>`).join("") || '<tr><td colspan="7" class="empty">No stocks in this group.</td></tr>'}</tbody></table></div>
+      <div class="acts"><span class="muted" style="font-size:13px" id="pickn">Tick stocks to build your own index from them.</span>
+        <span style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+          ${x.mine ? `<button class="btn" id="edit">Edit this index</button>` : ""}
+          <button class="btn s" id="fromAll">Copy whole index</button><button class="btn p" id="fromSel" disabled>Make index from ticked</button></span></div>`;
+    el.querySelector("#rng").onclick = e => { const bb = e.target.closest("button"); if (bb) { dt.range = bb.dataset.r; drawDetail(); } };
+    el.querySelector("#sf").onclick = e => { const bb = e.target.closest("button"); if (bb) { dt.f = bb.dataset.f; drawDetail(); } };
+    const picks = () => [...el.querySelectorAll(".pick:checked")].map(i => i.value);
+    const upd = () => { const p = picks(); el.querySelector("#fromSel").disabled = !p.length; el.querySelector("#pickn").textContent = p.length ? `${p.length} ticked` : "Tick stocks to build your own index from them."; };
+    el.querySelectorAll(".pick").forEach(i => i.onchange = upd);
+    el.querySelector("#all").onchange = e => { el.querySelectorAll(".pick").forEach(i => i.checked = e.target.checked); upd(); };
+    el.querySelector("#fromSel").onclick = () => builder({ name: `My ${x.name.replace(/^Nifty\s*/, "")} pick`, syms: picks() });
+    el.querySelector("#fromAll").onclick = () => builder({ name: `${x.name} (my copy)`, syms: x.syms.slice(0, 40) });
+    if (x.mine) el.querySelector("#edit").onclick = () => builder(loadMine().find(c => c.id === x.id));
+  }
+
+  // ---------------- builder
+  let cur = null;
+  const dlg = document.getElementById("dlg");
+  const drawSel = () => {
+    document.getElementById("csel").innerHTML = cur.syms.map(s => `<span>${logo(s, by[s] ? by[s].n : s, by[s] && by[s].lg, "sm")}${esc(s)}<button data-s="${esc(s)}" aria-label="Remove ${esc(s)}">×</button></span>`).join("")
+      || '<small class="muted" style="padding:4px">No stocks yet. Search above to add.</small>';
+  };
+  function builder(pre) {
+    const existing = pre && pre.id;
+    cur = { id: existing ? pre.id : "c" + Date.now(), name: (pre && pre.name) || "", syms: ((pre && pre.syms) || []).slice(0, 40) };
+    document.getElementById("dlgT").textContent = existing ? "Edit your index" : "Create your index";
+    document.getElementById("cname").value = cur.name;
+    document.getElementById("cdel").hidden = !existing;
+    drawSel(); dlg.hidden = false;
+    setTimeout(() => document.getElementById(cur.name ? "cadd" : "cname").focus(), 50);
+  }
+  MM.attachSearch(document.getElementById("cadd"), r => { if (!cur.syms.includes(r.s) && cur.syms.length < 40) cur.syms.push(r.s); drawSel(); });
+  document.getElementById("csel").onclick = e => { const bb = e.target.closest("button[data-s]"); if (bb) { cur.syms = cur.syms.filter(s => s !== bb.dataset.s); drawSel(); } };
+  const close = () => { dlg.hidden = true; };
+  document.getElementById("dlgX").onclick = close; document.getElementById("ccan").onclick = close;
+  dlg.onclick = e => { if (e.target === dlg) close(); };
+  document.getElementById("csave").onclick = async () => {
+    cur.name = document.getElementById("cname").value.trim() || "My index";
+    if (cur.syms.length < 2) { alert("Add at least 2 stocks."); return; }
+    const mine = loadMine().filter(c => c.id !== cur.id); mine.unshift({ id: cur.id, name: cur.name, syms: cur.syms }); saveMine(mine);
+    close(); state.g = "Mine"; await drawGrid();
+    const built = await buildCustom(cur); open(built);
+  };
+  document.getElementById("cdel").onclick = () => { saveMine(loadMine().filter(c => c.id !== cur.id)); close(); document.getElementById("detail").hidden = true; state.sel = null; state.g = "Mine"; drawGrid(); };
+
+  // ---------------- industries
+  document.getElementById("ind").innerHTML = (bo.industries || []).slice().sort((a, c) => c.rs - a.rs).map(x => `<tr>
     <td><a href="../rank/?ind=${encodeURIComponent(x.name)}">${esc(x.name)}</a><small>${x.n} stocks${x.fresh || x.climbing ? ` · ${x.fresh || 0} fresh, ${x.climbing || 0} climbing` : ""}</small></td>
-    <td><span class="rsb" style="width:${Math.round(x.rs / 2)}px"></span>${Math.round(x.rs)}</td><td class="${cls(x.r1m)}">${pct(x.r1m * 100)}</td><td class="${cls(x.r3m)}">${pct(x.r3m * 100)}</td>
-    <td>${Math.round(x.above50 * 100)}%</td><td>${spark(x.spark)}</td></tr>`).join("");
+    <td><span class="rsb" style="display:inline-block;height:6px;border-radius:3px;background:var(--mint-d);vertical-align:middle;margin-right:6px;width:${Math.round(x.rs / 2)}px"></span>${Math.round(x.rs)}</td><td class="${cls(x.r1m)}">${pct(x.r1m * 100)}</td><td class="${cls(x.r3m)}">${pct(x.r3m * 100)}</td>
+    <td>${Math.round(x.above50 * 100)}%</td><td>${spark(x.spark, 90, 26)}</td></tr>`).join("");
+
+  // start
+  const want = new URLSearchParams(location.search).get("i");
+  const first = want && ix.indices.find(x => x.id === want);
+  if (first) state.g = first.group;
+  await drawGrid();
+  if (first) open(first);
 })();
 </script>
 </body>

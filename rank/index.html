@@ -8,9 +8,10 @@
 <link rel="icon" href="../logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/nav.css">
 <link rel="stylesheet" href="../assets/mm.css">
 <style>
-h1{font-size:26px;margin:22px 0 4px;letter-spacing:-.02em}
+h1{font-size:24px;margin:22px 0 4px;letter-spacing:-.02em}
 .lead{color:var(--muted);margin:0 0 14px;font-size:14.5px}
 .filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)}
 .filters select,.filters input{height:36px;border-radius:9px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:0 10px;font:inherit;font-size:14px}
@@ -65,7 +66,7 @@ th.on{color:var(--mint-d)}
     });
     document.getElementById("cnt").textContent = rs.length.toLocaleString("en-IN") + " stocks";
     document.getElementById("tb").innerHTML = rs.slice(0, st.shown).map((r, i) => `<tr><td>${i + 1}</td>
-      <td style="text-align:left"><a href="${stockUrl(r.s)}">${esc(r.n)}</a><small>${esc(r.s)} · ${esc(r.i || "")}</small></td>
+      <td style="text-align:left">${MM.co(r.s, r.n, r.lg, esc(r.s) + " · " + esc(r.i || ""))}</td>
       <td><span class="sc ${scCls(r.sc)}">${r.sc}</span></td><td>${crs(r.m)}</td><td>${inr(r.p)}</td><td class="${cls(r.c)}">${pct(r.c, 2)}</td>
       <td class="${cls(r.r1y)}">${pct(r.r1y)}</td><td>${r.pe == null ? "–" : r.pe.toFixed(1)}</td><td>${r.roe == null ? "–" : r.roe.toFixed(1) + "%"}</td>
       <td>${r.fh == null ? "–" : pct(r.fh)}</td></tr>`).join("") || '<tr><td colspan="10" class="empty">No stocks match.</td></tr>';

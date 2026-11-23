@@ -1,0 +1,63 @@
+/* Market Mint site header, section tabs, phone bottom bar, search box and logo tiles.
+   Every rule is scoped (.mmh / .mmb / .mmlogo / .sugg) so it is safe on older pages too. */
+.mmh,.mmb,.mmsheet{--h-bg:#fff;--h-ink:#111827;--h-muted:#6b7280;--h-line:#e8eaef;--h-soft:#f3f5f8;--h-acc:#0e8a5f;--h-acc-soft:#e8f5ee;
+  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .mmh,:root:not([data-theme="light"]) .mmb,:root:not([data-theme="light"]) .mmsheet{--h-bg:#111418;--h-ink:#e8ebef;--h-muted:#9aa3ae;--h-line:#23282f;--h-soft:#1a1f25;--h-acc:#3fd39a;--h-acc-soft:#14281f}}
+:root[data-theme="dark"] .mmh,:root[data-theme="dark"] .mmb,:root[data-theme="dark"] .mmsheet{--h-bg:#111418;--h-ink:#e8ebef;--h-muted:#9aa3ae;--h-line:#23282f;--h-soft:#1a1f25;--h-acc:#3fd39a;--h-acc-soft:#14281f}
+.mmh{position:sticky;top:0;z-index:1000;background:var(--h-bg);color:var(--h-ink);border-bottom:1px solid var(--h-line);box-sizing:border-box}
+.mmh *,.mmb *,.mmsheet *{box-sizing:border-box}
+.mmh .in{max-width:1180px;margin:0 auto;padding:0 16px}
+.mmh .row1{display:flex;align-items:center;gap:14px;height:62px}
+.mmh .brand{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--h-ink);font-weight:800;letter-spacing:.1em;font-size:14px;white-space:nowrap}
+.mmh .brand img{width:32px;height:32px;border-radius:9px;border:1px solid var(--h-line);padding:2px;background:#fff}
+.mmh .hs{flex:1;max-width:520px;position:relative;display:block;margin:0 auto}
+.mmh .hs input{width:100%;height:40px;border-radius:11px;border:1px solid var(--h-line);background:var(--h-soft);color:var(--h-ink);padding:0 14px 0 38px;font:inherit;font-size:14px;outline:none}
+.mmh .hs input:focus{background:var(--h-bg);border-color:var(--h-acc);box-shadow:0 0 0 3px var(--h-acc-soft)}
+.mmh .hs svg{position:absolute;left:13px;top:12px;color:var(--h-muted)}
+.mmh .join{background:var(--h-acc);color:#fff;text-decoration:none;font-weight:700;font-size:13px;padding:9px 15px;border-radius:10px;white-space:nowrap}
+.mmh .tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;margin:0 -4px}
+.mmh .tabs::-webkit-scrollbar{display:none}
+.mmh .tabs a{flex:0 0 auto;display:flex;align-items:center;gap:7px;padding:10px 12px 11px;font-size:14px;font-weight:600;color:var(--h-muted);text-decoration:none;border-bottom:2px solid transparent;white-space:nowrap}
+.mmh .tabs a:hover{color:var(--h-ink)}
+.mmh .tabs a.on{color:var(--h-acc);border-bottom-color:var(--h-acc)}
+.mmh .tabs svg{width:17px;height:17px}
+/* phone: tabs move to a bottom bar */
+.mmb{display:none}
+@media (max-width:760px){
+  .mmh .row1{height:auto;padding:10px 0;flex-wrap:wrap;gap:10px}
+  .mmh .brand span{display:none}
+  .mmh .hs{order:3;flex-basis:100%;max-width:none}
+  .mmh .join{margin-left:auto}
+  .mmh .tabs{display:none}
+  .mmb{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:1000;background:var(--h-bg);border-top:1px solid var(--h-line);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+  .mmb a,.mmb button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font:inherit;font-size:11px;font-weight:600;color:var(--h-muted);text-decoration:none;background:none;border:0;padding:4px 0;cursor:pointer}
+  .mmb a.on,.mmb button.on{color:var(--h-acc)}
+  .mmb svg{width:22px;height:22px}
+  body{padding-bottom:72px}
+}
+.mmsheet{position:fixed;inset:0;z-index:1001;background:rgba(0,0,0,.35);display:flex;align-items:flex-end}
+.mmsheet[hidden]{display:none}
+.mmsheet .box{background:var(--h-bg);color:var(--h-ink);width:100%;border-radius:18px 18px 0 0;padding:14px 12px calc(14px + env(safe-area-inset-bottom))}
+.mmsheet .box b{display:block;font-size:13px;color:var(--h-muted);padding:4px 8px 8px;font-weight:600}
+.mmsheet a{display:flex;align-items:center;gap:12px;padding:12px 10px;border-radius:12px;color:var(--h-ink);text-decoration:none;font-weight:600;font-size:15px}
+.mmsheet a:hover{background:var(--h-soft)}
+.mmsheet a span{width:38px;height:38px;border-radius:10px;background:var(--h-acc-soft);color:var(--h-acc);display:grid;place-items:center}
+.mmsheet a small{display:block;font-weight:400;color:var(--h-muted);font-size:12.5px}
+
+/* search suggestions */
+.sugg{position:absolute;left:0;right:0;top:calc(100% + 6px);background:var(--h-bg,#fff);color:var(--h-ink,#111827);border:1px solid var(--h-line,#e8eaef);border-radius:14px;box-shadow:0 16px 40px rgba(15,23,42,.14);overflow:hidden;z-index:1002;max-height:440px;overflow-y:auto;font-family:Inter,system-ui,sans-serif}
+.sugg[hidden]{display:none}
+.sugg a{display:flex;gap:11px;padding:9px 12px;text-decoration:none;color:inherit;align-items:center;border-bottom:1px solid var(--h-line,#e8eaef)}
+.sugg a:last-child{border-bottom:0}
+.sugg a.on,.sugg a:hover{background:var(--h-soft,#f3f5f8)}
+.sugg .l{min-width:0;flex:1}.sugg .l b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sugg .l small{color:var(--h-muted,#6b7280);font-size:12px}
+.sugg .r{text-align:right;font-size:13px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.sugg .up{color:#0f8f55}.sugg .down{color:#d0342c}
+.sugg .empty{padding:14px;color:var(--h-muted,#6b7280);font-size:14px}
+
+/* logo tiles */
+.mmlogo{flex:0 0 auto;display:inline-grid;place-items:center;width:36px;height:36px;border-radius:10px;background:#fff;border:1px solid #e8eaef;overflow:hidden;font:700 13px/1 Inter,system-ui,sans-serif;letter-spacing:-.02em;vertical-align:middle}
+.mmlogo img{width:76%;height:76%;object-fit:contain;display:block}
+.mmlogo.sm{width:28px;height:28px;border-radius:8px;font-size:11px}
+.mmlogo.lgx{width:56px;height:56px;border-radius:14px;font-size:19px}

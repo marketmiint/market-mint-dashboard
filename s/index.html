@@ -9,6 +9,7 @@
 <link rel="icon" href="../logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/nav.css">
 <link rel="stylesheet" href="../assets/mm.css">
 <style>
 .top{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:flex-end;padding:20px 0 14px}
@@ -17,13 +18,13 @@ h1{font-size:28px;line-height:1.15;margin:0;letter-spacing:-.02em}
 .px{text-align:right}.px .p{font-size:32px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .px .c{font-weight:700;font-variant-numeric:tabular-nums}.px small{display:block;color:var(--muted);font-size:12px}
 .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.subnav{position:sticky;top:60px;z-index:30;background:var(--bg);border-bottom:1px solid var(--line);margin-bottom:14px}
+.subnav{position:sticky;top:108px;z-index:30;background:var(--bg);border-bottom:1px solid var(--line);margin-bottom:14px}
 .subnav .in{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:8px 0}
 .subnav a{flex:0 0 auto;text-decoration:none;font-size:13.5px;font-weight:600;color:var(--muted);padding:6px 11px;border-radius:8px}
 .subnav a.on,.subnav a:hover{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
 .grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:14px;align-items:start}
-@media (max-width:880px){.grid{grid-template-columns:minmax(0,1fr)}.subnav{top:104px}}
-@media (max-width:720px){.subnav{top:106px}}
+@media (max-width:880px){.grid{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:760px){.subnav{top:110px}}
 .chart{padding:8px 8px 2px}.chart svg{width:100%;height:auto;display:block}
 .crow{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 16px 0}
 .rets{display:flex;gap:6px;flex-wrap:wrap;padding:6px 16px 14px;font-size:13px}
@@ -68,7 +69,7 @@ h1{font-size:28px;line-height:1.15;margin:0;letter-spacing:-.02em}
 .nf h1{margin-bottom:8px}.nf .hs2{display:block;position:relative;margin-top:18px}
 .nf input{width:100%;height:48px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:0 16px;font:inherit;font-size:16px;outline:none}
 .nf input:focus{border-color:var(--mint-d)}
-section{scroll-margin-top:120px}
+section{scroll-margin-top:170px}
 </style>
 </head>
 <body data-root="../">
@@ -108,13 +109,13 @@ section{scroll-margin-top:120px}
                   ["shp", "Shareholding"], ["orders", "Order wins"], ["peers", "Peers"]];
     app.innerHTML = `
       <div class="top">
-        <div><h1>${esc(c.name)}</h1>
+        <div style="display:flex;gap:14px;align-items:flex-start">${MM.logo(c.sym, c.name, c.lg, "lgx")}<div><h1>${esc(c.name)}</h1>
           <div class="tags"><span class="tag">NSE: ${esc(c.sym)}</span>${c.cap ? `<span class="tag">${c.cap} cap</span>` : ""}
             <span>${esc(c.yind || c.ind || "")}</span>${c.next ? `<span class="tag" style="color:var(--teal)">Results ${fmtDate(c.next)}</span>` : ""}</div>
           <div class="acts">
             <a class="btn" href="https://www.tradingview.com/chart/?symbol=NSE:${encodeURIComponent(c.sym)}" target="_blank" rel="noopener">Chart on TradingView ↗</a>
             <a class="btn" href="https://www.nseindia.com/get-quotes/equity?symbol=${encodeURIComponent(c.sym)}" target="_blank" rel="noopener">NSE page ↗</a>
-          </div></div>
+          </div></div></div>
         <div class="px"><div class="p">${inr(px.last)}</div>
           <div class="c ${cls(px.chg)}">${pct(px.chg, 2)} <span class="muted" style="font-weight:500">on the day</span></div>
           <small>Close of ${fmtDate(px.d)}</small></div>
@@ -323,8 +324,8 @@ section{scroll-margin-top:120px}
   function peers(c) {
     const ps = c.peers || [];
     if (!ps.length) return `<h2>Peers</h2><div class="empty">No listed peers found.</div>`;
-    const me = { s: c.sym, n: c.name, m: c.mcap, p: (c.px || {}).last, c: (c.px || {}).chg, pe: (c.key || {}).pe, roe: (c.key || {}).roe, sc: (c.mint || {}).score, r1y: ((c.px || {}).r || {})["1Y"] };
-    const row = (r, mine) => `<tr ${mine ? 'style="background:var(--soft)"' : ""}><td>${mine ? `<b>${esc(r.n)}</b>` : `<a href="?${encodeURIComponent(r.s)}">${esc(r.n)}</a>`}<small>${esc(r.s)}</small></td>
+    const me = { s: c.sym, n: c.name, lg: c.lg, bo: (c.bo || {}).stage, m: c.mcap, p: (c.px || {}).last, c: (c.px || {}).chg, pe: (c.key || {}).pe, roe: (c.key || {}).roe, sc: (c.mint || {}).score, r1y: ((c.px || {}).r || {})["1Y"] };
+    const row = (r, mine) => `<tr ${mine ? 'style="background:var(--soft)"' : ""}><td>${MM.co(r.s, r.n, r.lg, esc(r.s) + (r.bo ? " · " + (MM.STAGE[r.bo] || r.bo) : ""), !mine)}</td>
       <td>${crs(r.m)}</td><td>${inr(r.p)}</td><td class="${cls(r.c)}">${pct(r.c, 2)}</td><td class="${cls(r.r1y)}">${pct(r.r1y)}</td><td>${x(r.pe)}</td><td>${r.roe == null ? "–" : r.roe.toFixed(1) + "%"}</td><td>${r.sc ?? "–"}</td></tr>`;
     return `<h2>Peers <small>${esc(c.yind || c.ind)}</small></h2><div class="tscroll"><table><thead><tr><th>Company</th><th>M-cap</th><th>Price</th><th>Day</th><th>1 yr</th><th>P/E</th><th>ROE</th><th>Mint</th></tr></thead>
       <tbody>${row(me, true)}${ps.map(r => row(r)).join("")}</tbody></table></div>`;

@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Order wins | Market Mint</title>
+<meta name="description" content="Every order win announced on NSE this financial year, with the order size against yearly revenue and market cap.">
+<link rel="icon" href="../logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/nav.css">
+<link rel="stylesheet" href="../assets/mm.css">
+<style>
+.lay{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:960px){.lay{grid-template-columns:minmax(0,1fr)}}
+.ord{display:flex;gap:14px;padding:14px 18px;border-bottom:1px solid var(--line);align-items:flex-start}
+.ord:last-child{border-bottom:0}
+.ord .mid{flex:1;min-width:0}
+.ord .nm{display:flex;align-items:baseline;gap:8px;justify-content:space-between}
+.ord .nm a{font-weight:700;text-decoration:none;font-size:15px}.ord .nm a:hover{color:var(--mint-d)}
+.ord .amt{font-weight:800;font-size:17px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ord .cl{font-weight:600;font-size:14px;margin-top:2px}
+.ord .wk{color:var(--muted);font-size:13.5px;margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ord .meta{display:flex;gap:6px 12px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:6px;align-items:center}
+.ord .meta a{color:var(--mint-d);font-weight:700;text-decoration:none}
+.big{background:#e6f0fd;color:#1f5fbf}.huge{background:#0f8f55;color:#fff}
+.secb{padding:8px 18px 14px}
+.secb a{display:block;padding:8px 0;text-decoration:none;cursor:pointer}
+.secb .t{display:flex;justify-content:space-between;font-size:14px}.secb .t b{font-variant-numeric:tabular-nums}
+.secb i{display:block;height:6px;border-radius:4px;background:var(--soft);margin-top:5px;overflow:hidden}.secb i em{display:block;height:100%;background:var(--mint-d)}
+.secb a.on .t span{color:var(--mint-d);font-weight:700}
+</style>
+</head>
+<body data-root="../">
+<script src="../assets/mm.js"></script>
+<main class="wrap">
+  <h1 class="pt">Order wins</h1>
+  <p class="lead">Every order win announced on NSE since April 2026, sized against the company's yearly revenue and market cap.</p>
+  <div class="stats" id="stats"></div>
+  <div class="lay">
+    <section class="panel">
+      <div class="fbar">
+        <input type="search" id="f" placeholder="Search a company or customer">
+        <span class="seg2" id="per"><button data-p="7" class="on">7 days</button><button data-p="30">30 days</button><button data-p="90">3 months</button><button data-p="0">This year</button></span>
+      </div>
+      <div class="fbar" style="padding-top:10px">
+        <select id="cap" aria-label="Size"><option value="">All sizes</option><option>Large</option><option>Mid</option><option>Small</option><option>Micro</option></select>
+        <select id="min" aria-label="Order size"><option value="0">Any size</option><option value="2">2%+ of revenue</option><option value="5">5%+ of revenue</option><option value="10">10%+ of revenue</option></select>
+        <select id="sort" aria-label="Sort"><option value="t">Newest first</option><option value="v">Biggest ₹</option><option value="pr">Biggest vs revenue</option></select>
+        <span class="muted" id="cnt" style="margin-left:auto;font-size:13px"></span>
+      </div>
+      <div id="list"></div>
+      <button class="more" id="more" hidden>Show more</button>
+    </section>
+    <aside>
+      <section class="panel"><h2><span>By sector</span><small id="secp"></small></h2><div class="secb" id="secs"></div></section>
+      <section class="panel"><h2><span>Most orders this year</span></h2><div class="rowlist" id="top"></div></section>
+    </aside>
+  </div>
+</main>
+<script>
+(async () => {
+  const { esc, inr, crs, pct, cls, capOf, stockUrl, fmtDate, fmtShort, logo, co } = MM;
+  const all = (await MM.getJSON("orders.json")).orders;
+  const st = { p: 7, sec: "", shown: 40 };
+  const now = Date.now();
+  const days = o => (now - new Date((o.t || o.d + "T12:00:00+05:30"))) / 864e5;
+
+  function filtered(ignoreSec) {
+    const f = document.getElementById("f").value.trim().toUpperCase(), cap = document.getElementById("cap").value, mn = +document.getElementById("min").value;
+    return all.filter(o => (!st.p || days(o) <= st.p) && (!f || o.s.includes(f) || (o.n || "").toUpperCase().includes(f) || (o.cl || "").toUpperCase().includes(f))
+      && (!cap || capOf(o.m) === cap) && (!mn || (o.pr || 0) >= mn) && (ignoreSec || !st.sec || o.sec === st.sec));
+  }
+  function draw() {
+    const base = filtered(true), rs0 = filtered(false);
+    const k = document.getElementById("sort").value;
+    const rs = k === "t" ? rs0 : rs0.slice().sort((a, b) => (b[k] ?? -1) - (a[k] ?? -1));
+    const tot = rs.reduce((a, o) => a + (o.v || 0), 0);
+    const big = rs.reduce((a, o) => (o.v || 0) > (a ? a.v || 0 : -1) ? o : a, null);
+    const rel = rs.reduce((a, o) => (o.pr || 0) > (a ? a.pr || 0 : -1) ? o : a, null);
+    const lbl = { 7: "last 7 days", 30: "last 30 days", 90: "last 3 months", 0: "since Apr 2026" }[st.p];
+    document.getElementById("stats").innerHTML = `
+      <div class="s"><small>Order wins</small><b>${rs.length.toLocaleString("en-IN")}</b><span>${lbl}</span></div>
+      <div class="s"><small>Total value</small><b>${crs(tot)}</b><span>${lbl}</span></div>
+      <div class="s"><small>Biggest order</small><b>${big ? crs(big.v) : "–"}</b><span>${big ? esc(big.n) : ""}</span></div>
+      <div class="s"><small>Biggest vs revenue</small><b>${rel && rel.pr != null ? rel.pr.toFixed(rel.pr >= 100 ? 0 : 1) + "%" : "–"}</b><span>${rel ? esc(rel.n) : ""}</span></div>`;
+    document.getElementById("cnt").textContent = rs.length + " orders";
+    document.getElementById("list").innerHTML = rs.slice(0, st.shown).map(o => {
+      const tag = o.pr >= 10 ? `<span class="pill huge">HUGE</span>` : o.pr >= 3 ? `<span class="pill big">BIG</span>` : "";
+      return `<div class="ord">${logo(o.s, o.n, o.lg)}<div class="mid">
+        <div class="nm"><a href="${stockUrl(o.s)}">${esc(o.n)}</a><span class="amt">${crs(o.v)}</span></div>
+        ${o.cl ? `<div class="cl">${esc(o.cl)}</div>` : ""}${o.w ? `<div class="wk">${esc(o.w)}</div>` : ""}
+        <div class="meta">${tag}<span>${fmtShort(o.d)}</span>${o.pr != null ? `<span><b style="color:var(--ink)">${o.pr}%</b> of yearly revenue</span>` : ""}
+          ${o.pm != null ? `<span>${o.pm}% of m-cap</span>` : ""}${o.sec ? `<span>${esc(o.sec)}</span>` : ""}
+          ${o.src ? `<a href="${esc(o.src)}" target="_blank" rel="noopener">Filing</a>` : ""}${o.url ? `<a href="${esc(o.url)}" target="_blank" rel="noopener">Telegram</a>` : ""}</div></div></div>`;
+    }).join("") || '<div class="empty">No order wins match these filters.</div>';
+    const more = document.getElementById("more");
+    more.hidden = rs.length <= st.shown;
+    more.textContent = `Show more (${rs.length - st.shown} left)`;
+
+    // sectors (ignoring the sector filter itself)
+    const sec = {};
+    base.forEach(o => { const k2 = o.sec || "Other"; sec[k2] = sec[k2] || { n: 0, v: 0 }; sec[k2].n++; sec[k2].v += o.v || 0; });
+    const ss = Object.entries(sec).sort((a, b) => b[1].v - a[1].v).slice(0, 12), mx = ss.length ? ss[0][1].v : 1;
+    document.getElementById("secp").textContent = st.sec ? "tap again to clear" : lbl;
+    document.getElementById("secs").innerHTML = ss.map(([k2, v]) => `<a data-s="${esc(k2)}" class="${st.sec === k2 ? "on" : ""}"><span class="t"><span>${esc(k2)} <small class="muted">${v.n}</small></span><b>${crs(v.v)}</b></span><i><em style="width:${v.v / mx * 100}%"></em></i></a>`).join("") || '<div class="empty">–</div>';
+  }
+  // most orders this year (not filtered)
+  const cnt = {};
+  all.forEach(o => { cnt[o.s] = cnt[o.s] || { o, n: 0, v: 0 }; cnt[o.s].n++; cnt[o.s].v += o.v || 0; });
+  document.getElementById("top").innerHTML = Object.values(cnt).sort((a, b) => b.n - a.n || b.v - a.v).slice(0, 8).map(x =>
+    `<a href="${stockUrl(x.o.s)}">${co(x.o.s, x.o.n, x.o.lg, `${x.n} orders`, false)}<span class="rt"><b>${crs(x.v)}</b></span></a>`).join("");
+
+  document.getElementById("per").onclick = e => { const b = e.target.closest("button"); if (!b) return; st.p = +b.dataset.p; st.shown = 40; document.querySelectorAll("#per button").forEach(x => x.classList.toggle("on", x === b)); draw(); };
+  document.getElementById("secs").onclick = e => { const a = e.target.closest("a[data-s]"); if (!a) return; st.sec = st.sec === a.dataset.s ? "" : a.dataset.s; st.shown = 40; draw(); };
+  ["f", "cap", "min", "sort"].forEach(id => document.getElementById(id).addEventListener("input", () => { st.shown = 40; draw(); }));
+  document.getElementById("more").onclick = () => { st.shown += 60; draw(); };
+  draw();
+})();
+</script>
+</body>
+</html>

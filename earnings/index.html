@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Earnings: quarterly results | Market Mint</title>
+<meta name="description" content="Every NSE quarterly result this season, graded, with sales and profit growth and the next-day share move. Plus the results calendar.">
+<link rel="icon" href="../logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/nav.css">
+<link rel="stylesheet" href="../assets/mm.css">
+<style>
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;color:var(--muted)}
+.chips button.on{background:var(--ink);color:var(--card);border-color:var(--ink)}
+td .co{max-width:260px}
+.yo{display:block;font-size:12.5px;font-weight:600}
+.day{padding:10px 18px;font-size:13px;font-weight:700;color:var(--muted);background:var(--soft);border-bottom:1px solid var(--line)}
+.dist{display:flex;height:8px;border-radius:5px;overflow:hidden;margin-top:8px}
+.dist i{display:block;height:100%}
+a.card{color:var(--mint-d);font-weight:700;font-size:12.5px;text-decoration:none}
+</style>
+</head>
+<body data-root="../">
+<script src="../assets/mm.js"></script>
+<main class="wrap">
+  <div class="top">
+    <div><h1 class="pt">Earnings</h1><p class="lead" style="margin:0">Every quarterly result on NSE this season, graded by our bot, with growth and how the share reacted.</p></div>
+    <span class="seg2" id="view"><button data-v="results" class="on">Results</button><button data-v="upcoming">Upcoming</button></span>
+  </div>
+  <div style="height:14px"></div>
+  <div class="stats" id="stats"></div>
+
+  <section class="panel" id="resP">
+    <div class="fbar">
+      <input type="search" id="f" placeholder="Search a company">
+      <select id="season" aria-label="Season"></select>
+      <select id="cap" aria-label="Size"><option value="">All sizes</option><option>Large</option><option>Mid</option><option>Small</option><option>Micro</option></select>
+      <select id="sec" aria-label="Sector"><option value="">All sectors</option></select>
+      <select id="sort" aria-label="Sort">
+        <option value="d">Newest first</option><option value="sy">Sales growth</option><option value="py">Profit growth</option>
+        <option value="mv">Next-day move</option><option value="m">Market cap</option></select>
+    </div>
+    <div class="fbar" style="padding-top:10px"><span class="chips" id="rt"></span><span class="muted" id="cnt" style="margin-left:auto;font-size:13px"></span></div>
+    <div class="tscroll"><table><thead><tr><th>Company</th><th>Date</th><th>Grade</th><th>Sales ₹ Cr</th><th>Net profit ₹ Cr</th><th>OPM</th><th>Next day</th><th>Price</th></tr></thead>
+      <tbody id="tb"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody></table></div>
+    <button class="more" id="more" hidden>Show more</button>
+    <div class="note">Grades come from the Market Mint results bot (Excellent, Great, Good, OK, Weak). Sales and profit are from the NSE filing, consolidated where filed; growth is against the same quarter last year. Next day = share move on the first trading day after the result.</div>
+  </section>
+
+  <section class="panel" id="upP" hidden>
+    <h2><span>Results calendar</span><small>board meetings announced on NSE</small></h2>
+    <div class="rowlist" id="up"></div>
+  </section>
+</main>
+<script>
+(async () => {
+  const { esc, inr, crs, pct, cls, capOf, stockUrl, fmtDate, fmtShort, co } = MM;
+  const RT = ["Excellent", "Great", "Good", "OK", "Weak"];
+  const RC = { Excellent: "#0f8f55", Great: "#5cc48a", Good: "#5b8fe0", OK: "#b8bec7", Weak: "#e0645c" };
+  const er = await MM.getJSON("earnings.json");
+  const st = { rt: "", shown: 60 };
+  const q = new URLSearchParams(location.search);
+
+  const seasonSel = document.getElementById("season");
+  seasonSel.innerHTML = er.seasons.map((s, i) => `<option value="${i}">${esc(s.label)} results</option>`).join("");
+  const secs = [...new Set(er.seasons.flatMap(s => s.rows.map(r => r.sec)).filter(Boolean))].sort();
+  document.getElementById("sec").innerHTML += secs.map(s => `<option>${esc(s)}</option>`).join("");
+  document.getElementById("rt").innerHTML = [["", "All grades"]].concat(RT.map(r => [r, r])).map(([v, t]) => `<button data-r="${v}" class="${v === "" ? "on" : ""}">${t}</button>`).join("");
+
+  function stats(sea) {
+    const rs = sea.rows, n = rs.length;
+    const cnt = Object.fromEntries(RT.map(r => [r, rs.filter(x => x.rt === r).length]));
+    const graded = RT.reduce((a, r) => a + cnt[r], 0) || 1;
+    const med = a => { a = a.filter(v => v != null).sort((x, y) => x - y); return a.length ? a[Math.floor(a.length / 2)] : null; };
+    const mv = rs.map(r => r.mv).filter(v => v != null);
+    document.getElementById("stats").innerHTML = `
+      <div class="s"><small>Results declared</small><b>${n.toLocaleString("en-IN")}</b><span>${esc(sea.label)} · to ${fmtShort(sea.asof)}</span></div>
+      <div class="s"><small>Excellent or Great</small><b>${Math.round((cnt.Excellent + cnt.Great) / graded * 100)}%</b>
+        <div class="dist">${RT.map(r => `<i title="${r}: ${cnt[r]}" style="width:${cnt[r] / graded * 100}%;background:${RC[r]}"></i>`).join("")}</div></div>
+      <div class="s"><small>Median sales growth</small><b class="${cls(med(rs.map(r => r.sy)))}">${pct(med(rs.map(r => r.sy)))}</b><span>vs same quarter last year</span></div>
+      <div class="s"><small>Rose the next day</small><b>${mv.length ? Math.round(mv.filter(v => v > 0).length / mv.length * 100) + "%" : "–"}</b><span>of ${mv.length.toLocaleString("en-IN")} results</span></div>`;
+  }
+
+  function draw() {
+    const sea = er.seasons[+seasonSel.value] || { rows: [] };
+    stats(sea);
+    const f = document.getElementById("f").value.trim().toUpperCase(), cap = document.getElementById("cap").value, sec = document.getElementById("sec").value, k = document.getElementById("sort").value;
+    let rs = sea.rows.filter(r => (!f || r.s.includes(f) || (r.n || "").toUpperCase().includes(f)) && (!st.rt || r.rt === st.rt) && (!cap || capOf(r.m) === cap) && (!sec || r.sec === sec));
+    if (k !== "d") rs = rs.slice().sort((a, b) => (b[k] ?? -1e9) - (a[k] ?? -1e9));
+    document.getElementById("cnt").textContent = rs.length.toLocaleString("en-IN") + " results";
+    const n1 = v => v == null ? "–" : Math.abs(v) >= 1000 ? Math.round(v).toLocaleString("en-IN") : Number(v).toFixed(1);
+    document.getElementById("tb").innerHTML = rs.slice(0, st.shown).map(r => `<tr>
+      <td>${co(r.s, r.n, r.lg, `${esc(r.s)} · ${crs(r.m)}`)}</td><td>${fmtShort(r.d)}</td>
+      <td>${r.rt ? `<span class="pill rt-${esc(r.rt)}">${esc(r.rt)}</span>` : "–"}${r.url ? `<br><a class="card" href="${esc(r.url)}" target="_blank" rel="noopener">Card ↗</a>` : ""}</td>
+      <td>${n1(r.sales)}<span class="yo ${cls(r.sy)}">${r.sy == null ? "" : pct(r.sy) + " YoY"}</span></td>
+      <td>${n1(r.pat)}<span class="yo ${cls(r.py)}">${r.py == null ? "" : pct(r.py) + " YoY"}</span></td>
+      <td>${r.opm == null ? "–" : r.opm.toFixed(1) + "%"}</td>
+      <td class="${cls(r.mv)}">${pct(r.mv)}</td><td>${inr(r.p)}<span class="yo ${cls(r.c)}">${pct(r.c, 2)} today</span></td></tr>`).join("") || '<tr><td colspan="8" class="empty">No results match.</td></tr>';
+    const more = document.getElementById("more");
+    more.hidden = rs.length <= st.shown;
+    more.textContent = `Show more (${(rs.length - st.shown).toLocaleString("en-IN")} left)`;
+  }
+  function drawUp() {
+    const up = (er.upcoming || []).slice().sort((a, b) => a.d.localeCompare(b.d));
+    let last = "", html = "";
+    for (const u of up) {
+      if (u.d !== last) { html += `<div class="day">${fmtDate(u.d)}</div>`; last = u.d; }
+      html += `<a href="${stockUrl(u.s)}">${co(u.s, u.n, u.lg, esc(u.sec || ""), false)}<span class="rt"><b>${crs(u.m)}</b><span class="muted">${esc(capOf(u.m))} cap</span></span></a>`;
+    }
+    document.getElementById("up").innerHTML = html || '<div class="empty">No results meetings announced for the coming days yet.</div>';
+  }
+  function view(v) {
+    document.querySelectorAll("#view button").forEach(b => b.classList.toggle("on", b.dataset.v === v));
+    document.getElementById("resP").hidden = v !== "results";
+    document.getElementById("upP").hidden = v !== "upcoming";
+    document.getElementById("stats").hidden = v !== "results";
+    history.replaceState(null, "", v === "upcoming" ? "?v=upcoming" : location.pathname);
+  }
+  document.getElementById("view").onclick = e => { const b = e.target.closest("button"); if (b) view(b.dataset.v); };
+  document.getElementById("rt").onclick = e => { const b = e.target.closest("button"); if (!b) return; st.rt = b.dataset.r; st.shown = 60; document.querySelectorAll("#rt button").forEach(x => x.classList.toggle("on", x === b)); draw(); };
+  ["f", "season", "cap", "sec", "sort"].forEach(id => document.getElementById(id).addEventListener("input", () => { st.shown = 60; draw(); }));
+  document.getElementById("more").onclick = () => { st.shown += 100; draw(); };
+  draw(); drawUp();
+  view(q.get("v") === "upcoming" ? "upcoming" : "results");
+})();
+</script>
+</body>
+</html>
