@@ -23,7 +23,7 @@ a{color:inherit}button,input,select{font:inherit;color:inherit}
 .wrap{max-width:1180px;margin:0 auto;padding:0 16px}
 .up{color:var(--up)}.down{color:var(--down)}.mut{color:var(--muted)}
 /* header + nav */
-header{position:sticky;top:0;z-index:40;background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+header:not(.mmh){position:relative;z-index:40;background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
 .bar{display:flex;align-items:center;gap:14px;height:60px}
 .brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:800;letter-spacing:.12em;font-size:13px;white-space:nowrap}
 .brand img{width:30px;height:30px;border-radius:8px;background:#fff;padding:3px}
@@ -150,7 +150,9 @@ td a{text-decoration:none;font-weight:800}
 .modal .card{max-width:640px;width:100%;position:relative}
 .modal .x{position:absolute;right:12px;top:10px;border:0;background:var(--soft);border-radius:999px;width:30px;height:30px;cursor:pointer;font-weight:800}
 footer{color:var(--muted);font-size:12px;padding:6px 0 30px}
+header:not(.mmh) .bar>.brand{display:none}
 </style></head><body>
+<script src="../assets/mm.js"></script>
 <div class="bgfx" aria-hidden="true"></div>
 <header><div class="wrap bar"><a class="brand" href="#screens"><img src="../logo.png" alt="">MARKET MINT</a>
   <div class="srch"><input id="search" type="search" placeholder="Search any stock" autocomplete="off" aria-label="Search any NSE stock"><div class="sug" id="sug"></div></div>
