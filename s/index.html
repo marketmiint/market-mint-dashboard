@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Stock scan | Market Mint</title>
+<meta name="description" content="Price, results since 2019, key numbers, shareholding, order wins and Mint Score for any NSE stock.">
+<link rel="icon" href="../logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/mm.css">
+<style>
+.top{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:flex-end;padding:20px 0 14px}
+h1{font-size:28px;line-height:1.15;margin:0;letter-spacing:-.02em}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;font-size:13px;color:var(--muted);align-items:center}
+.px{text-align:right}.px .p{font-size:32px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.px .c{font-weight:700;font-variant-numeric:tabular-nums}.px small{display:block;color:var(--muted);font-size:12px}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.subnav{position:sticky;top:60px;z-index:30;background:var(--bg);border-bottom:1px solid var(--line);margin-bottom:14px}
+.subnav .in{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:8px 0}
+.subnav a{flex:0 0 auto;text-decoration:none;font-size:13.5px;font-weight:600;color:var(--muted);padding:6px 11px;border-radius:8px}
+.subnav a.on,.subnav a:hover{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+.grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:14px;align-items:start}
+@media (max-width:880px){.grid{grid-template-columns:minmax(0,1fr)}.subnav{top:104px}}
+@media (max-width:720px){.subnav{top:106px}}
+.chart{padding:8px 8px 2px}.chart svg{width:100%;height:auto;display:block}
+.crow{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 16px 0}
+.rets{display:flex;gap:6px;flex-wrap:wrap;padding:6px 16px 14px;font-size:13px}
+.rets span{background:var(--soft);border-radius:8px;padding:4px 10px;font-variant-numeric:tabular-nums}
+.rets b{margin-left:4px}
+.keys{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+.keys div{padding:10px 16px;border-bottom:1px solid var(--line);font-size:14px;display:flex;justify-content:space-between;gap:8px}
+.keys div:nth-child(odd){border-right:1px solid var(--line)}
+.keys span{color:var(--muted)}.keys b{font-variant-numeric:tabular-nums;white-space:nowrap}
+.k4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.k4 div{border-right:1px solid var(--line)}.k4 div:nth-child(4n){border-right:0}
+@media (max-width:880px){.k4{grid-template-columns:repeat(2,minmax(0,1fr))}.k4 div:nth-child(2n){border-right:0}}
+@media (max-width:520px){h1{font-size:23px}.px{text-align:left}.keys,.k4{grid-template-columns:1fr}.keys div,.k4 div{border-right:0!important}}
+.range{padding:12px 16px 14px;font-size:13px;color:var(--muted)}
+.range .track{position:relative;height:6px;border-radius:4px;background:linear-gradient(90deg,var(--down),#d9a521,var(--up));margin:8px 0 4px;opacity:.85}
+.range .dot{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;background:var(--card);border:3px solid var(--ink);transform:translate(-50%,-50%)}
+.range .ends{display:flex;justify-content:space-between;font-variant-numeric:tabular-nums}
+.mint{padding:14px 16px}
+.mint .big{display:flex;align-items:baseline;gap:10px}.mint .big b{font-size:36px;letter-spacing:-.02em}
+.mint .big span{font-weight:700;padding:3px 9px;border-radius:7px;background:var(--soft)}
+.bars div{display:grid;grid-template-columns:90px 1fr 48px;gap:8px;align-items:center;padding:4px 0;font-size:13px}
+.bars i{display:block;height:7px;border-radius:4px;background:var(--soft);overflow:hidden}.bars i em{display:block;height:100%;background:var(--mint-d)}
+.bars span:last-child{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+.flags{margin-top:8px;font-size:12.5px;color:var(--down)}
+.stage{display:flex;gap:12px;align-items:center;padding:14px 16px}
+.stage .st{font-weight:800;font-size:13px;padding:5px 10px;border-radius:8px;color:#fff;text-transform:uppercase;letter-spacing:.04em}
+.st-fresh{background:var(--up)}.st-climbing{background:var(--mint-d)}.st-forming{background:var(--amber)}.st-played{background:var(--muted)}
+.qchart{padding:12px 12px 4px}.qchart svg{width:100%;height:auto;display:block}
+.hbar{display:flex;height:14px;border-radius:7px;overflow:hidden;margin:10px 0 12px}
+.hbar i{display:block;height:100%}
+.legend{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px 14px;font-size:13.5px}
+.legend div{display:flex;align-items:center;gap:7px}.legend b{margin-left:auto;font-variant-numeric:tabular-nums}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.item{display:flex;gap:12px;padding:13px 16px;border-bottom:1px solid var(--line);align-items:flex-start}
+.item:last-child{border-bottom:0}
+.item .amt{font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums;min-width:86px}
+.item .main{flex:1;min-width:0}.item .sub{color:var(--muted);font-size:13px}
+.item .meta{display:flex;gap:6px 12px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:4px}
+.item .meta a{color:var(--mint-d);font-weight:700;text-decoration:none}
+.badge{font-size:11px;font-weight:800;padding:3px 8px;border-radius:7px;color:#fff;background:var(--mint-d)}
+.nf{max-width:560px;margin:60px auto;text-align:center}
+.nf h1{margin-bottom:8px}.nf .hs2{display:block;position:relative;margin-top:18px}
+.nf input{width:100%;height:48px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:0 16px;font:inherit;font-size:16px;outline:none}
+.nf input:focus{border-color:var(--mint-d)}
+section{scroll-margin-top:120px}
+</style>
+</head>
+<body data-root="../">
+<script src="../assets/mm.js"></script>
+<main class="wrap" id="app"><div class="skel">Loading…</div></main>
+
+<script>
+(() => {
+  const { esc, inr, crs, pct, cls, fmtDate, lineChart, DATA } = MM;
+  const app = document.getElementById("app");
+  const sym = decodeURIComponent((location.search.slice(1).split("&")[0] || "").replace(/^s=/, "")).toUpperCase().trim();
+
+  const qlabel = iso => { const d = new Date(iso + "T12:00:00"); return d.toLocaleDateString("en-IN", { month: "short", year: "numeric" }); };
+  const fyOf = iso => { const y = +iso.slice(0, 4), m = +iso.slice(5, 7); return m >= 4 ? y + 1 : y; };
+  const n1 = v => v == null ? "–" : Math.abs(v) >= 1000 ? Math.round(v).toLocaleString("en-IN") : Number(v).toFixed(1);
+  const x = (v, d = 1) => v == null ? "–" : Number(v).toFixed(d);
+
+  function notFound(msg) {
+    document.title = "Scan a stock | Market Mint";
+    app.innerHTML = `<div class="nf"><h1>Scan any NSE stock</h1>
+      <p class="muted">${msg || "Type a company name or NSE symbol to see its price, results since 2019, key numbers, shareholding, order wins and Mint Score."}</p>
+      <label class="hs2"><input type="search" placeholder="e.g. BEL, HAL, Cochin Shipyard" autocomplete="off" autofocus></label></div>`;
+    MM.attachSearch(app.querySelector("input"));
+  }
+
+  if (!sym) return notFound();
+
+  fetch(DATA + "scan/co/" + encodeURIComponent(sym) + ".json", { cache: "no-cache" })
+    .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(render)
+    .catch(() => notFound(`We don't have <b>${esc(sym)}</b>. It may be a new listing, an SME stock or a BSE-only company. Try another search:`));
+
+  function render(c) {
+    document.title = `${c.name} (${c.sym}) share price, results & analysis | Market Mint`;
+    const px = c.px || {}, k = c.key || {}, h = c.hist || {};
+    const secs = [["overview", "Overview"], ["results", "Quarterly results"], ["pl", "Profit & loss"], ["bs", "Balance sheet"],
+                  ["shp", "Shareholding"], ["orders", "Order wins"], ["peers", "Peers"]];
+    app.innerHTML = `
+      <div class="top">
+        <div><h1>${esc(c.name)}</h1>
+          <div class="tags"><span class="tag">NSE: ${esc(c.sym)}</span>${c.cap ? `<span class="tag">${c.cap} cap</span>` : ""}
+            <span>${esc(c.yind || c.ind || "")}</span>${c.next ? `<span class="tag" style="color:var(--teal)">Results ${fmtDate(c.next)}</span>` : ""}</div>
+          <div class="acts">
+            <a class="btn" href="https://www.tradingview.com/chart/?symbol=NSE:${encodeURIComponent(c.sym)}" target="_blank" rel="noopener">Chart on TradingView ↗</a>
+            <a class="btn" href="https://www.nseindia.com/get-quotes/equity?symbol=${encodeURIComponent(c.sym)}" target="_blank" rel="noopener">NSE page ↗</a>
+          </div></div>
+        <div class="px"><div class="p">${inr(px.last)}</div>
+          <div class="c ${cls(px.chg)}">${pct(px.chg, 2)} <span class="muted" style="font-weight:500">on the day</span></div>
+          <small>Close of ${fmtDate(px.d)}</small></div>
+      </div>
+      <nav class="subnav"><div class="in">${secs.map(s => `<a href="#${s[0]}">${s[1]}</a>`).join("")}</div></nav>
+      <section id="overview" class="grid">
+        <div>
+          <div class="panel"><div class="crow"><b>Share price</b><div class="seg" id="rng">${["1M", "3M", "6M", "1Y"].map(r => `<button data-r="${r}" class="${r === "1Y" ? "on" : ""}">${r}</button>`).join("")}</div></div>
+            <div class="chart" id="chart"></div>
+            <div class="rets">${Object.entries(px.r || {}).map(([a, v]) => `<span>${a}<b class="${cls(v)}">${pct(v)}</b></span>`).join("")}
+              <span class="muted" style="background:none"><b style="color:var(--amber);margin:0">●</b> order win &nbsp;<b style="color:var(--teal);margin:0">◆</b> result</span></div></div>
+          <div class="panel"><h2>Key numbers <small>trailing 12 months</small></h2>
+            <div class="keys">
+              ${[["Market cap", crs(c.mcap)], ["P/E", x(k.pe)], ["P/B", x(k.pb)], ["EV/EBITDA", x(k.ev_ebitda)],
+                 ["ROE", pct(k.roe, 1, false)], ["ROCE", pct(k.roce, 1, false)], ["Debt / equity", x(k.de, 2)], ["Dividend yield", pct(k.div, 2, false)],
+                 ["Revenue", crs(k.ttm_sales)], ["Net profit", crs(k.ttm_pat)], ["Net margin", pct(k.margin, 1, false)], ["PEG", x(k.peg, 2)],
+                 ["Sales growth YoY", `<span class="${cls(k.sales_yoy)}">${pct(k.sales_yoy)}</span>`], ["Profit growth YoY", `<span class="${cls(k.pat_yoy)}">${pct(k.pat_yoy)}</span>`],
+                 ["Delivery %", k.deliv == null ? "–" : k.deliv + "%"], ["Beta", x(k.beta, 2)]]
+                .map(([a, b]) => `<div><span>${a}</span><b>${b}</b></div>`).join("")}
+            </div>
+            ${px.h52 ? `<div class="range">52-week range · ${pct(k.from_high)} from high
+              <div class="track"><span class="dot" style="left:${Math.max(0, Math.min(100, (px.last - px.l52) / ((px.h52 - px.l52) || 1) * 100))}%"></span></div>
+              <div class="ends"><span>${inr(px.l52)}</span><span>${inr(px.h52)}</span></div></div>` : ""}
+          </div>
+        </div>
+        <div>
+          ${mintPanel(c.mint)}
+          ${stagePanel(c.bo, px)}
+          ${growthPanel(h.cagr, k)}
+          ${resultsPosted(c.results, c.next)}
+        </div>
+      </section>
+      <section id="results" class="panel">${quarterly(h)}</section>
+      <section id="pl" class="panel">${yearly(h, c.annual)}</section>
+      <section id="bs" class="panel">${balance(c.annual)}</section>
+      <section id="shp" class="panel">${holding(c.shp, c.pledge)}</section>
+      <section id="orders" class="panel">${orders(c.orders)}</section>
+      <section id="peers" class="panel">${peers(c)}</section>`;
+
+    // price chart with ranges + order/result markers
+    const days = px.c || [];
+    const start = px.d0 ? new Date(px.d0 + "T12:00:00") : null;
+    const draw = r => {
+      const n = { "1M": 22, "3M": 64, "6M": 127, "1Y": days.length }[r];
+      const pts = days.slice(-n);
+      const off = days.length - pts.length;
+      // estimate dates from trading-day count (about 250 a year) for markers
+      const span = start ? (new Date(px.d + "T12:00:00") - start) / (days.length - 1 || 1) : 0;
+      const idx = iso => start ? Math.round((new Date(iso.slice(0, 10) + "T12:00:00") - start) / span) - off : -1;
+      const marks = [];
+      (c.orders || []).forEach(o => { const i = idx(o.date || ""); if (i >= 0 && i < pts.length) marks.push({ i, kind: "order", label: `Order ${crs(o.value_cr)} · ${fmtDate(o.date)}` }); });
+      (c.results || []).forEach(o => { const i = idx(o.filed || ""); if (i >= 0 && i < pts.length) marks.push({ i, kind: "result", label: `Result ${o.rating || ""} · ${fmtDate(o.filed)}` }); });
+      const lab = start ? [[0, fmtDate(new Date(start.getTime() + off * span).toISOString())], [pts.length - 1, fmtDate(px.d)]] : [];
+      document.getElementById("chart").innerHTML = lineChart(pts, { marks, labels: lab }) || '<div class="empty">No price history yet.</div>';
+      document.querySelectorAll("#rng button").forEach(b => b.classList.toggle("on", b.dataset.r === r));
+    };
+    draw("1Y");
+    document.getElementById("rng").addEventListener("click", e => { if (e.target.dataset.r) draw(e.target.dataset.r); });
+
+    // show all quarters
+    const more = document.getElementById("qmore");
+    if (more) more.onclick = () => { document.querySelectorAll("#results tr[hidden]").forEach(r => r.hidden = false); more.remove(); };
+
+    // highlight current section in the sub nav
+    const links = [...document.querySelectorAll(".subnav a")];
+    const obs = new IntersectionObserver(es => es.forEach(e => {
+      if (e.isIntersecting) links.forEach(a => a.classList.toggle("on", a.getAttribute("href") === "#" + e.target.id));
+    }), { rootMargin: "-130px 0px -60% 0px" });
+    document.querySelectorAll("main section[id]").forEach(s => obs.observe(s));
+  }
+
+  function mintPanel(m) {
+    if (!m) return "";
+    const MAX = { quality: 25, valuation: 20, trend: 20, momentum: 15, ownership: 10, risk: 10 };
+    return `<div class="panel"><h2>Mint Score <small>0–100</small></h2><div class="mint">
+      <div class="big"><b>${m.score}</b><span>${esc(m.label)}</span></div>
+      <div class="bars" style="margin-top:10px">${Object.entries(MAX).map(([p, mx]) => {
+        const v = (m.pillars || {})[p];
+        return `<div><span>${p[0].toUpperCase() + p.slice(1)}</span><i><em style="width:${v == null ? 0 : v / mx * 100}%"></em></i><span>${v == null ? "–" : Math.round(v)}/${mx}</span></div>`;
+      }).join("")}</div>
+      ${m.flags && m.flags.length ? `<div class="flags">⚠ ${m.flags.map(esc).join(" · ")}</div>` : ""}
+      <p class="muted" style="font-size:12.5px;margin:10px 0 0">Ranks quality, valuation, growth trend, momentum, ownership and risk against about 2,600 NSE stocks. A research score, not a buy or sell call. <a href="../rank/" style="color:var(--mint-d);font-weight:700;text-decoration:none">See all ranks →</a></p></div></div>`;
+  }
+
+  function stagePanel(b, px) {
+    const words = { forming: "Forming a base", fresh: "Fresh breakout", climbing: "Climbing after breakout", played: "Breakout played out" };
+    const screens = { vcp: "VCP", bluesky: "Blue sky", multiyear: "Multi-year", ipo: "IPO base" };
+    if (!b) return `<div class="panel"><h2>Breakout status</h2><div class="pad muted" style="font-size:14px">Not in any breakout screen right now. <a href="../breakouts/" style="color:var(--mint-d);font-weight:700;text-decoration:none">Open Breakout Desk →</a></div></div>`;
+    return `<div class="panel"><h2>Breakout status <a href="../breakouts/">Breakout Desk →</a></h2>
+      <div class="stage"><span class="st st-${b.stage}">${esc(b.stage)}</span>
+        <div><b>${words[b.stage] || esc(b.stage)}</b><div class="muted" style="font-size:13px">${screens[b.screen] || esc(b.screen)} screen
+        ${b.pivot ? ` · pivot ${inr(b.pivot)} (${pct((b.vs_pivot || 0) * 100)} away)` : ""}${b.base_weeks ? ` · base ${Math.round(b.base_weeks)} weeks` : ""}</div></div></div></div>`;
+  }
+
+  function growthPanel(g, k) {
+    g = g || {};
+    const rows = [["Sales, 3 yr", g.sales_3y], ["Profit, 3 yr", g.pat_3y], ["Sales, 5 yr", g.sales_5y], ["Profit, 5 yr", g.pat_5y]];
+    if (rows.every(r => r[1] == null)) return "";
+    return `<div class="panel"><h2>Growth <small>per year, compounded</small></h2><div class="keys">
+      ${rows.map(([a, v]) => `<div><span>${a}</span><b class="${cls(v)}">${pct(v)}</b></div>`).join("")}</div></div>`;
+  }
+
+  function resultsPosted(rs, next) {
+    if (!(rs && rs.length) && !next) return "";
+    return `<div class="panel"><h2>Results on Market Mint</h2>
+      ${next ? `<div class="pad" style="font-size:14px">Next results: <b>${fmtDate(next)}</b></div>` : ""}
+      ${(rs || []).map(r => `<div class="item"><div class="main"><b>${esc(r.rating || "Result")}</b> · ${esc(r.period ? qlabel(r.period) + " quarter" : "")}
+        <div class="sub">${esc(r.line || "")}</div>
+        <div class="meta"><span>${fmtDate(r.filed)}</span>${r.move != null ? `<span>Next day <b class="${cls(r.move)}">${pct(r.move)}</b></span>` : ""}
+        ${r.url ? `<a href="${esc(r.url)}" target="_blank" rel="noopener">Open on Telegram</a>` : ""}
+        ${r.card ? `<a href="../${esc(r.card)}" target="_blank" rel="noopener">Result card</a>` : ""}</div></div></div>`).join("")}</div>`;
+  }
+
+  function bars(qs, key, title) {
+    const vals = qs.map(q => q[key]);
+    const ok = vals.filter(v => v != null);
+    if (ok.length < 2) return "";
+    const W = 760, H = 150, P = 18, bw = (W - 2 * P) / qs.length;
+    const mx = Math.max(...ok.map(Math.abs)) || 1;
+    const hasNeg = ok.some(v => v < 0);
+    const base = hasNeg ? H / 2 : H - 20;
+    const scale = (hasNeg ? H / 2 - 16 : H - 34) / mx;
+    let out = `<text x="${P}" y="12" font-size="12" font-weight="700" fill="var(--ink)">${title}</text>`;
+    qs.forEach((q, i) => {
+      const v = q[key]; if (v == null) return;
+      const hgt = Math.abs(v) * scale, x0 = P + i * bw + bw * 0.15;
+      out += `<rect x="${x0.toFixed(1)}" y="${(v >= 0 ? base - hgt : base).toFixed(1)}" width="${(bw * 0.7).toFixed(1)}" height="${Math.max(hgt, 1).toFixed(1)}" rx="2" fill="${v >= 0 ? (key === "sales" ? "var(--teal)" : "var(--mint-d)") : "var(--down)"}"><title>${qlabel(q.q)}: ₹${n1(v)} Cr</title></rect>`;
+      if (q.q.slice(5, 7) === "06") out += `<text x="${(P + i * bw).toFixed(1)}" y="${H - 4}" font-size="10" fill="var(--muted)">FY${String(fyOf(q.q)).slice(2)}</text>`;
+    });
+    return `<svg viewBox="0 0 ${W} ${H}">${out}</svg>`;
+  }
+
+  function quarterly(h) {
+    const qs = h.quarters || [];
+    if (!qs.length) return `<h2>Quarterly results</h2><div class="empty">No results history for this company yet.</div>`;
+    const by = Object.fromEntries(qs.map(q => [q.q, q]));
+    const yago = q => by[(+q.slice(0, 4) - 1) + q.slice(4)];
+    const rows = qs.slice().reverse().map((q, i) => {
+      const p = yago(q.q), sy = p && p.sales ? (q.sales / p.sales - 1) * 100 : null, py = p && p.pat && p.pat > 0 && q.pat != null ? (q.pat / p.pat - 1) * 100 : null;
+      const opm = q.op != null && q.sales ? q.op / q.sales * 100 : null;
+      return `<tr ${i >= 12 ? "hidden" : ""}><td>${qlabel(q.q)}</td><td>${n1(q.sales)}</td><td class="${cls(sy)}">${pct(sy)}</td><td>${n1(q.op)}</td><td>${opm == null ? "–" : opm.toFixed(1) + "%"}</td>
+        <td>${n1(q.pat)}</td><td class="${cls(py)}">${pct(py)}</td><td>${q.eps == null ? "–" : Number(q.eps).toFixed(2)}</td></tr>`;
+    }).join("");
+    return `<h2>Quarterly results <small>${qs.length} quarters · ₹ Cr</small></h2>
+      <div class="qchart">${bars(qs, "sales", "Sales per quarter")}${bars(qs, "pat", "Net profit per quarter")}</div>
+      <div class="tscroll"><table><thead><tr><th>Quarter</th><th>Sales</th><th>YoY</th><th>Op profit</th><th>OPM</th><th>Net profit</th><th>YoY</th><th>EPS ₹</th></tr></thead><tbody>${rows}</tbody></table></div>
+      ${qs.length > 12 ? `<button class="more" id="qmore">Show all ${qs.length} quarters</button>` : ""}
+      <div class="note">From the company's NSE results filings. Consolidated figures where the company files them, else standalone. For banks, sales = interest earned and operating profit is not shown.</div>`;
+  }
+
+  function yearly(h, annual) {
+    const ys = (h.years || []).slice().reverse();
+    if (!ys.length && !(annual || []).length) return `<h2>Profit &amp; loss</h2><div class="empty">No yearly numbers yet.</div>`;
+    if (!ys.length) {
+      const a = annual.slice().reverse();
+      return `<h2>Profit &amp; loss <small>₹ Cr, Apr–Mar years</small></h2><div class="tscroll"><table><thead><tr><th>Year</th><th>Revenue</th><th>EBITDA</th><th>Net profit</th><th>Margin</th></tr></thead><tbody>
+        ${a.map(y => `<tr><td>FY${String(fyOf(y.d)).slice(2)}</td><td>${n1(y.rev)}</td><td>${n1(y.ebitda)}</td><td>${n1(y.pat)}</td><td>${y.rev && y.pat != null ? (y.pat / y.rev * 100).toFixed(1) + "%" : "–"}</td></tr>`).join("")}</tbody></table></div>`;
+    }
+    const prev = i => ys[i + 1];
+    return `<h2>Profit &amp; loss <small>₹ Cr, Apr–Mar years</small></h2><div class="tscroll"><table><thead><tr><th>Year</th><th>Sales</th><th>Growth</th><th>Op profit</th><th>Net profit</th><th>Growth</th><th>Net margin</th></tr></thead><tbody>
+      ${ys.map((y, i) => { const p = prev(i), sg = p && p.sales ? (y.sales / p.sales - 1) * 100 : null, pg = p && p.pat > 0 && y.pat != null ? (y.pat / p.pat - 1) * 100 : null;
+        return `<tr><td>FY${String(y.fy).slice(2)}</td><td>${n1(y.sales)}</td><td class="${cls(sg)}">${pct(sg)}</td><td>${n1(y.op)}</td><td>${n1(y.pat)}</td><td class="${cls(pg)}">${pct(pg)}</td><td>${y.sales && y.pat != null ? (y.pat / y.sales * 100).toFixed(1) + "%" : "–"}</td></tr>`; }).join("")}
+      </tbody></table></div><div class="note">Full Apr–Mar years made by adding up the four quarterly filings.</div>`;
+  }
+
+  function balance(a) {
+    a = (a || []).slice().reverse();
+    if (!a.length) return `<h2>Balance sheet &amp; cash flow</h2><div class="empty">Not available for this company.</div>`;
+    const rows = [["Shareholders' equity", "equity"], ["Total debt", "debt"], ["Cash & equivalents", "cash"], ["Inventory", "inv"], ["Receivables", "recv"],
+                  ["Operating cash flow", "cfo"], ["Free cash flow", "fcf"]];
+    return `<h2>Balance sheet &amp; cash flow <small>₹ Cr, at 31 March</small></h2><div class="tscroll"><table><thead><tr><th>Item</th>${a.map(y => `<th>FY${String(fyOf(y.d)).slice(2)}</th>`).join("")}</tr></thead><tbody>
+      ${rows.map(([t, key]) => `<tr><td>${t}</td>${a.map(y => `<td class="${key === "fcf" ? cls(y[key]) : ""}">${y[key] == null ? "–" : Math.round(y[key]).toLocaleString("en-IN")}</td>`).join("")}</tr>`).join("")}
+      </tbody></table></div><div class="note">Yearly accounts from Yahoo Finance.</div>`;
+  }
+
+  function holding(shp, pledge) {
+    if (!(shp && shp.length)) return `<h2>Shareholding</h2><div class="empty">Not available for this company.</div>`;
+    const last = shp.find(s => s.split) || shp[0];
+    const sp = last.split || { prom: last.prom, public: last.prom != null ? 100 - last.prom : null };
+    const other = Math.max(0, (sp.public || 0) - (sp.fii || 0) - (sp.dii || 0));
+    const parts = [["Promoters", sp.prom, "var(--mint-d)"], ["Foreign investors (FII)", sp.fii, "var(--teal)"], ["Domestic funds (DII)", sp.dii, "var(--amber)"], ["Public & others", sp.fii != null ? other : sp.public, "var(--muted)"]]
+      .filter(p => p[1] != null);
+    const trend = shp.slice().reverse();
+    return `<h2>Shareholding <small>as of ${fmtDate(last.d)}</small></h2><div class="pad">
+      <div class="hbar">${parts.map(p => `<i style="width:${p[1]}%;background:${p[2]}"></i>`).join("")}</div>
+      <div class="legend">${parts.map(p => `<div><i style="background:${p[2]}"></i>${p[0]}<b>${p[1].toFixed(2)}%</b></div>`).join("")}
+        ${sp.mf != null ? `<div><i style="background:transparent;border:2px solid var(--amber)"></i>of which mutual funds<b>${sp.mf.toFixed(2)}%</b></div>` : ""}</div>
+      ${pledge ? `<p class="flags">Promoter shares pledged: ${Number(pledge).toFixed(2)}%</p>` : ""}</div>
+      <div class="tscroll"><table><thead><tr><th>Quarter</th>${trend.map(s => `<th>${qlabel(s.d)}</th>`).join("")}</tr></thead><tbody>
+        <tr><td>Promoters</td>${trend.map(s => `<td>${s.prom == null ? "–" : s.prom.toFixed(2) + "%"}</td>`).join("")}</tr>
+        ${["fii", "dii", "mf"].map(kk => trend.some(s => s.split && s.split[kk] != null) ? `<tr><td>${{ fii: "FII", dii: "DII", mf: "Mutual funds" }[kk]}</td>${trend.map(s => `<td>${s.split && s.split[kk] != null ? s.split[kk].toFixed(2) + "%" : "–"}</td>`).join("")}</tr>` : "").join("")}
+      </tbody></table></div><div class="note">From the company's NSE shareholding filings.</div>`;
+  }
+
+  function orders(os) {
+    if (!(os && os.length)) return `<h2>Order wins</h2><div class="empty">No order wins reported since April 2026. Companies that announce orders on NSE show up here.</div>`;
+    const tot = os.reduce((s, o) => s + (o.value_cr || 0), 0);
+    return `<h2>Order wins <small>${os.length} since Apr 2026 · ${crs(tot)} in all</small></h2>
+      ${os.map(o => `<div class="item"><div class="amt">${crs(o.value_cr)}</div><div class="main">
+        <b>${esc(o.client || "Order win")}</b>${o.work ? `<div class="sub">${esc(o.work)}</div>` : ""}
+        <div class="meta"><span>${fmtDate(o.date)}</span>${o.pct != null ? `<span>${o.pct}% of yearly revenue</span>` : ""}
+          ${o.source ? `<a href="${esc(o.source)}" target="_blank" rel="noopener">Filing</a>` : ""}
+          ${o.url ? `<a href="${esc(o.url)}" target="_blank" rel="noopener">Telegram</a>` : ""}</div></div></div>`).join("")}`;
+  }
+
+  function peers(c) {
+    const ps = c.peers || [];
+    if (!ps.length) return `<h2>Peers</h2><div class="empty">No listed peers found.</div>`;
+    const me = { s: c.sym, n: c.name, m: c.mcap, p: (c.px || {}).last, c: (c.px || {}).chg, pe: (c.key || {}).pe, roe: (c.key || {}).roe, sc: (c.mint || {}).score, r1y: ((c.px || {}).r || {})["1Y"] };
+    const row = (r, mine) => `<tr ${mine ? 'style="background:var(--soft)"' : ""}><td>${mine ? `<b>${esc(r.n)}</b>` : `<a href="?${encodeURIComponent(r.s)}">${esc(r.n)}</a>`}<small>${esc(r.s)}</small></td>
+      <td>${crs(r.m)}</td><td>${inr(r.p)}</td><td class="${cls(r.c)}">${pct(r.c, 2)}</td><td class="${cls(r.r1y)}">${pct(r.r1y)}</td><td>${x(r.pe)}</td><td>${r.roe == null ? "–" : r.roe.toFixed(1) + "%"}</td><td>${r.sc ?? "–"}</td></tr>`;
+    return `<h2>Peers <small>${esc(c.yind || c.ind)}</small></h2><div class="tscroll"><table><thead><tr><th>Company</th><th>M-cap</th><th>Price</th><th>Day</th><th>1 yr</th><th>P/E</th><th>ROE</th><th>Mint</th></tr></thead>
+      <tbody>${row(me, true)}${ps.map(r => row(r)).join("")}</tbody></table></div>`;
+  }
+})();
+</script>
+</body>
+</html>

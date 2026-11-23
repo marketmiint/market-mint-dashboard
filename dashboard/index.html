@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="en">
+<head>
+<base href="../">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Market Mint Dashboard</title>
+<meta name="description" content="Live NSE/BSE order wins, quarterly results and results calendar, updated every few minutes by Market Mint.">
+<meta property="og:title" content="Market Mint Dashboard">
+<meta property="og:description" content="Live order wins, quarterly results and results calendar for Indian stocks.">
+<meta property="og:image" content="logo.png">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f3f6f0; --card:#fff; --ink:#11211b; --muted:#606e67; --line:#dce3da; --soft:#edf3ec;
+  --head:#0c2820; --mint:#22c48e; --mint-d:#06784e; --up:#0a8f5a; --down:#c43434; --amber:#cc8c16; --teal:#085c6e;
+  --shadow:0 1px 2px rgba(17,33,27,.06),0 4px 14px rgba(17,33,27,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0b1612; --card:#12211b; --ink:#e7f1ec; --muted:#93a8a0; --line:#22362e; --soft:#182b24;
+    --head:#06120e; --mint:#2fd69c; --mint-d:#5fe0b0; --up:#3fd28f; --down:#ff6b6b; --amber:#f0b34a; --teal:#4cc3d9;
+    --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0b1612; --card:#12211b; --ink:#e7f1ec; --muted:#93a8a0; --line:#22362e; --soft:#182b24;
+  --head:#06120e; --mint:#2fd69c; --mint-d:#5fe0b0; --up:#3fd28f; --down:#ff6b6b; --amber:#f0b34a; --teal:#4cc3d9;
+  --shadow:none;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.45 Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+
+/* top bar */
+header{background:var(--head);color:#fff;position:sticky;top:0;z-index:20}
+.bar{display:flex;align-items:center;gap:12px;height:58px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:800;letter-spacing:.14em;font-size:14px}
+.brand img{width:30px;height:30px;border-radius:8px;background:#fff;padding:3px}
+.live{font-size:12px;color:#a9cdbd;display:flex;align-items:center;gap:6px;margin-left:auto;white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--mint);box-shadow:0 0 0 0 rgba(47,214,156,.6);animation:pulse 2s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 8px rgba(47,214,156,0)}100%{box-shadow:0 0 0 0 rgba(47,214,156,0)}}
+.join{background:var(--mint);color:#06281c;text-decoration:none;font-weight:700;font-size:13px;padding:8px 14px;border-radius:999px;white-space:nowrap}
+.join:hover{filter:brightness(1.07)}
+
+/* price strip */
+.strip{background:var(--card);border-bottom:1px solid var(--line);overflow:hidden;white-space:nowrap;font-size:13px;font-variant-numeric:tabular-nums;position:relative}
+.strip .run{display:inline-flex;gap:22px;padding:9px 0;animation:run 60s linear infinite}
+.strip:hover .run{animation-play-state:paused}
+.strip a{text-decoration:none;display:inline-flex;gap:6px}
+.strip b{font-weight:700}
+.strip .lbl{color:var(--muted);font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;align-self:center}
+@keyframes run{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){.strip .run{animation:none}.strip{overflow-x:auto}}
+.sbar{padding:9px 16px;border-bottom:1px solid var(--line);font-size:14px;cursor:pointer}
+.sbar:last-child{border-bottom:0}
+.sbar:hover{background:var(--soft)}
+.sbar .t{display:flex;justify-content:space-between;gap:8px}
+.sbar .t span:last-child{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.sbar .trk{height:6px;border-radius:4px;background:var(--soft);margin-top:6px;overflow:hidden}
+.sbar .trk i{display:block;height:100%;background:var(--mint-d);border-radius:4px}
+.sbar small{color:var(--muted);font-size:12px}
+.chip.on{background:var(--soft);color:var(--ink);border-color:var(--mint)}
+a.nm{text-decoration:none}
+a.nm:hover{text-decoration:underline}
+
+/* hero */
+.hero{padding:22px 0 6px}
+.hero h1{font-size:26px;line-height:1.2;margin:0 0 4px;letter-spacing:-.02em}
+.hero p{margin:0;color:var(--muted)}
+
+/* controls */
+.tabs{display:flex;gap:6px;margin:18px 0 12px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-weight:600;padding:9px 16px;border-radius:999px;cursor:pointer;white-space:nowrap;display:flex;gap:8px;align-items:center}
+.tab .n{font-size:12px;color:var(--muted);font-weight:600}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tab[aria-selected="true"] .n{color:inherit;opacity:.7}
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.search{flex:1 1 260px;position:relative}
+.search input{width:100%;font:inherit;padding:11px 14px 11px 38px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);outline:none}
+.search input:focus{border-color:var(--mint)}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:transparent;color:var(--muted);font:inherit;font-size:13px;font-weight:600;padding:6px 11px;border-radius:999px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--soft);color:var(--ink);border-color:var(--mint)}
+.row2{display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between;width:100%}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:var(--shadow);min-width:0}
+.stat .k{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.stat .v{font-size:22px;font-weight:800;letter-spacing:-.02em;margin-top:2px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat .s{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand{white-space:nowrap}
+@media (max-width:720px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.hero h1{font-size:22px}.live span.t{display:none}}
+@media (max-width:420px){.brand{letter-spacing:.06em;font-size:13px}.brand img{width:26px;height:26px}.join{padding:7px 11px;font-size:12.5px}.chip{font-size:12.5px;padding:5px 9px}}
+
+/* lists */
+.grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:14px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+.panel h3{margin:0;padding:13px 16px;font-size:14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.panel h3 small{color:var(--muted);font-weight:500}
+.item{display:flex;gap:12px;padding:13px 16px;border-bottom:1px solid var(--line);cursor:pointer;align-items:flex-start}
+.item:last-child{border-bottom:0}
+.item:hover{background:var(--soft)}
+.badge{flex:0 0 auto;font-size:11px;font-weight:800;letter-spacing:.04em;padding:4px 8px;border-radius:7px;color:#fff;min-width:56px;text-align:center;margin-top:2px}
+.b-HUGE{background:var(--teal)} .b-BIG{background:var(--mint-d)} .b-NEW{background:#1ca068}
+:root[data-theme="dark"] .b-BIG,:root[data-theme="dark"] .b-HUGE{color:#06120e}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .b-BIG,:root:not([data-theme="light"]) .b-HUGE{color:#06120e}}
+.g{flex:0 0 auto;font-size:12px;font-weight:700;padding:4px 8px;border-radius:7px;background:var(--soft);white-space:nowrap;margin-top:2px}
+.main{flex:1;min-width:0}
+.t1{display:flex;gap:8px;align-items:baseline;justify-content:space-between}
+.nm{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.amt{font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.sub{color:var(--muted);font-size:13px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.meta{display:flex;gap:6px 12px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:4px;font-variant-numeric:tabular-nums}
+.meta b{color:var(--ink);font-weight:600}
+.up{color:var(--up)!important} .down{color:var(--down)!important}
+.tag{font-size:11px;font-weight:700;padding:1px 6px;border-radius:5px;border:1px solid var(--line);color:var(--muted)}
+.empty{padding:28px 16px;text-align:center;color:var(--muted)}
+.mini{display:flex;justify-content:space-between;gap:10px;padding:10px 16px;border-bottom:1px solid var(--line);font-size:14px;cursor:pointer}
+.mini:last-child{border-bottom:0}
+.mini:hover{background:var(--soft)}
+.mini .r{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+.mini .r small{display:block;font-weight:500;color:var(--muted);font-size:12px}
+.mini .l{min-width:0}
+.mini .l div{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gradebar{display:flex;height:10px;border-radius:6px;overflow:hidden;margin:12px 16px 6px;background:var(--soft)}
+.gradebar i{display:block}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;padding:0 16px 14px;font-size:12.5px;color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:5px}
+.legend i{width:9px;height:9px;border-radius:3px;display:inline-block}
+.day{padding:10px 16px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:var(--soft);border-bottom:1px solid var(--line)}
+
+/* company + modal */
+.co{margin-bottom:14px}
+.co .hd{padding:16px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.co .hd h2{margin:0;font-size:20px}
+.co .hd .x{border:0;background:var(--soft);color:var(--ink);font:inherit;font-weight:600;border-radius:999px;padding:6px 12px;cursor:pointer}
+dialog{border:0;padding:0;border-radius:18px;max-width:min(560px,calc(100vw - 24px));width:100%;background:var(--card);color:var(--ink)}
+dialog::backdrop{background:rgba(5,15,11,.6)}
+.mbody{padding:16px}
+.mbody img{width:100%;border-radius:12px;display:block;margin:12px 0;border:1px solid var(--line)}
+.mrow{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px;gap:12px}
+.mrow span:first-child{color:var(--muted)}
+.mrow span:last-child{text-align:right;font-weight:600}
+.mact{display:flex;gap:8px;margin-top:14px}
+.btn{flex:1;text-align:center;text-decoration:none;font-weight:700;padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;font:inherit;font-weight:700}
+.btn.p{background:var(--mint);color:#06281c;border-color:var(--mint)}
+
+/* promo + footer */
+.promo{margin:22px 0;background:var(--head);color:#e7f1ec;border-radius:18px;padding:20px;display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.promo h4{margin:0 0 4px;font-size:17px}
+.promo p{margin:0;color:#a9cdbd;font-size:14px}
+.promo .links{display:flex;gap:8px;flex-wrap:wrap}
+.promo a.o{color:#e7f1ec;border:1px solid #2c4a3f;text-decoration:none;font-weight:600;font-size:13px;padding:8px 12px;border-radius:999px}
+footer{color:var(--muted);font-size:12.5px;padding:10px 0 40px;line-height:1.6}
+.more{display:block;width:100%;border:0;border-top:1px solid var(--line);background:transparent;color:var(--mint-d);font:inherit;font-weight:700;padding:12px;cursor:pointer}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap bar">
+    <a class="brand" href="./"><img src="logo.png" alt="">MARKET MINT</a>
+    <div class="live"><span class="dot"></span><span class="t">Last post </span><span id="upd">…</span></div>
+    <a href="./" style="color:#cfe6dc;text-decoration:none;font-weight:600;font-size:14px;margin:0 12px;white-space:nowrap">Scan a stock</a>
+    <a class="join" href="https://t.me/addlist/nbJ1it_56oo0MzM1" target="_blank" rel="noopener">Join on Telegram</a>
+  </div>
+</header>
+<div class="strip" id="strip" hidden></div>
+
+<main class="wrap">
+  <section class="hero">
+    <h1>Order wins &amp; results, as they happen</h1>
+    <p>Every order win and quarterly result our bots post on Telegram, in one place. Updates by itself every few minutes.</p>
+  </section>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="orders" aria-selected="true">Orders <span class="n" id="n-orders"></span></button>
+    <button class="tab" role="tab" data-tab="results" aria-selected="false">Earnings <span class="n" id="n-results"></span></button>
+    <button class="tab" role="tab" data-tab="calendar" aria-selected="false">Calendar <span class="n" id="n-calendar"></span></button>
+    <a class="tab" href="heatmap/" style="text-decoration:none">Heatmap ↗</a>
+    <a class="tab" href="screener/" style="text-decoration:none">Screener ↗</a>
+  </div>
+
+  <div class="tools">
+    <label class="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Search a company, e.g. RITES or Cochin Shipyard" autocomplete="off">
+    </label>
+    <div class="row2">
+      <div class="chips" id="period"></div>
+      <div class="chips" id="caps"></div>
+    </div>
+  </div>
+
+  <div id="company"></div>
+  <div id="view"></div>
+
+  <section class="promo">
+    <div>
+      <h4>Get these the moment they're filed</h4>
+      <p>Telegram posts go out within seconds of the NSE/BSE filing, with a full card for each one.</p>
+    </div>
+    <div class="links">
+      <a class="join" href="https://t.me/addlist/nbJ1it_56oo0MzM1" target="_blank" rel="noopener">Join all channels</a>
+      <a class="o" href="https://t.me/marketmiintorder" target="_blank" rel="noopener">Orders</a>
+      <a class="o" href="https://t.me/marketmiintresults" target="_blank" rel="noopener">Results</a>
+      <a class="o" href="https://t.me/marketmiint" target="_blank" rel="noopener">Market Mint</a>
+    </div>
+  </section>
+
+  <p style="margin:0 0 6px"><a href="stock/" style="color:var(--mint-d);font-weight:700;text-decoration:none">All companies A–Z →</a></p>
+  <footer>
+    Data from public NSE and BSE filings, read automatically. Companies with a market cap of ₹1,000 Cr or more, no SME stocks.
+    Order size is shown against the company's last 12 months of revenue. Grades score sales, operating profit and net profit growth.
+    For information only, not investment advice.
+  </footer>
+</main>
+
+<dialog id="dlg"><div class="mbody" id="dlgBody"></div></dialog>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const GRADES = [
+    ["Excellent", "💎", "#085c6e"], ["Great", "🚀", "#0a8f5a"], ["Good", "✅", "#5cbf8a"],
+    ["OK", "🟡", "#d9a521"], ["Weak", "🔻", "#c43434"]];
+  const GRADE = Object.fromEntries(GRADES.map(g => [g[0], g]));
+  const CAPS = ["All", "Large", "Mid", "Small", "Micro"];
+  const PERIODS = [["today", "Today"], ["week", "7 days"], ["month", "This month"], ["all", "All"]];
+  const state = { tab: "orders", q: "", cap: "All", period: "week", co: null, data: null, shown: 40, osec: null };
+  const page = sym => sym && /^[A-Z0-9&_-]+$/.test(sym) && !/^\d+$/.test(sym) ? `s/?${encodeURIComponent(sym)}` : null;
+  const nameLink = (sym, name) => page(sym) ? `<a class="nm" href="${page(sym)}">${esc(name)}</a>` : `<span class="nm">${esc(name)}</span>`;
+  try { const t = localStorage.getItem("mm-tab"); if (t) state.tab = t; } catch (e) {}
+  { const t = new URLSearchParams(location.search).get("tab"); if (["orders", "results", "calendar"].includes(t)) state.tab = t; }
+
+  // ---------- helpers
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const ist = iso => new Date(iso);
+  const dayKey = d => d.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+  const todayKey = () => dayKey(new Date());
+  const fmtDay = iso => new Date(iso + (iso.length === 10 ? "T12:00:00+05:30" : "")).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", weekday: "short", day: "numeric", month: "short" });
+  const fmtTime = iso => ist(iso).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+  const crs = v => v == null ? "–" : "₹" + (v >= 1000 ? Math.round(v).toLocaleString("en-IN") : v >= 100 ? v.toFixed(0) : v.toFixed(1)) + " Cr";
+  const lakhCr = v => v == null ? "–" : v >= 100000 ? "₹" + (v / 100000).toFixed(2) + " L Cr" : crs(v);
+  const pc = (v, d = 1) => v == null ? "–" : (v > 0 ? "+" : "") + v.toFixed(d) + "%";
+  const cls = v => v == null ? "" : v > 0 ? "up" : v < 0 ? "down" : "";
+  const size = o => o.pct == null ? "NEW" : o.pct >= 25 ? "HUGE" : o.pct >= 5 ? "BIG" : "NEW";
+  const cleanWork = w => /intimation|press release|disclosure under|regulation 30/i.test(w || "") ? "" : (w || "");
+  const value = o => o.value_hi ? crs(o.value_cr) + "–" + crs(o.value_hi).replace("₹", "") : crs(o.value_cr);
+  const ago = iso => {
+    const m = Math.round((Date.now() - ist(iso)) / 60000);
+    if (m < 1) return "just now"; if (m < 60) return m + " min ago";
+    const h = Math.round(m / 60); if (h < 24) return h + " h ago";
+    return fmtTime(iso);
+  };
+
+  function inPeriod(iso) {
+    if (state.period === "all" || !iso) return true;
+    const d = dayKey(ist(iso)), t = todayKey();
+    if (state.period === "today") return d === t;
+    if (state.period === "month") return d.slice(0, 7) === t.slice(0, 7);
+    return Date.now() - ist(iso) <= 7 * 864e5;
+  }
+  const match = x => {
+    if (state.cap !== "All" && x.cap !== state.cap) return false;
+    if (!state.q) return true;
+    const q = state.q.toLowerCase();
+    return (x.sym + " " + x.name + " " + (x.client || "") + " " + (x.sector || "")).toLowerCase().includes(q);
+  };
+
+  // ---------- chips
+  function chips() {
+    $("#period").innerHTML = state.tab === "calendar" ? "" : PERIODS.map(([k, l]) =>
+      `<button class="chip" data-period="${k}" aria-pressed="${state.period === k}">${l}</button>`).join("");
+    $("#caps").innerHTML = CAPS.map(c =>
+      `<button class="chip" data-cap="${c}" aria-pressed="${state.cap === c}">${c === "All" ? "All caps" : c + " cap"}</button>`).join("");
+  }
+
+  // ---------- orders
+  function orderItem(o) {
+    const s = size(o), work = cleanWork(o.work);
+    return `<div class="item" data-open="o:${esc(o.key)}">
+      <span class="badge b-${s}">${s}</span>
+      <div class="main">
+        <div class="t1"><span class="nm">${esc(o.name)}</span><span class="amt">${value(o)}</span></div>
+        ${o.client || work ? `<div class="sub">${o.client ? "<b>" + esc(o.client) + "</b>" + (work ? " · " : "") : ""}${esc(work)}</div>` : ""}
+        <div class="meta">
+          <span><b>${pc(o.pct).replace("+", "")}</b> of revenue</span>
+          ${o.pct_mcap != null ? `<span>${o.pct_mcap.toFixed(1)}% of m-cap</span>` : ""}
+          ${o.reaction != null ? `<span class="${cls(o.reaction)}">Next day ${pc(o.reaction)}</span>` : ""}
+          ${o.osector ? `<span>${esc(o.osector)}</span>` : ""}
+          ${o.cap ? `<span class="tag">${o.cap}</span>` : ""}
+          <span>${ago(o.filed)}</span>
+        </div>
+      </div></div>`;
+  }
+
+  function renderOrders() {
+    const all = state.data.orders.filter(match);
+    const inP = all.filter(o => inPeriod(o.filed));
+    const list = state.osec ? inP.filter(o => o.osector === state.osec) : inP;
+    const secs = {};
+    inP.forEach(o => { const k = o.osector || "Other"; const s = secs[k] || (secs[k] = { n: 0, v: 0 }); s.n++; s.v += o.value_cr || 0; });
+    const secList = Object.entries(secs).sort((a, b) => b[1].v - a[1].v);
+    const secMax = secList.length ? secList[0][1].v : 1;
+    const since90 = Date.now() - 90 * 864e5, rep = {};
+    all.filter(o => ist(o.filed) >= since90).forEach(o => { const r = rep[o.sym] || (rep[o.sym] = { sym: o.sym, name: o.name, n: 0, v: 0 }); r.n++; r.v += o.value_cr || 0; });
+    const repeat = Object.values(rep).filter(r => r.n >= 2).sort((a, b) => b.n - a.n || b.v - a.v).slice(0, 6);
+    const total = list.reduce((a, o) => a + (o.value_cr || 0), 0);
+    const big = list.slice().sort((a, b) => (b.value_cr || 0) - (a.value_cr || 0))[0];
+    const top = list.slice().sort((a, b) => (b.pct || 0) - (a.pct || 0))[0];
+    const label = PERIODS.find(p => p[0] === state.period)[1].toLowerCase();
+
+    // month running totals per company
+    const month = todayKey().slice(0, 7), per = {};
+    all.filter(o => dayKey(ist(o.filed)).slice(0, 7) === month).forEach(o => {
+      const p = per[o.sym] || (per[o.sym] = { sym: o.sym, name: o.name, n: 0, v: 0, pct: 0 });
+      p.n++; p.v += o.value_cr || 0; p.pct += o.pct || 0;
+    });
+    const leaders = Object.values(per).sort((a, b) => b.v - a.v).slice(0, 8);
+    const best = list.slice().sort((a, b) => (b.pct || 0) - (a.pct || 0)).slice(0, 5);
+    const mname = new Date().toLocaleDateString("en-IN", { month: "long", timeZone: "Asia/Kolkata" });
+
+    $("#view").innerHTML = `
+      <div class="stats">
+        <div class="stat"><div class="k">Orders</div><div class="v">${list.length}</div><div class="s">${label}</div></div>
+        <div class="stat"><div class="k">Total value</div><div class="v">${lakhCr(total)}</div><div class="s">${label}</div></div>
+        <div class="stat"><div class="k">Biggest order</div><div class="v">${big ? crs(big.value_cr) : "–"}</div><div class="s">${big ? esc(big.name) : "–"}</div></div>
+        <div class="stat"><div class="k">Largest vs revenue</div><div class="v">${top ? pc(top.pct, 0).replace("+", "") : "–"}</div><div class="s">${top ? esc(top.name) : "–"}</div></div>
+      </div>
+      <div class="grid">
+        <div class="panel"><h3>Latest orders <small>${state.osec ? `<button class="chip on" data-osec="">${esc(state.osec)} ✕</button> ` : ""}${list.length} ${label}</small></h3>
+          ${list.length ? list.slice(0, state.shown).map(orderItem).join("") + (list.length > state.shown ? `<button class="more" data-more>Show more</button>` : "")
+            : `<div class="empty">No orders ${label}${state.q ? " for “" + esc(state.q) + "”" : ""}. Try a longer period.</div>`}
+        </div>
+        <div>
+          <div class="panel"><h3>Orders by sector <small>${label} · tap to filter</small></h3>
+            ${secList.length ? secList.map(([k, s]) => `<div class="sbar" data-osec="${esc(k)}"><div class="t"><span>${esc(k)} <small>${s.n} order${s.n > 1 ? "s" : ""}</small></span><span>${crs(s.v)}</span></div><div class="trk"><i style="width:${Math.max(3, s.v / secMax * 100)}%"></i></div></div>`).join("") : `<div class="empty">Nothing yet</div>`}
+          </div>
+          ${repeat.length ? `<div class="panel" style="margin-top:14px"><h3>Repeat winners <small>last 90 days</small></h3>
+            ${repeat.map(r => `<div class="mini" data-co="${esc(r.sym)}"><div class="l"><div><b>${esc(r.name)}</b></div><div style="color:var(--muted);font-size:12.5px">${r.n} orders</div></div><div class="r">${crs(r.v)}</div></div>`).join("")}
+          </div>` : ""}
+          <div class="panel" style="margin-top:14px"><h3>Biggest vs revenue <small>${label}</small></h3>
+            ${best.length ? best.map(o => `<div class="mini" data-open="o:${esc(o.key)}"><div class="l"><div><b>${esc(o.name)}</b></div><div style="color:var(--muted);font-size:12.5px">${value(o)}</div></div><div class="r">${pc(o.pct, 1).replace("+", "")}<small>of revenue</small></div></div>`).join("") : `<div class="empty">Nothing yet</div>`}
+          </div>
+          <div class="panel" style="margin-top:14px"><h3>${mname} so far <small>total won</small></h3>
+            ${leaders.length ? leaders.map(p => `<div class="mini" data-co="${esc(p.sym)}"><div class="l"><div><b>${esc(p.name)}</b></div><div style="color:var(--muted);font-size:12.5px">${p.n} order${p.n > 1 ? "s" : ""} · ${p.pct.toFixed(1)}% of revenue</div></div><div class="r">${crs(p.v)}</div></div>`).join("") : `<div class="empty">No orders this month yet</div>`}
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // ---------- results
+  function gradeTag(r) {
+    const g = GRADE[r.rating];
+    return g ? `<span class="g">${g[1]} ${g[0]}</span>` : `<span class="g">–</span>`;
+  }
+  function resultItem(r) {
+    return `<div class="item" data-open="r:${esc(r.key)}">
+      ${gradeTag(r)}
+      <div class="main">
+        <div class="t1"><span class="nm">${esc(r.name)}</span>${r.move != null ? `<span class="amt ${cls(r.move)}">${pc(r.move)}</span>` : ""}</div>
+        <div class="meta">
+          <span>Sales <b>${crs(r.sales)}</b> <span class="${cls(r.sales_yoy)}">${r.sales_yoy != null ? pc(r.sales_yoy) + " YoY" : ""}</span></span>
+          <span>Profit <b>${crs(r.pat)}</b> <span class="${cls(r.pat_yoy)}">${r.pat_yoy != null ? pc(r.pat_yoy) + " YoY" : ""}</span></span>
+        </div>
+        <div class="meta">
+          ${r.sector ? `<span>${esc(r.sector)}</span>` : ""}
+          ${r.cap ? `<span class="tag">${r.cap}</span>` : ""}
+          ${r.move != null ? `<span>Stock since result ${pc(r.move)}</span>` : ""}
+          <span>${ago(r.filed)}</span>
+        </div>
+      </div></div>`;
+  }
+
+  function renderResults() {
+    const list = state.data.results.filter(match).filter(r => inPeriod(r.filed))
+      .sort((a, b) => (b.filed || "").localeCompare(a.filed || ""));
+    const label = PERIODS.find(p => p[0] === state.period)[1].toLowerCase();
+    const count = Object.fromEntries(GRADES.map(g => [g[0], 0]));
+    list.forEach(r => { if (r.rating in count) count[r.rating]++; });
+    const graded = Object.values(count).reduce((a, b) => a + b, 0);
+    const good = count.Excellent + count.Great + count.Good;
+    const ranked = list.filter(r => r.score != null).sort((a, b) => b.score - a.score);
+    const movers = list.filter(r => r.move != null).sort((a, b) => b.move - a.move);
+    const growth = list.filter(r => r.sales_yoy != null).sort((a, b) => b.sales_yoy - a.sales_yoy)[0];
+
+    $("#view").innerHTML = `
+      <div class="stats">
+        <div class="stat"><div class="k">Results</div><div class="v">${list.length}</div><div class="s">${label}</div></div>
+        <div class="stat"><div class="k">Good or better</div><div class="v">${graded ? Math.round(good / graded * 100) + "%" : "–"}</div><div class="s">${good} of ${graded}</div></div>
+        <div class="stat"><div class="k">Top grade</div><div class="v">${ranked[0] ? (GRADE[ranked[0].rating] || ["", ""])[1] + " " + esc(ranked[0].rating) : "–"}</div><div class="s">${ranked[0] ? esc(ranked[0].name) : "–"}</div></div>
+        <div class="stat"><div class="k">Fastest sales growth</div><div class="v">${growth ? pc(growth.sales_yoy, 0) : "–"}</div><div class="s">${growth ? esc(growth.name) : "–"}</div></div>
+      </div>
+      <div class="grid">
+        <div class="panel"><h3>Latest results <small>${list.length} ${label}</small></h3>
+          ${list.length ? list.slice(0, state.shown).map(resultItem).join("") + (list.length > state.shown ? `<button class="more" data-more>Show more</button>` : "")
+            : `<div class="empty">No results ${label}${state.q ? " for “" + esc(state.q) + "”" : ""}. Try a longer period.</div>`}
+        </div>
+        <div>
+          <div class="panel"><h3>Grades <small>${graded} graded</small></h3>
+            <div class="gradebar">${GRADES.map(g => count[g[0]] ? `<i style="width:${count[g[0]] / graded * 100}%;background:${g[2]}"></i>` : "").join("")}</div>
+            <div class="legend">${GRADES.map(g => `<span><i style="background:${g[2]}"></i>${g[1]} ${g[0]} ${count[g[0]]}</span>`).join("")}</div>
+          </div>
+          <div class="panel" style="margin-top:14px"><h3>Best scores <small>${label}</small></h3>
+            ${ranked.length ? ranked.slice(0, 5).map(r => `<div class="mini" data-open="r:${esc(r.key)}"><div class="l"><div><b>${esc(r.name)}</b></div><div style="color:var(--muted);font-size:12.5px">${GRADE[r.rating] ? GRADE[r.rating][1] + " " + r.rating : ""}</div></div><div class="r">${r.score > 0 ? "+" : ""}${r.score}<small>score</small></div></div>`).join("") : `<div class="empty">Nothing yet</div>`}
+          </div>
+          ${movers.length ? `<div class="panel" style="margin-top:14px"><h3>Stock move since result</h3>
+            ${movers.slice(0, 5).map(r => `<div class="mini" data-open="r:${esc(r.key)}"><div class="l"><div><b>${esc(r.name)}</b></div><div style="color:var(--muted);font-size:12.5px">${r.move_vs_nifty != null ? pc(r.move_vs_nifty) + " vs Nifty" : ""}</div></div><div class="r ${cls(r.move)}">${pc(r.move)}</div></div>`).join("")}
+          </div>` : ""}
+        </div>
+      </div>`;
+  }
+
+  // ---------- calendar
+  function renderCalendar() {
+    const list = state.data.calendar.filter(match);
+    const byDay = {};
+    list.forEach(m => (byDay[m.date] = byDay[m.date] || []).push(m));
+    const t = todayKey(), tm = dayKey(new Date(Date.now() + 864e5));
+    const days = Object.keys(byDay).sort();
+    $("#view").innerHTML = `
+      <div class="panel"><h3>Upcoming results <small>${list.length} compan${list.length === 1 ? "y" : "ies"}</small></h3>
+        ${days.length ? days.map(d => `<div class="day">${d === t ? "Today · " : d === tm ? "Tomorrow · " : ""}${fmtDay(d)}</div>` +
+          byDay[d].map(m => `<div class="mini" data-co="${esc(m.sym)}"><div class="l"><div><b>${esc(m.name)}</b></div><div style="color:var(--muted);font-size:12.5px">${esc(m.sector || m.sym)}</div></div><div class="r">${lakhCr(m.mcap)}<small>${m.cap} cap</small></div></div>`).join("")).join("")
+          : `<div class="empty">No board meetings for results announced yet${state.q ? " for “" + esc(state.q) + "”" : ""}.<br>Most companies report in the first half of Feb, May, Aug and Nov; dates show up here as soon as they're filed.</div>`}
+      </div>`;
+  }
+
+  // ---------- company view (from search or a click)
+  function renderCompany() {
+    const box = $("#company");
+    let sym = state.co;
+    if (!sym && state.q.length >= 3) {
+      const q = state.q.toLowerCase();
+      const names = {};
+      [...state.data.orders, ...state.data.results, ...state.data.calendar].forEach(x => {
+        if (x.sym.toLowerCase() === q || x.name.toLowerCase().includes(q)) names[x.sym] = 1;
+      });
+      const k = Object.keys(names);
+      if (k.length === 1) sym = k[0];
+    }
+    if (!sym) { box.innerHTML = ""; return; }
+    const os = state.data.orders.filter(o => o.sym === sym);
+    const rs = state.data.results.filter(r => r.sym === sym);
+    const cs = state.data.calendar.filter(c => c.sym === sym);
+    const any = os[0] || rs[0] || cs[0];
+    if (!any) { box.innerHTML = ""; return; }
+    const tot = os.reduce((a, o) => a + (o.value_cr || 0), 0);
+    box.innerHTML = `<div class="panel co">
+      <div class="hd"><div><h2>${esc(any.name)}</h2>
+        <div class="meta"><span>NSE: <b>${esc(sym)}</b></span>${any.mcap ? `<span>M-cap <b>${lakhCr(any.mcap)}</b></span>` : ""}${any.sector ? `<span>${esc(any.sector)}</span>` : ""}
+        ${os.length ? `<span><b>${os.length}</b> order${os.length > 1 ? "s" : ""} · <b>${crs(tot)}</b></span>` : ""}
+        ${cs[0] ? `<span>Next result: <b>${fmtDay(cs[0].date)}</b></span>` : ""}</div></div>
+        <div style="display:flex;gap:8px;align-items:flex-start">${page(sym) ? `<a class="x" style="text-decoration:none;background:var(--mint);color:#06281c" href="${page(sym)}">Full page →</a>` : ""}<button class="x" data-close-co>Close</button></div></div>
+      ${rs.map(resultItem).join("")}${os.map(orderItem).join("")}
+    </div>`;
+  }
+
+  // ---------- details popup
+  function row(k, v) { return v == null || v === "" || v === "–" ? "" : `<div class="mrow"><span>${k}</span><span>${v}</span></div>`; }
+  function open(id) {
+    const [kind, key] = [id.slice(0, 1), id.slice(2)];
+    let html = "";
+    if (kind === "o") {
+      const o = state.data.orders.find(x => x.key === key); if (!o) return;
+      html = `<div class="t1"><span class="nm" style="font-size:18px">${esc(o.name)}</span><span class="badge b-${size(o)}">${size(o)}</span></div>
+        ${o.card ? `<img src="${esc(o.card)}" alt="Order card for ${esc(o.name)}">` : ""}
+        ${row("Order value", value(o))}${row("Client", esc(o.client))}${row("Work", esc(cleanWork(o.work)))}
+        ${row("Share of yearly revenue", o.pct != null ? o.pct.toFixed(1) + "%" : null)}${row("Share of market cap", o.pct_mcap != null ? o.pct_mcap.toFixed(2) + "%" : null)}
+        ${row("Market cap", lakhCr(o.mcap))}${row("Next-day stock move", o.reaction != null ? `<span class="${cls(o.reaction)}">${pc(o.reaction)}</span>` : null)}
+        ${row("Sector", esc(o.osector))}${row("Filed", fmtTime(o.filed))}`;
+    } else {
+      const r = state.data.results.find(x => x.key === key); if (!r) return;
+      html = `<div class="t1"><span class="nm" style="font-size:18px">${esc(r.name)}</span>${gradeTag(r)}</div>
+        ${r.card ? `<img src="${esc(r.card)}" alt="Results card for ${esc(r.name)}">`: ""}
+        ${row("Sales", crs(r.sales))}${row("Sales YoY", r.sales_yoy != null ? `<span class="${cls(r.sales_yoy)}">${pc(r.sales_yoy)}</span>` : null)}${row("Sales QoQ", r.sales_qoq != null ? `<span class="${cls(r.sales_qoq)}">${pc(r.sales_qoq)}</span>` : null)}
+        ${row("Net profit", crs(r.pat))}${row("Profit YoY", r.pat_yoy != null ? `<span class="${cls(r.pat_yoy)}">${pc(r.pat_yoy)}</span>` : null)}${row("Profit QoQ", r.pat_qoq != null ? `<span class="${cls(r.pat_qoq)}">${pc(r.pat_qoq)}</span>` : null)}
+        ${row("Score", r.score != null ? (r.score > 0 ? "+" : "") + r.score : null)}${row("Market cap", lakhCr(r.mcap))}
+        ${row("Stock since result", r.move != null ? `<span class="${cls(r.move)}">${pc(r.move)}</span>` + (r.move_vs_nifty != null ? ` <small style="color:var(--muted)">(${pc(r.move_vs_nifty)} vs Nifty)</small>` : "") : null)}
+        ${row("Filed", fmtTime(r.filed))}`;
+    }
+    const item = (kind === "o" ? state.data.orders : state.data.results).find(x => x.key === key);
+    html += `<div class="mact">${page(item.sym) ? `<a class="btn" href="${page(item.sym)}">Company page</a>` : `<button class="btn" data-co="${esc(item.sym)}">All for ${esc(item.sym)}</button>`}${item.source ? `<a class="btn" href="${esc(item.source)}" target="_blank" rel="noopener">📄 Filing</a>` : ""}</div>
+      <div class="mact"><a class="btn p" href="${esc(item.url)}" target="_blank" rel="noopener">Open on Telegram</a></div>
+      <div class="mact"><button class="btn" data-close-dlg>Close</button></div>`;
+    $("#dlgBody").innerHTML = html;
+    $("#dlg").showModal();
+  }
+
+  // ---------- price strip
+  function renderStrip() {
+    const m = state.data.movers || {};
+    const items = [...(m.up || []).slice(0, 8), ...(m.down || []).slice(0, 8)];
+    const box = $("#strip");
+    if (!items.length) { box.hidden = true; return; }
+    const one = `<span class="lbl">Top movers ${m.day ? fmtDay(m.day) : ""}</span>` + items.map(x =>
+      `<a ${page(x.sym) ? `href="${page(x.sym)}"` : ""}><b>${esc(x.sym)}</b><span class="${cls(x.chg)}">${pc(x.chg)}</span><span style="color:var(--muted)">₹${x.price.toLocaleString("en-IN")}</span></a>`).join("");
+    box.innerHTML = `<div class="run">${one}${one}</div>`;
+    box.hidden = false;
+  }
+
+  // ---------- draw
+  function render() {
+    if (!state.data) return;
+    document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === state.tab));
+    $("#n-orders").textContent = state.data.orders.length;
+    $("#n-results").textContent = state.data.results.length;
+    $("#n-calendar").textContent = state.data.calendar.length || "";
+    chips();
+    renderCompany();
+    renderStrip();
+    ({ orders: renderOrders, results: renderResults, calendar: renderCalendar })[state.tab]();
+    $("#upd").textContent = lastPost() ? ago(lastPost()) : "–";
+  }
+  const lastPost = () => [...state.data.orders, ...state.data.results].map(x => x.filed || "").sort().pop();
+
+  async function load() {
+    try {
+      const r = await fetch("data/dashboard.json?t=" + Date.now(), { cache: "no-store" });
+      state.data = await r.json();
+      render();
+    } catch (e) {
+      if (!state.data) $("#view").innerHTML = `<div class="panel"><div class="empty">Couldn't load the data. Please refresh in a minute.</div></div>`;
+    }
+  }
+
+  // ---------- events
+  document.addEventListener("click", e => {
+    if (e.target.closest("a[href]")) return;
+    const t = e.target.closest("[data-tab],[data-period],[data-cap],[data-open],[data-co],[data-close-co],[data-close-dlg],[data-more],[data-osec]");
+    if (!t) { if (e.target === $("#dlg")) $("#dlg").close(); return; }
+    if (t.dataset.tab) { state.tab = t.dataset.tab; state.shown = 40; try { localStorage.setItem("mm-tab", state.tab); } catch (x) {} }
+    else if (t.dataset.period) { state.period = t.dataset.period; state.shown = 40; }
+    else if (t.dataset.cap) { state.cap = t.dataset.cap; state.shown = 40; }
+    else if (t.dataset.open) { open(t.dataset.open); return; }
+    else if (t.dataset.co) { state.co = t.dataset.co; if ($("#dlg").open) $("#dlg").close(); window.scrollTo({ top: 0, behavior: "smooth" }); }
+    else if (t.hasAttribute("data-close-co")) { state.co = null; state.q = ""; $("#q").value = ""; }
+    else if (t.hasAttribute("data-close-dlg")) { $("#dlg").close(); return; }
+    else if (t.hasAttribute("data-more")) { state.shown += 40; }
+    else if (t.hasAttribute("data-osec")) { state.osec = t.dataset.osec || null; state.shown = 40; }
+    render();
+  });
+  let timer;
+  $("#q").addEventListener("input", e => {
+    clearTimeout(timer);
+    timer = setTimeout(() => { state.q = e.target.value.trim(); state.co = null; state.shown = 40; render(); }, 150);
+  });
+
+  load();
+  setInterval(load, 2 * 60 * 1000);                     // pick up new posts without a refresh
+  setInterval(() => state.data && lastPost() && ($("#upd").textContent = ago(lastPost())), 30 * 1000);
+})();
+</script>
+</body>
+</html>

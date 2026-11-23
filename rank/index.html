@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Mint Score ranks | Market Mint</title>
+<link rel="icon" href="../logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/mm.css">
+<style>
+h1{font-size:26px;margin:22px 0 4px;letter-spacing:-.02em}
+.lead{color:var(--muted);margin:0 0 14px;font-size:14.5px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)}
+.filters select,.filters input{height:36px;border-radius:9px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:0 10px;font:inherit;font-size:14px}
+.filters input{flex:1;min-width:160px}
+th[data-k]{cursor:pointer;user-select:none}th[data-k]:hover{color:var(--ink)}
+th.on{color:var(--mint-d)}
+.sc{display:inline-block;min-width:36px;text-align:center;font-weight:800;padding:3px 6px;border-radius:7px;background:var(--soft)}
+.s80{background:var(--up);color:#fff}.s65{background:var(--mint-d);color:#fff}.s50{background:var(--soft)}.s0{background:var(--soft);color:var(--down)}
+</style>
+</head>
+<body data-root="../">
+<script src="../assets/mm.js"></script>
+<main class="wrap">
+  <h1>Mint Score ranks</h1>
+  <p class="lead">Every NSE stock rated 0–100 on quality, valuation, growth trend, momentum, ownership and risk. Updated each evening. A research score, not a buy or sell call.</p>
+  <div class="panel">
+    <div class="filters">
+      <input id="f" type="search" placeholder="Filter by name or symbol">
+      <select id="ind"><option value="">All industries</option></select>
+      <select id="cap"><option value="">All sizes</option><option>Large</option><option>Mid</option><option>Small</option><option>Micro</option></select>
+      <span class="muted" id="cnt" style="font-size:13px"></span>
+    </div>
+    <div class="tscroll"><table><thead><tr>
+      <th>#</th><th data-k="n" style="text-align:left">Company</th><th data-k="sc" class="on">Mint Score</th><th data-k="m">M-cap</th><th data-k="p">Price</th>
+      <th data-k="c">Day</th><th data-k="r1y">1 yr</th><th data-k="pe">P/E</th><th data-k="roe">ROE</th><th data-k="fh">From high</th></tr></thead>
+      <tbody id="tb"><tr><td colspan="10" class="empty">Loading…</td></tr></tbody></table></div>
+    <button class="more" id="more" hidden>Show more</button>
+  </div>
+</main>
+<script>
+(async () => {
+  const { esc, inr, crs, pct, cls, capOf, stockUrl } = MM;
+  const st = { k: "sc", dir: -1, shown: 100 };
+  const d = await MM.index();
+  const L = d.list.filter(r => r.sc != null);
+  const inds = [...new Set(L.map(r => r.i).filter(Boolean))].sort();
+  const sel = document.getElementById("ind");
+  sel.innerHTML += inds.map(i => `<option>${esc(i)}</option>`).join("");
+  const p = new URLSearchParams(location.search);
+  if (p.get("ind")) sel.value = p.get("ind");
+  const scCls = s => s >= 80 ? "s80" : s >= 65 ? "s65" : s >= 50 ? "s50" : "s0";
+  function draw() {
+    const q = document.getElementById("f").value.trim().toUpperCase(), ind = sel.value, cap = document.getElementById("cap").value;
+    let rs = L.filter(r => (!q || r.s.includes(q) || r.n.toUpperCase().includes(q)) && (!ind || r.i === ind) && (!cap || capOf(r.m) === cap));
+    const k = st.k;
+    // dir 1 = low to high, -1 = high to low; blanks always last; ties by market cap
+    rs.sort((a, b) => {
+      if (k === "n") return st.dir * a.n.localeCompare(b.n);
+      const x = a[k], y = b[k];
+      if (x == null || y == null) return (x == null) - (y == null);
+      return st.dir * (x - y) || (b.m || 0) - (a.m || 0);
+    });
+    document.getElementById("cnt").textContent = rs.length.toLocaleString("en-IN") + " stocks";
+    document.getElementById("tb").innerHTML = rs.slice(0, st.shown).map((r, i) => `<tr><td>${i + 1}</td>
+      <td style="text-align:left"><a href="${stockUrl(r.s)}">${esc(r.n)}</a><small>${esc(r.s)} · ${esc(r.i || "")}</small></td>
+      <td><span class="sc ${scCls(r.sc)}">${r.sc}</span></td><td>${crs(r.m)}</td><td>${inr(r.p)}</td><td class="${cls(r.c)}">${pct(r.c, 2)}</td>
+      <td class="${cls(r.r1y)}">${pct(r.r1y)}</td><td>${r.pe == null ? "–" : r.pe.toFixed(1)}</td><td>${r.roe == null ? "–" : r.roe.toFixed(1) + "%"}</td>
+      <td>${r.fh == null ? "–" : pct(r.fh)}</td></tr>`).join("") || '<tr><td colspan="10" class="empty">No stocks match.</td></tr>';
+    const more = document.getElementById("more");
+    more.hidden = rs.length <= st.shown;
+    more.textContent = `Show more (${(rs.length - st.shown).toLocaleString("en-IN")} left)`;
+  }
+  document.querySelectorAll("th[data-k]").forEach(th => th.onclick = () => {
+    st.dir = st.k === th.dataset.k ? -st.dir : (th.dataset.k === "n" ? 1 : -1);
+    st.k = th.dataset.k; st.shown = 100;
+    document.querySelectorAll("th[data-k]").forEach(t => t.classList.toggle("on", t === th));
+    draw();
+  });
+  ["f", "ind", "cap"].forEach(id => document.getElementById(id).addEventListener("input", () => { st.shown = 100; draw(); }));
+  document.getElementById("more").onclick = () => { st.shown += 200; draw(); };
+  draw();
+})();
+</script>
+</body>
+</html>
