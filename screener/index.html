@@ -132,7 +132,30 @@ dialog::backdrop{background:rgba(5,15,11,.6)}
 .btn{flex:1;text-align:center;text-decoration:none;font:inherit;font-weight:700;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
 .btn.p{background:var(--mint);color:#06281c;border-color:var(--mint)}
 .note2{font-size:12.5px;color:var(--muted);margin:-6px 0 14px}
+.vsw{margin:16px 0 4px}
+.more[hidden]{display:none}
+#iT td{white-space:nowrap}
 </style>
+<div class="seg vsw" role="tablist" aria-label="Screener"><button data-v="results" class="on">Results</button><button data-v="inst">FII + DII buying</button></div>
+<div id="vInst" hidden>
+<section class="top"><div><h1>FII + DII buying screener</h1><div class="tags">Stocks where foreign and Indian institutions keep adding, quarter after quarter, since 2016</div></div></section>
+<div class="sum" id="iSum"></div>
+<div class="ctl">
+  <select id="iWho" aria-label="Who is buying">
+    <option value="both">Both FII and DII rising</option><option value="comb">FII + DII combined rising</option>
+    <option value="fii">FII rising</option><option value="dii">DII rising</option></select>
+  <select id="iMin" aria-label="Quarters in a row">
+    <option value="1">1+ quarter in a row</option><option value="2">2+ quarters in a row</option><option value="3">3+ quarters in a row</option>
+    <option value="4" selected>4+ quarters in a row</option><option value="6">6+ quarters in a row</option>
+    <option value="8">8+ quarters in a row</option><option value="12">12+ quarters in a row</option></select>
+  <select id="iCap" aria-label="Market cap"><option value="">All caps</option><option>Large</option><option>Mid</option><option>Small</option><option>Micro</option></select>
+  <select id="iSec" aria-label="Sector"><option value="">All sectors</option></select>
+  <input id="iQ" type="search" placeholder="Find a company">
+</div>
+<p class="note2">FII = foreign institutions (FPIs). DII = Indian institutions (mutual funds, insurers, banks, pension funds). Numbers are % of all shares, from each company's quarterly shareholding filing: BSE files for Jun 2016 to Jun 2021, NSE files after that. Jun 2016 is the oldest quarter the exchanges publish in a form we can read. "In a row" stops at the first quarter that did not rise, or at a missing filing. Changes are in percentage points. Educational only - not a buy/sell recommendation.</p>
+<div class="panel"><div class="tbl"><table id="iT"></table></div><button class="more" id="iMore" hidden>Show more</button></div>
+</div>
+<div id="vRes">
 <section class="top"><div><h1>Results screener</h1><div class="tags">Every company that reported this quarter · tap a column to sort</div></div></section>
 <div class="ctl">
   <select id="season" aria-label="Quarter"></select>
@@ -143,6 +166,7 @@ dialog::backdrop{background:rgba(5,15,11,.6)}
 </div>
 <p class="note2">Quarter growth comes from Yahoo Finance and fills in a few hours after each result. 3Y/5Y = yearly growth of the last 12 months' sales or profit vs 3 or 5 years ago, from NSE filings; grades marked on our Telegram cards are used where we posted one. Not investment advice.</p>
 <div class="panel"><div class="tbl"><table id="t"></table></div><button class="more" id="more" hidden>Show more</button></div>
+</div>
 <dialog id="dlg"><div class="mb" id="dlgB"></div></dialog>
 <script>
 const $ = s => document.querySelector(s);
@@ -177,6 +201,108 @@ async function loadData() {
   PAGES = new Set(DATA.pages || []);
   const sel = $("#season");
   sel.innerHTML = Object.keys(DATA.seasons).map(k => `<option>${k}</option>`).join("");
+}
+
+const iq = {sort: "run", dir: -1, shown: 60};
+let INST = null, IROWS = [];
+const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const qLab = iso => MON[+iso.slice(5, 7) - 1] + " " + iso.slice(0, 4);
+const pp = v => v == null ? "–" : (v > 0 ? "+" : "") + v.toFixed(2);
+async function instInit() {
+  if (INST) return;
+  $("#iT").innerHTML = `<tr><td class="empty">Loading shareholding history…</td></tr>`;
+  try {
+    const r = await fetch(MM.DATA + "scan/inst.json?t=" + Date.now(), {cache: "no-store"});
+    if (!r.ok) throw new Error(r.status);
+    INST = await r.json();
+  } catch (e) {
+    $("#iT").innerHTML = `<tr><td class="empty">The shareholding history is still being collected. Please check back tomorrow.</td></tr>`;
+    return;
+  }
+  const C = Object.fromEntries(INST.cols.map((k, i) => [k, i])), Q = INST.q;
+  IROWS = INST.rows.map(x => {
+    const f = x[C.f], d = x[C.d], mf = x[C.mf];
+    const pts = Q.map((_, i) => i).filter(i => f[i] != null && d[i] != null);
+    const L = pts[pts.length - 1];
+    const comb = i => f[i] + d[i];
+    const run = test => { let n = 0; for (let k = pts.length - 1; k > 0; k--) { const a = pts[k], b = pts[k - 1]; if (a - b !== 1 || !test(f[a] - f[b], d[a] - d[b])) break; n++; } return n; };
+    const back = n => { const i = L - n; return i >= 0 && f[i] != null && d[i] != null ? comb(L) - comb(i) : null; };
+    let up = 0, pairs = 0;
+    for (let k = 1; k < pts.length; k++) if (pts[k] - pts[k - 1] === 1) { pairs++; if (comb(pts[k]) > comb(pts[k - 1])) up++; }
+    return {sym: x[C.s], name: x[C.n], sector: x[C.i] || "Other", mcap: x[C.m], price: x[C.p], r1y: x[C.c], f, d, mf, pts, L,
+      runs: {both: run((a, b) => a > 0 && b > 0), comb: run((a, b) => a + b > 0), fii: run(a => a > 0), dii: run((a, b) => b > 0)},
+      fii: f[L], dii: d[L], mfn: mf[L], last: back(1), y1: back(4), y3: back(12), y5: back(20),
+      all: pts.length > 1 ? comb(L) - comb(pts[0]) : null, upShare: pairs ? up / pairs * 100 : null,
+      from: Q[pts[0]], latest: Q[L], fresh: L >= Q.length - 2};   // filed the latest or the quarter before (filings take ~3 weeks)
+  });
+  const secs = [...new Set(IROWS.map(r => r.sector))].sort();
+  $("#iSec").innerHTML = `<option value="">All sectors</option>` + secs.map(s => `<option>${esc(s)}</option>`).join("");
+  ["#iWho", "#iMin", "#iCap", "#iSec"].forEach(s => $(s).addEventListener("change", () => { iq.shown = 60; idraw(); }));
+  $("#iQ").addEventListener("input", () => { iq.shown = 60; idraw(); });
+  $("#iMore").addEventListener("click", () => { iq.shown += 60; idraw(); });
+  $("#iT").addEventListener("click", e => {
+    const th = e.target.closest("th[data-k]");
+    if (th) { const k = th.dataset.k; iq.dir = iq.sort === k ? -iq.dir : (k === "name" ? 1 : -1); iq.sort = k; idraw(); return; }
+    if (e.target.closest("a")) return;
+    const tr = e.target.closest("tr[data-s]");
+    if (tr) ipop(IROWS.find(r => r.sym === tr.dataset.s));
+  });
+  idraw();
+}
+function spark(r) {
+  const v = r.pts.slice(-20).map(i => r.f[i] + r.d[i]);
+  if (v.length < 2) return "";
+  const lo = Math.min(...v), hi = Math.max(...v), w = 90, h = 26, X = i => i / (v.length - 1) * w, Y = y => h - 2 - (hi > lo ? (y - lo) / (hi - lo) : .5) * (h - 4);
+  const col = v[v.length - 1] >= v[0] ? "var(--up,#16a34a)" : "var(--down,#dc2626)";
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><polyline fill="none" stroke="${col}" stroke-width="1.6" points="${v.map((y, i) => X(i).toFixed(1) + "," + Y(y).toFixed(1)).join(" ")}"/></svg>`;
+}
+const ICOLS = [["name", "Company"], ["run", "In a row"], ["fii", "FII %"], ["dii", "DII %"], ["last", "Last qtr"], ["y1", "1 yr"], ["y3", "3 yr"], ["y5", "5 yr"], ["all", "Since start"], ["upShare", "Rising qtrs"], ["spark", "FII + DII trend"], ["from", "Data from"], ["mcap", "M-cap"]];
+function irows() {
+  const who = $("#iWho").value, min = +$("#iMin").value, cap = $("#iCap").value, sec = $("#iSec").value, q = $("#iQ").value.trim().toLowerCase();
+  const rs = IROWS.filter(r => r.fresh && r.runs[who] >= min && (!cap || capOf(r.mcap) === cap) && (!sec || r.sector === sec) &&
+    (!q || (r.sym + " " + r.name).toLowerCase().includes(q)));
+  const key = r => iq.sort === "run" ? r.runs[who] * 1000 + (r.y1 ?? -99) : iq.sort === "name" ? r.name.toLowerCase() : r[iq.sort];
+  return rs.sort((a, b) => { const x = key(a), y = key(b); if (x == null) return 1; if (y == null) return -1; return (x > y ? 1 : x < y ? -1 : 0) * iq.dir; });
+}
+function idraw() {
+  const who = $("#iWho").value, rs = irows(), Q = INST.q;
+  const fresh = IROWS.filter(r => r.fresh);
+  $("#iSum").innerHTML = `<div><span>Companies</span><b>${fresh.length.toLocaleString("en-IN")}</b></div>
+    <div><span>Quarters covered</span><b>${qLab(Q[0])} – ${qLab(Q[Q.length - 1])}</b></div>
+    <div><span>Match your filter</span><b>${rs.length.toLocaleString("en-IN")}</b></div>
+    <div><span>Heavy buying last qtr</span><b>${fresh.filter(r => r.runs.both >= 1 && r.last > 1.5).length}</b></div>`;
+  const c = v => `<td class="${cls(v)}">${pp(v)}</td>`;
+  $("#iT").innerHTML = "<tr>" + ICOLS.map(([k, t]) => k === "spark" ? `<th>${t}</th>` : `<th data-k="${k}" class="${iq.sort === k ? "on" : ""}">${t}${iq.sort === k ? (iq.dir > 0 ? " ▲" : " ▼") : ""}</th>`).join("") + "</tr>" +
+    rs.slice(0, iq.shown).map(r => `<tr data-s="${esc(r.sym)}"><td><a href="${MM.stockUrl(r.sym)}">${esc(r.name)}</a><small>${esc(r.sym)}</small></td>
+      <td><b>${r.runs[who]}</b> qtr${r.runs[who] === 1 ? "" : "s"}${r.runs.both >= 1 && r.last > 1.5 ? ` <small title="FII + DII up more than 1.5 points last quarter">heavy</small>` : ""}</td>
+      <td>${r.fii.toFixed(2)}</td><td>${r.dii.toFixed(2)}</td>${c(r.last)}${c(r.y1)}${c(r.y3)}${c(r.y5)}${c(r.all)}
+      <td>${r.upShare == null ? "–" : Math.round(r.upShare) + "%"}</td><td>${spark(r)}</td><td>${qLab(r.from)}</td><td>${crs(r.mcap)}</td></tr>`).join("") +
+    (rs.length ? "" : `<tr><td colspan="${ICOLS.length}" class="empty">No companies match. Try fewer quarters in a row.</td></tr>`);
+  $("#iMore").hidden = rs.length <= iq.shown;
+  $("#iMore").textContent = `Show more (${rs.length - iq.shown} left)`;
+}
+function ichart(r) {
+  const Q = INST.q, P = r.pts, w = 440, h = 180, padL = 30, padB = 18;
+  const vals = P.flatMap(i => [r.f[i], r.d[i]]), lo = Math.floor(Math.min(...vals)), hi = Math.ceil(Math.max(...vals)) || 1;
+  const X = k => padL + k / Math.max(P.length - 1, 1) * (w - padL - 6), Y = v => 6 + (hi - v) / Math.max(hi - lo, 1) * (h - padB - 12);
+  const line = (arr, col) => `<polyline fill="none" stroke="${col}" stroke-width="2" points="${P.map((i, k) => X(k).toFixed(1) + "," + Y(arr[i]).toFixed(1)).join(" ")}"/>`;
+  const yt = [lo, (lo + hi) / 2, hi].map(v => `<text x="${padL - 4}" y="${Y(v) + 4}" font-size="10" text-anchor="end" fill="var(--muted)">${v.toFixed(0)}%</text><line x1="${padL}" x2="${w - 6}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/>`).join("");
+  const xt = [0, Math.floor((P.length - 1) / 2), P.length - 1].map(k => `<text x="${X(k)}" y="${h - 3}" font-size="10" text-anchor="${k === 0 ? "start" : k === P.length - 1 ? "end" : "middle"}" fill="var(--muted)">${qLab(Q[P[k]])}</text>`).join("");
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" role="img" aria-label="FII and DII holding over time">${yt}${xt}${line(r.f, "var(--teal,#0e7490)")}${line(r.d, "var(--amber,#d97706)")}</svg>
+    <div style="display:flex;gap:14px;font-size:12px;color:var(--muted);margin:2px 0 8px"><span><b style="color:var(--teal,#0e7490)">━</b> FII %</span><span><b style="color:var(--amber,#d97706)">━</b> DII %</span></div>`;
+}
+function ipop(r) {
+  const Q = INST.q, last = r.pts.slice(-12).reverse();
+  const rows = last.map((i, k) => { const j = last[k + 1]; const ch = j != null && i - j === 1 ? (r.f[i] + r.d[i]) - (r.f[j] + r.d[j]) : null;
+    return `<tr><td>${qLab(Q[i])}</td><td>${r.f[i].toFixed(2)}</td><td>${r.d[i].toFixed(2)}</td><td>${r.mf[i] == null ? "–" : r.mf[i].toFixed(2)}</td><td class="${cls(ch)}">${pp(ch)}</td></tr>`; }).join("");
+  $("#dlgB").innerHTML = `<h3>${esc(r.name)}</h3><div style="color:var(--muted);font-size:13px;margin-bottom:8px">NSE: ${esc(r.sym)} · ${esc(r.sector)}${r.mcap ? " · " + capOf(r.mcap) + " cap" : ""} · ${r.pts.length} quarters since ${qLab(r.from)}</div>
+    ${ichart(r)}
+    <div class="mrow"><span>Both FII and DII rising</span><span>${r.runs.both} quarter${r.runs.both === 1 ? "" : "s"} in a row</span></div>
+    <div class="mrow"><span>FII + DII change: 1 yr / 3 yr / 5 yr</span><span><span class="${cls(r.y1)}">${pp(r.y1)}</span> / <span class="${cls(r.y3)}">${pp(r.y3)}</span> / <span class="${cls(r.y5)}">${pp(r.y5)}</span> pts</span></div>
+    <div class="mrow"><span>Mutual funds now</span><span>${r.mfn == null ? "–" : r.mfn.toFixed(2) + "%"}</span></div>
+    <div class="tbl" style="max-height:220px;overflow:auto;margin-top:8px"><table><tr><th>Quarter</th><th>FII %</th><th>DII %</th><th>MF %</th><th>FII+DII chg</th></tr>${rows}</table></div>
+    <div class="mact"><a class="btn p" href="${MM.stockUrl(r.sym)}">Company page</a><button class="btn" onclick="document.getElementById('dlg').close()">Close</button></div>`;
+  $("#dlg").showModal();
 }
 
 const COLS = [["name","Company"],["day","Results"],["rating","Grade"],["sales_yoy","Sales YoY"],["op_yoy","Op profit YoY"],["pat_yoy","Profit YoY"],["sales_qoq","Sales QoQ"],["pat_qoq","Profit QoQ"],["day1","Results day"],["move","Since results"],["sales_3y","Sales 3Y/yr"],["pat_3y","Profit 3Y/yr"],["sales_5y","Sales 5Y/yr"],["mcap","M-cap"]];
@@ -216,7 +342,18 @@ function fillSectors() {
   const secs = [...new Set(S.rows.map(r => r.sector || "Other"))].sort();
   $("#sector").innerHTML = `<option value="">All sectors</option>` + secs.map(s => `<option>${esc(s)}</option>`).join("");
 }
-loadData().then(() => { fillSectors(); draw(); });
+let resReady = false;
+function showView(v) {
+  document.querySelectorAll(".vsw button").forEach(b => b.classList.toggle("on", b.dataset.v === v));
+  $("#vRes").hidden = v !== "results"; $("#vInst").hidden = v !== "inst";
+  const u = new URL(location.href); if (v === "inst") u.searchParams.set("v", "inst"); else u.searchParams.delete("v");
+  history.replaceState(null, "", u);
+  document.title = v === "inst" ? "FII + DII buying screener: institutions adding every quarter | Market Mint" : "Results screener: sort every quarterly result | Market Mint";
+  if (v === "inst") instInit();
+  else if (!resReady) { resReady = true; loadData().then(() => { fillSectors(); draw(); }); }
+}
+document.querySelectorAll(".vsw button").forEach(b => b.addEventListener("click", () => showView(b.dataset.v)));
+showView(new URLSearchParams(location.search).get("v") === "inst" ? "inst" : "results");
 </script><section class="promo"><div><h3>Get every order win and result on Telegram</h3>
 <p>Posted within seconds of the NSE/BSE filing, free.</p></div>
 <a class="join" href="https://t.me/addlist/nbJ1it_56oo0MzM1" target="_blank" rel="noopener">Join Market Mint</a></section>
