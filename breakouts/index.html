@@ -175,8 +175,8 @@ header:not(.mmh) .bar>.brand{display:none}
     </div>
     <div class="dhead"><span>Fine-tune</span><button class="link" id="clear">Clear all</button></div>
     <div class="fgrid" id="dials"></div>
-    <div class="dhead"><span>Your trade plan</span></div>
-    <div class="fgrid">
+    <div class="dhead owner-only"><span>Your trade plan</span></div>
+    <div class="fgrid owner-only">
       <label>Capital (₹)<input id="cap" type="number" min="10000" step="10000"></label>
       <label>Risk per trade (%)<input id="risk" type="number" min="0.25" max="5" step="0.25"></label>
     </div>
@@ -403,8 +403,17 @@ function line(series, opts = {}) {      // simple multi-line chart: series = [{y
 }
 
 /* ---------- trade plan ---------- */
+// The buy / share-count plan is for the owner only (open the page once with ?owner=1 on your own device; ?owner=0 undoes it).
+// Everyone else sees plain levels, so the public page never reads like a stock tip.
+const OWNER = (() => { try { const q = new URLSearchParams(location.search).get("owner");
+  if (q === "1") localStorage.setItem("mm_owner", "1"); if (q === "0") localStorage.removeItem("mm_owner");
+  return localStorage.getItem("mm_owner") === "1"; } catch (e) { return false; } })();
 function plan(r) {
   if (r.stage === "played" || r.stage === "none") return "";
+  if (!OWNER) {
+    const lvl = r.stage === "forming" ? r.pivot : r.entry;
+    return `<div class="plan">${r.stage === "forming" ? "Pivot" : "Breakout level"} <b class="n">${inr(lvl)}</b> · 8% below it <b class="n">${inr(lvl * 0.92)}</b> · 50-day average <b class="n">${inr(r.sma50)}</b>. Levels for study, not a buy or sell call.</div>`;
+  }
   const entry = r.stage === "forming" ? r.pivot : r.entry, stop = entry * 0.92;
   const ref = r.stage === "forming" ? entry : r.close, risk = ref - stop;
   if (risk <= 0) return `<div class="plan">Price is below the 8% stop: <b>no new buy</b>.</div>`;
@@ -651,6 +660,7 @@ function buildControls() {
   opts("sort", Object.entries(SORTS).map(([k, [t]]) => [k, t]), S.sort);
   $("dials").innerHTML = DIALS.map(([k, t, mn, mx, st, , f]) => `<label>${t} · <b id="dv-${k}">${f(S.dials[k])}</b><input type="range" min="${mn}" max="${mx}" step="${st}" value="${S.dials[k]}" data-dial="${k}"></label>`).join("");
   $("cap").value = S.cap; $("risk").value = S.risk;
+  if (!OWNER) document.querySelectorAll(".owner-only").forEach(e => e.style.display = "none");
 }
 function wire() {
   for (const k of FKEYS) $("f-" + k).onchange = e => { S[k] = e.target.value; S.page = 1; render(); };
