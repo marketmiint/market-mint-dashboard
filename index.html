@@ -41,7 +41,7 @@
 .mood .bar{display:flex;height:10px;border-radius:6px;overflow:hidden;margin:10px 0 6px;background:var(--soft)}
 .mood .bar i{display:block;height:100%}
 .mood .lg{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
-.idxrow{display:grid;grid-template-columns:minmax(0,1.6fr) 1fr 74px 74px minmax(96px,auto);gap:10px;align-items:center;padding:10px 18px;border-bottom:1px solid var(--line);text-decoration:none;font-size:14px}
+.idxrow{display:grid;grid-template-columns:minmax(0,1.6fr) 74px 74px minmax(96px,auto);gap:10px;align-items:center;padding:10px 18px;border-bottom:1px solid var(--line);text-decoration:none;font-size:14px}
 .idxrow:hover{background:var(--soft)}
 .idxrow .r{text-align:right;font-variant-numeric:tabular-nums}
 .idxhead{font-size:12px;color:var(--muted);font-weight:600;background:var(--soft)}
@@ -76,8 +76,8 @@
     </section>
 
     <section class="panel">
-      <h2><span>Indices</span><span class="ctl"><span class="seg2" id="ig"><button data-g="Broad" class="on">Broad</button><button data-g="Sector">Sector</button><button data-g="Theme">Theme</button></span><a href="market/#indices">All →</a></span></h2>
-      <div class="idxrow idxhead"><span>Index</span><span class="r hm">Level</span><span class="r">1D</span><span class="r">1Y</span><span class="r hm">Stage</span></div>
+      <h2><span>Indices</span><span class="ctl"><span class="seg2" id="ig"><button data-g="Broad" class="on">Broad</button><button data-g="Sector">Sector</button><button data-g="Theme">Theme</button></span><a href="market/#indices">All 40 →</a></span></h2>
+      <div class="idxrow idxhead"><span>Index</span><span class="r">1D</span><span class="r">1Y</span><span class="r hm">Stage</span></div>
       <div id="idx"></div>
     </section>
 
@@ -89,9 +89,13 @@
 
   <div>
     <section class="panel">
-      <h2><span>Upcoming events</span><a href="earnings/?v=upcoming">Calendar →</a></h2>
+      <h2><span>Results calendar</span><a href="earnings/?v=upcoming">Calendar →</a></h2>
       <a class="ev" href="earnings/?v=upcoming"><span><small>📅 Results lined up</small><b id="nup">–<span>results</span></b><p id="ndone"></p></span><span class="stack" id="upl"></span></a>
-      <a class="ev" href="earnings/" style="margin-top:0"><span><small>📊 Latest result</small><b id="lr" style="font-size:18px">–</b><p id="lrl"></p></span><span class="stack" id="lrlogo"></span></a>
+    </section>
+
+    <section class="panel" id="wlp" hidden>
+      <h2><span>My watchlist</span><small class="muted" style="font-weight:500">saved on this device</small></h2>
+      <div class="rowlist" id="wl"></div>
     </section>
 
     <section class="panel" id="moodp" hidden>
@@ -108,11 +112,6 @@
       <h2><span>Top Mint Scores</span><a href="rank/">All ranks →</a></h2>
       <div class="rowlist" id="mint"></div>
     </section>
-
-    <section class="panel">
-      <h2><span>Sections</span></h2>
-      <div class="tiles" id="tools"></div>
-    </section>
   </div>
 </div>
 </main>
@@ -121,7 +120,6 @@
 (async () => {
   const { esc, inr, crs, pct, cls, stockUrl, fmtDate, fmtShort, TABS, svg, logo, co, stagePill } = MM;
   MM.attachSearch(document.getElementById("q"));
-  document.getElementById("tools").innerHTML = TABS.slice(1).map(t => `<a href="${t[0]}">${svg(t[3])}${t[2] === "Mint" ? "Mint Score" : t[2]}</a>`).join("");
   const empty = '<div class="empty">Nothing yet.</div>';
   const chg = v => `<span class="${cls(v)}"><span class="tri">${v > 0 ? "▲" : v < 0 ? "▼" : ""}</span>${v == null ? "–" : Math.abs(v).toFixed(2) + "%"}</span>`;
 
@@ -168,10 +166,9 @@
   // ---- indices
   function drawIdx(g) {
     if (!ix) { document.getElementById("idx").innerHTML = empty; return; }
-    document.getElementById("idx").innerHTML = ix.indices.filter(x => x.group === g || (g === "Theme" && x.group === "Strategy")).slice(0, 10).map(x => {
+    document.getElementById("idx").innerHTML = ix.indices.filter(x => x.group === g || (g === "Theme" && x.group === "Strategy")).slice(0, 5).map(x => {
       const o = x.official, stg = (o && o.stage && MM.STAGE[o.stage]) ? o.stage : (x.stage || {}).stage;
       return `<a class="idxrow" href="market/?i=${x.id}#indices"><span><b style="font-weight:600">${esc(x.name)}</b><small class="muted" style="display:block;font-size:12px">${x.n} stocks</small></span>
-        <span class="r hm">${o ? Number(o.close).toLocaleString("en-IN", { maximumFractionDigits: 0 }) : `<span class="muted" title="equal-weight, base 100">${x.line[x.line.length - 1].toFixed(1)}</span>`}</span>
         <span class="r">${chg(o ? o.chg : x.r["1D"])}</span><span class="r ${cls(x.r["1Y"])}">${pct(x.r["1Y"])}</span><span class="r hm">${stagePill(stg)}</span></a>`;
     }).join("");
   }
@@ -186,22 +183,25 @@
     document.getElementById("moodp").hidden = false;
     document.getElementById("mood").innerHTML = `<span class="light l-${m.light}"><i></i>${word}</span>
       <div class="bar"><i style="width:${(m.adv || 0) / tot * 100}%;background:var(--up)"></i><i style="width:${(m.dec || 0) / tot * 100}%;background:var(--down)"></i></div>
-      <div class="lg"><span><b class="up">${m.adv ?? "–"}</b> rising</span><span>52w highs ${m.highs ?? "–"} · lows ${m.lows ?? "–"}</span><span><b class="down">${m.dec ?? "–"}</b> falling</span></div>`;
+      <div class="lg"><span><b class="up">${m.adv ?? "–"}</b> rising</span><span>52w highs ${m.highs ?? "–"} · lows ${m.lows ?? "–"}</span><span><b class="down">${m.dec ?? "–"}</b> falling</span></div>
+      ${d.day ? `<div class="muted" style="font-size:12px;margin-top:6px">Close of ${fmtDate(d.day)}</div>` : ""}`;
   }
 
-  // ---- earnings
+  // ---- earnings: the fresh results list (data/season.json, same as the Earnings page) with NSE numbers from earnings.json
+  const sj = await fetch("data/season.json", { cache: "no-cache" }).then(r => r.ok ? r.json() : null).catch(() => null);
+  if (er && sj && sj.seasons) {
+    const [label, sea] = Object.entries(sj.seasons)[0];
+    const old = Object.fromEntries(((er.seasons.find(x => x.label === label) || {}).rows || []).map(r => [r.s, r]));
+    er.seasons[0] = { label, rows: sea.rows.map(r => { const o = old[r.sym] || {}, b = by[r.sym] || {};
+      return Object.assign({}, o, { s: r.sym, n: b.n || o.n || r.name, d: r.day, rt: r.rating || null, lg: o.lg ?? b.lg ?? 0,
+        sales: o.sales ?? r.sales, sy: o.sy ?? r.sales_yoy, py: o.py ?? r.pat_yoy }); }).sort((a, b) => (b.d || "").localeCompare(a.d || "")) };
+  }
   if (er) {
     const cur = er.seasons[0] || { rows: [] };
     const up = er.upcoming || [];
     document.getElementById("nup").innerHTML = `${up.length}<span>results</span>`;
     document.getElementById("ndone").textContent = `${cur.rows.length.toLocaleString("en-IN")} declared in ${cur.label || "this season"}`;
     document.getElementById("upl").innerHTML = up.slice(0, 3).map(u => logo(u.s, u.n, u.lg)).join("");
-    const lr = cur.rows[0];
-    if (lr) {
-      document.getElementById("lr").textContent = lr.n;
-      document.getElementById("lrl").innerHTML = `${esc(lr.rt || "")} · ${fmtDate(lr.d)}`;
-      document.getElementById("lrlogo").innerHTML = logo(lr.s, lr.n, lr.lg);
-    }
     document.getElementById("res").innerHTML = cur.rows.slice(0, 6).map(r => `<a href="${stockUrl(r.s)}">${co(r.s, r.n, r.lg, r.sales != null ? `Sales ${pct(r.sy)} · Profit ${pct(r.py)}` : fmtShort(r.d), false)}
       <span class="rt">${r.rt ? `<span class="pill rt-${esc(r.rt)}">${esc(r.rt)}</span>` : ""}<span class="muted" style="display:block;font-weight:500;margin-top:3px">${fmtShort(r.d)}</span></span></a>`).join("") || empty;
   }
@@ -210,6 +210,15 @@
     document.getElementById("ord").innerHTML = od.orders.slice(0, 6).map(o => `<a href="${stockUrl(o.s)}">${co(o.s, o.n, o.lg, esc(o.cl || o.sec || ""), false)}
       <span class="rt"><b>${crs(o.v)}</b><span class="muted">${o.pr != null ? o.pr + "% of revenue" : fmtShort(o.d)}</span></span></a>`).join("") || empty;
   }
+  // ---- watchlist (★ on stock pages and the Breakout Desk)
+  let wl = [];
+  try { wl = JSON.parse(localStorage.getItem("bo_watch") || "[]").filter(s => by[s]); } catch (e) {}
+  if (wl.length) {
+    document.getElementById("wlp").hidden = false;
+    document.getElementById("wl").innerHTML = wl.slice(0, 12).map(s => by[s]).map(r => `<a href="${stockUrl(r.s)}">${co(r.s, r.n, r.lg, esc(r.s), false)}
+      <span class="rt"><b>${inr(r.p)}</b>${chg(r.c)}</span></a>`).join("");
+  }
+  MM.updated && MM.updated(d.made);
   // ---- mint
   document.getElementById("mint").innerHTML = d.list.filter(r => r.sc != null && (r.m || 0) >= 1000).sort((a, b) => b.sc - a.sc || (b.m || 0) - (a.m || 0)).slice(0, 6)
     .map(r => `<a href="${stockUrl(r.s)}">${co(r.s, r.n, r.lg, esc(r.i || ""), false)}<span class="rt"><b style="font-size:18px;font-weight:800">${r.sc}</b></span></a>`).join("");

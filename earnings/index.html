@@ -29,7 +29,7 @@ a.card{color:var(--mint-d);font-weight:700;font-size:12.5px;text-decoration:none
 <main class="wrap">
   <div class="top">
     <div><h1 class="pt">Earnings</h1><p class="lead" style="margin:0">Every quarterly result on NSE this season, graded by our bot, with growth and how the share reacted.</p></div>
-    <span class="seg2" id="view"><button data-v="results" class="on">Results</button><button data-v="upcoming">Upcoming</button></span>
+    <span class="seg2" id="view"><button data-v="results" class="on">Results</button><a href="../screener/">Full table</a><a href="../heatmap/">Heatmap</a><button data-v="upcoming">Upcoming</button></span>
   </div>
   <div style="height:14px"></div>
   <div class="stats" id="stats"></div>
@@ -42,13 +42,13 @@ a.card{color:var(--mint-d);font-weight:700;font-size:12.5px;text-decoration:none
       <select id="sec" aria-label="Sector"><option value="">All sectors</option></select>
       <select id="sort" aria-label="Sort">
         <option value="d">Newest first</option><option value="sy">Sales growth</option><option value="py">Profit growth</option>
-        <option value="mv">Next-day move</option><option value="m">Market cap</option></select>
+        <option value="d1">Results-day move</option><option value="mv">Move since results</option><option value="m">Market cap</option></select>
     </div>
     <div class="fbar" style="padding-top:10px"><span class="chips" id="rt"></span><span class="muted" id="cnt" style="margin-left:auto;font-size:13px"></span></div>
-    <div class="tscroll"><table><thead><tr><th>Company</th><th>Date</th><th>Grade</th><th>Sales ₹ Cr</th><th>Net profit ₹ Cr</th><th>OPM</th><th>Next day</th><th>Price</th></tr></thead>
-      <tbody id="tb"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody></table></div>
+    <div class="tscroll"><table><thead><tr><th>Company</th><th>Date</th><th>Grade</th><th>Sales ₹ Cr</th><th>Net profit ₹ Cr</th><th>OPM</th><th>Results day</th><th>Since results</th><th>Price</th></tr></thead>
+      <tbody id="tb"><tr><td colspan="9" class="empty">Loading…</td></tr></tbody></table></div>
     <button class="more" id="more" hidden>Show more</button>
-    <div class="note">Grades come from the Market Mint results bot (Excellent, Great, Good, OK, Weak). Sales and profit are from the NSE filing, consolidated where filed; growth is against the same quarter last year. Next day = share move on the first trading day after the result.</div>
+    <div class="note">Grades come from the Market Mint results bot (Excellent, Great, Good, OK, Weak). Sales and profit are from the NSE filing, consolidated where filed; growth is against the same quarter last year (from Yahoo Finance for a few hours until the NSE numbers are in). Results day = share move on the first trading day after the result; since results = move from the day before the result to the latest close. "–" grade = not graded yet. <span data-upd></span></div>
   </section>
 
   <section class="panel" id="upP" hidden>
@@ -61,7 +61,26 @@ a.card{color:var(--mint-d);font-weight:700;font-size:12.5px;text-decoration:none
   const { esc, inr, crs, pct, cls, capOf, stockUrl, fmtDate, fmtShort, co } = MM;
   const RT = ["Excellent", "Great", "Good", "OK", "Weak"];
   const RC = { Excellent: "#0f8f55", Great: "#5cc48a", Good: "#5b8fe0", OK: "#b8bec7", Weak: "#e0645c" };
-  const er = await MM.getJSON("earnings.json");
+  const [er, sj] = await Promise.all([MM.getJSON("earnings.json"),
+    fetch("../data/season.json", { cache: "no-cache" }).then(r => r.ok ? r.json() : null).catch(() => null)]);
+  // season.json (updated through the day) is the master list, so this page, the full table and the heatmap always agree.
+  // earnings.json (built each evening) adds NSE sales / profit, the Telegram card link, logo and today's price.
+  if (sj && sj.seasons) {
+    const idx = await MM.index().catch(() => null), by = idx ? idx.by : {};
+    const old = Object.fromEntries(er.seasons.map(x => [x.label, Object.fromEntries(x.rows.map(r => [r.s, r]))]));
+    er.seasons = Object.entries(sj.seasons).map(([label, sea]) => {
+      const prev = old[label] || {};
+      const rows = sea.rows.map(r => {
+        const o = prev[r.sym] || {}, b = by[r.sym] || {};
+        return Object.assign({}, o, { s: r.sym, n: b.n || o.n || r.name, d: r.day, m: r.mcap || o.m, sec: r.sector || o.sec,
+          mv: r.move, d1: r.day1, rt: r.rating || null, sc: r.score, lg: o.lg ?? b.lg ?? 0, p: b.p ?? o.p ?? r.price, c: b.c ?? o.c,
+          sales: o.sales ?? r.sales, pat: o.pat ?? r.pat, opm: o.opm ?? (r.op != null && r.sales ? Math.round(r.op / r.sales * 1000) / 10 : null),
+          sy: o.sy ?? r.sales_yoy, py: o.py ?? r.pat_yoy });
+      }).sort((a, b) => (b.d || "").localeCompare(a.d || ""));
+      return { label, period: sea.period, asof: sea.asof, rows };
+    });
+    MM.updated && MM.updated(er.seasons[0] && er.seasons[0].asof);
+  }
   const st = { rt: "", shown: 60 };
   const q = new URLSearchParams(location.search);
 
@@ -76,13 +95,13 @@ a.card{color:var(--mint-d);font-weight:700;font-size:12.5px;text-decoration:none
     const cnt = Object.fromEntries(RT.map(r => [r, rs.filter(x => x.rt === r).length]));
     const graded = RT.reduce((a, r) => a + cnt[r], 0) || 1;
     const med = a => { a = a.filter(v => v != null).sort((x, y) => x - y); return a.length ? a[Math.floor(a.length / 2)] : null; };
-    const mv = rs.map(r => r.mv).filter(v => v != null);
+    const mv = rs.map(r => r.d1).filter(v => v != null);
     document.getElementById("stats").innerHTML = `
       <div class="s"><small>Results declared</small><b>${n.toLocaleString("en-IN")}</b><span>${esc(sea.label)} · to ${fmtShort(sea.asof)}</span></div>
       <div class="s"><small>Excellent or Great</small><b>${Math.round((cnt.Excellent + cnt.Great) / graded * 100)}%</b>
         <div class="dist">${RT.map(r => `<i title="${r}: ${cnt[r]}" style="width:${cnt[r] / graded * 100}%;background:${RC[r]}"></i>`).join("")}</div></div>
       <div class="s"><small>Median sales growth</small><b class="${cls(med(rs.map(r => r.sy)))}">${pct(med(rs.map(r => r.sy)))}</b><span>vs same quarter last year</span></div>
-      <div class="s"><small>Rose the next day</small><b>${mv.length ? Math.round(mv.filter(v => v > 0).length / mv.length * 100) + "%" : "–"}</b><span>of ${mv.length.toLocaleString("en-IN")} results</span></div>`;
+      <div class="s"><small>Rose on results day</small><b>${mv.length ? Math.round(mv.filter(v => v > 0).length / mv.length * 100) + "%" : "–"}</b><span>of ${mv.length.toLocaleString("en-IN")} results</span></div>`;
   }
 
   function draw() {
@@ -99,7 +118,7 @@ a.card{color:var(--mint-d);font-weight:700;font-size:12.5px;text-decoration:none
       <td>${n1(r.sales)}<span class="yo ${cls(r.sy)}">${r.sy == null ? "" : pct(r.sy) + " YoY"}</span></td>
       <td>${n1(r.pat)}<span class="yo ${cls(r.py)}">${r.py == null ? "" : pct(r.py) + " YoY"}</span></td>
       <td>${r.opm == null ? "–" : r.opm.toFixed(1) + "%"}</td>
-      <td class="${cls(r.mv)}">${pct(r.mv)}</td><td>${inr(r.p)}<span class="yo ${cls(r.c)}">${pct(r.c, 2)} today</span></td></tr>`).join("") || '<tr><td colspan="8" class="empty">No results match.</td></tr>';
+      <td class="${cls(r.d1)}">${pct(r.d1)}</td><td class="${cls(r.mv)}">${pct(r.mv)}</td><td>${inr(r.p)}<span class="yo ${cls(r.c)}">${pct(r.c, 2)} today</span></td></tr>`).join("") || '<tr><td colspan="9" class="empty">No results match.</td></tr>';
     const more = document.getElementById("more");
     more.hidden = rs.length <= st.shown;
     more.textContent = `Show more (${(rs.length - st.shown).toLocaleString("en-IN")} left)`;
@@ -120,7 +139,7 @@ a.card{color:var(--mint-d);font-weight:700;font-size:12.5px;text-decoration:none
     document.getElementById("stats").hidden = v !== "results";
     history.replaceState(null, "", v === "upcoming" ? "?v=upcoming" : location.pathname);
   }
-  document.getElementById("view").onclick = e => { const b = e.target.closest("button"); if (b) view(b.dataset.v); };
+  document.getElementById("view").onclick = e => { const b = e.target.closest("button[data-v]"); if (b) view(b.dataset.v); };
   document.getElementById("rt").onclick = e => { const b = e.target.closest("button"); if (!b) return; st.rt = b.dataset.r; st.shown = 60; document.querySelectorAll("#rt button").forEach(x => x.classList.toggle("on", x === b)); draw(); };
   ["f", "season", "cap", "sec", "sort"].forEach(id => document.getElementById(id).addEventListener("input", () => { st.shown = 60; draw(); }));
   document.getElementById("more").onclick = () => { st.shown += 100; draw(); };

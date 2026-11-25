@@ -30,7 +30,7 @@ th.on{color:var(--mint-d)}
   <div class="panel">
     <div class="filters">
       <input id="f" type="search" placeholder="Filter by name or symbol">
-      <select id="ind"><option value="">All industries</option></select>
+      <select id="ind"><option value="">All sectors</option></select>
       <select id="cap"><option value="">All sizes</option><option>Large</option><option>Mid</option><option>Small</option><option>Micro</option></select>
       <span class="muted" id="cnt" style="font-size:13px"></span>
     </div>
@@ -47,7 +47,18 @@ th.on{color:var(--mint-d)}
   const st = { k: "sc", dir: -1, shown: 100 };
   const d = await MM.index();
   const L = d.list.filter(r => r.sc != null);
-  const inds = [...new Set(L.map(r => r.i).filter(Boolean))].sort();
+  MM.updated && MM.updated(d.made);
+  // One set of sector names across the site (the NSE sectors used on Earnings). Some stocks only carry a Yahoo
+  // industry; those are mapped to the NSE sector most of that industry's companies have in this season's results.
+  const sj = await fetch("../data/season.json", { cache: "no-cache" }).then(r => r.ok ? r.json() : null).catch(() => null);
+  const nseOf = {};
+  if (sj) for (const sea of Object.values(sj.seasons || {})) for (const r of sea.rows) if (r.sector && !nseOf[r.sym]) nseOf[r.sym] = r.sector;
+  const NSE = new Set(Object.values(nseOf));
+  const vote = {};
+  for (const r of d.list) { const n = nseOf[r.s]; if (n && r.i && !NSE.has(r.i)) { (vote[r.i] = vote[r.i] || {})[n] = (vote[r.i][n] || 0) + 1; } }
+  const yMap = Object.fromEntries(Object.entries(vote).map(([y, c]) => [y, Object.entries(c).sort((a, b) => b[1] - a[1])[0][0]]));
+  for (const r of L) r.sec = nseOf[r.s] || (NSE.has(r.i) ? r.i : yMap[r.i]) || "Other";
+  const inds = [...new Set(L.map(r => r.sec))].sort((a, b) => (a === "Other") - (b === "Other") || a.localeCompare(b));
   const sel = document.getElementById("ind");
   sel.innerHTML += inds.map(i => `<option>${esc(i)}</option>`).join("");
   const p = new URLSearchParams(location.search);
@@ -55,7 +66,7 @@ th.on{color:var(--mint-d)}
   const scCls = s => s >= 80 ? "s80" : s >= 65 ? "s65" : s >= 50 ? "s50" : "s0";
   function draw() {
     const q = document.getElementById("f").value.trim().toUpperCase(), ind = sel.value, cap = document.getElementById("cap").value;
-    let rs = L.filter(r => (!q || r.s.includes(q) || r.n.toUpperCase().includes(q)) && (!ind || r.i === ind) && (!cap || capOf(r.m) === cap));
+    let rs = L.filter(r => (!q || r.s.includes(q) || r.n.toUpperCase().includes(q)) && (!ind || r.sec === ind) && (!cap || capOf(r.m) === cap));
     const k = st.k;
     // dir 1 = low to high, -1 = high to low; blanks always last; ties by market cap
     rs.sort((a, b) => {

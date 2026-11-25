@@ -124,6 +124,7 @@
     rank: '<path d="M12 2l3 6.5 7 .8-5.2 4.8 1.5 7L12 17.6 5.7 21.1l1.5-7L2 9.3l7-.8z"/>',
     scr: '<path d="M3 5h18M6 12h12M10 19h4"/>',
     heat: '<rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="5" rx="1"/><rect x="13" y="10" width="8" height="11" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/>',
+    about: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',
     more: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
     srch: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
   };
@@ -136,15 +137,18 @@
     ["breakouts/", "Breakouts", "Breakouts", I.bo, "Stocks forming and breaking out"],
     ["market/", "Market & Indices", "Market", I.mkt, "Market health, indices, your own index"],
     ["rank/", "Mint Score", "Mint", I.rank, "Every stock rated 0–100"],
-    ["screener/", "Screener", "Screener", I.scr, "Results + FII/DII buying screeners"],
-    ["heatmap/", "Results heatmap", "Heatmap", I.heat, "This season at a glance"],
+    ["screener/?v=inst", "FII + DII buying", "FII + DII", I.scr, "Stocks institutions keep adding"],
+    ["about/", "About", "About", I.about, "Who we are, where the numbers come from"],
   ];
+  // Earnings has 4 views; the full table (screener/) and heatmap (heatmap/) are their own pages but sit under Earnings
+  const EARN_VIEWS = [["earnings/", "Results"], ["screener/", "Full table"], ["heatmap/", "Heatmap"], ["earnings/?v=upcoming", "Upcoming"]];
   const here = (() => {
     const p = location.href.replace(/[?#].*$/, "");
     if (!p.startsWith(ROOT)) return "";
     const rest = p.slice(ROOT.length);
     if (rest.startsWith("s/") || rest.startsWith("stock/")) return "s/";
-    if (rest.startsWith("dashboard/")) return "orders/";
+    if (rest.startsWith("screener/") && new URLSearchParams(location.search).get("v") === "inst") return "screener/?v=inst";
+    if (rest.startsWith("screener/") || rest.startsWith("heatmap/")) return "earnings/";
     return (TABS.find(t => t[0] && rest.startsWith(t[0])) || [""])[0];
   })();
 
@@ -170,15 +174,46 @@
     b.querySelector("button").onclick = () => { sh.hidden = false; };
     sh.onclick = e => { if (e.target === sh) sh.hidden = true; };
     document.body.append(b, sh);
+    // Full table / Heatmap pages: show the Earnings views bar under the header
+    const rest2 = location.href.replace(/[?#].*$/, "").slice(ROOT.length);
+    if (here === "earnings/" && !rest2.startsWith("earnings/")) {
+      const v = document.createElement("div");
+      v.className = "mmviews";
+      v.innerHTML = earnViews(rest2.startsWith("heatmap/") ? "heatmap/" : "screener/");
+      h.after(v);
+    }
+  }
+  function earnViews(on) {
+    return `<span class="seg2" aria-label="Earnings views">${EARN_VIEWS.map(([p, t]) => `<a href="${ROOT}${p}" class="${p === on ? "on" : ""}">${t}</a>`).join("")}</span>`;
   }
 
   function footer() {
-    if (!document.body.dataset.root) return;
+    if (document.querySelector("footer.mmf")) return;
     const f = document.createElement("footer");
     f.className = "mmf wrap";
-    f.innerHTML = `Market Mint · Numbers from NSE filings, NSE bhavcopy, niftyindices.com and Yahoo Finance; results history from 2019. Logos are the companies' own website icons.
-      For learning and research only, not a buy or sell call. <a href="${TG}" target="_blank" rel="noopener">Join us on Telegram</a>`;
+    f.innerHTML = `<b>Disclaimer:</b> Market Mint is not registered with SEBI as an investment adviser or research analyst. Everything on this site is for learning and research only,
+      not a recommendation to buy or sell any stock. Do your own research or talk to a SEBI-registered adviser before you invest.
+      Numbers come from NSE filings, NSE bhavcopy, niftyindices.com and Yahoo Finance and can have gaps or delays. <span id="mmUpd"></span>
+      <br><a href="${ROOT}about/">About Market Mint</a> · <a href="${TG}" target="_blank" rel="noopener">Join us on Telegram</a>`;
     document.body.appendChild(f);
+    if (updAt) updated(updAt);
+  }
+  // pages call MM.updated(date or "YYYY-MM-DD HH:MM") once their data is in: shown in the footer and in any [data-upd] spot
+  let updAt = null;
+  function updated(t) {
+    if (!t) return;
+    updAt = t;
+    const s = fmtWhen(t);
+    const e = document.getElementById("mmUpd");
+    if (e) e.textContent = "Data updated " + s + ".";
+    document.querySelectorAll("[data-upd]").forEach(x => x.textContent = "Updated " + s + ".");
+  }
+  function fmtWhen(t) {
+    t = String(t);
+    const d = fmtDate(t), hm = t.match(/[ T](\d{2}):(\d{2})/);
+    if (!hm) return d;
+    const h = +hm[1];
+    return `${d}, ${(h % 12) || 12}:${hm[2]} ${h >= 12 ? "PM" : "AM"}`;
   }
 
   // simple SVG line chart; points = numbers; marks = [{i, label, kind}]; base = draw a dotted line at this value
@@ -235,7 +270,7 @@
   }
 
   window.MM = { ROOT, DATA, TG, esc, inr, crs, pct, cls, capOf, stockUrl, fmtDate, fmtShort, index, getJSON, attachSearch, lineChart, spark,
-                TABS, svg, I, logo, co, STAGE, stagePill, stageOf };
+                TABS, svg, I, logo, co, STAGE, stagePill, stageOf, updated, earnViews };
   header();
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", footer); else footer();
 })();
