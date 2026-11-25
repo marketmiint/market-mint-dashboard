@@ -46,6 +46,8 @@
       </div>
       <div class="fbar" style="padding-top:10px">
         <select id="cap" aria-label="Size"><option value="">All sizes</option><option>Large</option><option>Mid</option><option>Small</option><option>Micro</option></select>
+        <select id="secsel" aria-label="Sector"><option value="">All sectors</option></select>
+        <select id="val" aria-label="Order value"><option value="0">Any value</option><option value="10">₹10 Cr+</option><option value="100">₹100 Cr+</option><option value="500">₹500 Cr+</option><option value="1000">₹1,000 Cr+</option></select>
         <select id="min" aria-label="Order size"><option value="0">Any size</option><option value="2">2%+ of revenue</option><option value="5">5%+ of revenue</option><option value="10">10%+ of revenue</option></select>
         <select id="sort" aria-label="Sort"><option value="t">Newest first</option><option value="v">Biggest ₹</option><option value="pr">Biggest vs revenue</option></select>
         <span class="muted" id="cnt" style="margin-left:auto;font-size:13px"></span>
@@ -68,9 +70,9 @@
   const days = o => (now - new Date((o.t || o.d + "T12:00:00+05:30"))) / 864e5;
 
   function filtered(ignoreSec) {
-    const f = document.getElementById("f").value.trim().toUpperCase(), cap = document.getElementById("cap").value, mn = +document.getElementById("min").value;
+    const f = document.getElementById("f").value.trim().toUpperCase(), cap = document.getElementById("cap").value, mn = +document.getElementById("min").value, val = +document.getElementById("val").value;
     return all.filter(o => (!st.p || days(o) <= st.p) && (!f || o.s.includes(f) || (o.n || "").toUpperCase().includes(f) || (o.cl || "").toUpperCase().includes(f))
-      && (!cap || capOf(o.m) === cap) && (!mn || (o.pr || 0) >= mn) && (ignoreSec || !st.sec || o.sec === st.sec));
+      && (!cap || capOf(o.m) === cap) && (!mn || (o.pr || 0) >= mn) && (!val || (o.v || 0) >= val) && (ignoreSec || !st.sec || (o.sec || "Other") === st.sec));
   }
   function draw() {
     const base = filtered(true), rs0 = filtered(false);
@@ -113,8 +115,11 @@
     `<a href="${stockUrl(x.o.s)}">${co(x.o.s, x.o.n, x.o.lg, `${x.n} orders`, false)}<span class="rt"><b>${crs(x.v)}</b></span></a>`).join("");
 
   document.getElementById("per").onclick = e => { const b = e.target.closest("button"); if (!b) return; st.p = +b.dataset.p; st.shown = 40; document.querySelectorAll("#per button").forEach(x => x.classList.toggle("on", x === b)); draw(); };
-  document.getElementById("secs").onclick = e => { const a = e.target.closest("a[data-s]"); if (!a) return; st.sec = st.sec === a.dataset.s ? "" : a.dataset.s; st.shown = 40; draw(); };
-  ["f", "cap", "min", "sort"].forEach(id => document.getElementById(id).addEventListener("input", () => { st.shown = 40; draw(); }));
+  const secSel = document.getElementById("secsel");
+  secSel.innerHTML += [...new Set(all.map(o => o.sec || "Other"))].sort().map(s => `<option>${esc(s)}</option>`).join("");
+  secSel.onchange = () => { st.sec = secSel.value; st.shown = 40; draw(); };
+  document.getElementById("secs").onclick = e => { const a = e.target.closest("a[data-s]"); if (!a) return; st.sec = st.sec === a.dataset.s ? "" : a.dataset.s; secSel.value = st.sec; st.shown = 40; draw(); };
+  ["f", "cap", "val", "min", "sort"].forEach(id => document.getElementById(id).addEventListener("input", () => { st.shown = 40; draw(); }));
   document.getElementById("more").onclick = () => { st.shown += 60; draw(); };
   draw();
 })();

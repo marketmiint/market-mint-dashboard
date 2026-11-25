@@ -70,6 +70,7 @@
     <section class="panel">
       <h2><span>Top movers</span>
         <span class="ctl"><select id="uni" aria-label="Universe"></select>
+          <select id="hcap" aria-label="Size"><option value="">All sizes</option><option>Large</option><option>Mid</option><option>Small</option><option>Micro</option></select>
           <span class="seg2" id="mv"><button data-k="g" class="on">Gainers</button><button data-k="l">Losers</button><button data-k="h">Near high</button><button data-k="b">Breakouts</button></span></span></h2>
       <div class="rank" id="movers"></div>
       <div class="pager"><span id="pg"></span><span><button id="pv" aria-label="Previous">‹</button> <button id="nx" aria-label="Next">›</button></span></div>
@@ -136,7 +137,8 @@
     let L;
     if (uniSel.value === "all") L = d.list.filter(r => (r.m || 0) >= 500);
     else { const x = ix.indices.find(i => i.id === uniSel.value); L = x.syms.map(s => by[s]).filter(Boolean); }
-    L = L.filter(r => r.p != null && r.c != null && Math.abs(r.c) < 25);       // >25% = split or bonus
+    const hc = document.getElementById("hcap").value;
+    L = L.filter(r => r.p != null && r.c != null && Math.abs(r.c) < 25 && (!hc || MM.capOf(r.m) === hc));       // >25% = split or bonus
     if (st.k === "g") return L.sort((a, b) => b.c - a.c);
     if (st.k === "l") return L.sort((a, b) => a.c - b.c);
     if (st.k === "h") return L.filter(r => r.fh != null && r.fh > -3).sort((a, b) => b.fh - a.fh || (b.m || 0) - (a.m || 0));
@@ -155,6 +157,7 @@
   }
   document.getElementById("mv").onclick = e => { const b = e.target.closest("button"); if (!b) return; st.k = b.dataset.k; st.page = 0; document.querySelectorAll("#mv button").forEach(x => x.classList.toggle("on", x === b)); drawMovers(); };
   uniSel.onchange = () => { st.page = 0; drawMovers(); };
+  document.getElementById("hcap").onchange = () => { st.page = 0; drawMovers(); };
   document.getElementById("pv").onclick = () => { st.page--; drawMovers(); };
   document.getElementById("nx").onclick = () => { st.page++; drawMovers(); };
   drawMovers();
@@ -184,13 +187,16 @@
   }
 
   // ---- earnings: the fresh results list (data/season.json, same as the Earnings page) with NSE numbers from earnings.json
-  const sj = await fetch("data/season.json", { cache: "no-cache" }).then(r => r.ok ? r.json() : null).catch(() => null);
+  const [sj, dash] = await Promise.all([fetch("data/season.json", { cache: "no-cache" }).then(r => r.ok ? r.json() : null).catch(() => null),
+    fetch("data/dashboard.json", { cache: "no-cache" }).then(r => r.ok ? r.json() : null).catch(() => null)]);
+  const cards = {};
+  for (const c of (dash && dash.results) || []) cards[c.sym + "|" + c.period] = c;
   if (er && sj && sj.seasons) {
     const [label, sea] = Object.entries(sj.seasons)[0];
     const old = Object.fromEntries(((er.seasons.find(x => x.label === label) || {}).rows || []).map(r => [r.s, r]));
-    er.seasons[0] = { label, rows: sea.rows.map(r => { const o = old[r.sym] || {}, b = by[r.sym] || {};
+    er.seasons[0] = { label, rows: sea.rows.map(r => { const o = old[r.sym] || {}, b = by[r.sym] || {}, k = cards[r.sym + "|" + sea.period] || {};
       return Object.assign({}, o, { s: r.sym, n: b.n || o.n || r.name, d: r.day, rt: r.rating || null, lg: o.lg ?? b.lg ?? 0,
-        sales: o.sales ?? r.sales, sy: o.sy ?? r.sales_yoy, py: o.py ?? r.pat_yoy }); }).sort((a, b) => (b.d || "").localeCompare(a.d || "")) };
+        sales: o.sales ?? k.sales ?? r.sales, sy: o.sy ?? k.sales_yoy ?? r.sales_yoy, py: o.py ?? k.pat_yoy ?? r.pat_yoy }); }).sort((a, b) => (b.d || "").localeCompare(a.d || "")) };
   }
   if (er) {
     const cur = er.seasons[0] || { rows: [] };

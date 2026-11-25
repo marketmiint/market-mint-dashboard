@@ -40,6 +40,9 @@ a.card{color:var(--mint-d);font-weight:700;font-size:12.5px;text-decoration:none
       <select id="season" aria-label="Season"></select>
       <select id="cap" aria-label="Size"><option value="">All sizes</option><option>Large</option><option>Mid</option><option>Small</option><option>Micro</option></select>
       <select id="sec" aria-label="Sector"><option value="">All sectors</option></select>
+      <select id="when" aria-label="Declared"><option value="0">Any date</option><option value="1">Today</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option></select>
+      <select id="mvf" aria-label="Share move"><option value="">Any share move</option><option value="up">Rose on results day</option><option value="down">Fell on results day</option><option value="up5">Up 5%+ since results</option><option value="dn5">Down 5%+ since results</option></select>
+      <select id="gro" aria-label="Growth"><option value="">Any growth</option><option value="s20">Sales +20%+</option><option value="p20">Profit +20%+</option><option value="both">Sales and profit up</option><option value="pdown">Profit down</option></select>
       <select id="sort" aria-label="Sort">
         <option value="d">Newest first</option><option value="sy">Sales growth</option><option value="py">Profit growth</option>
         <option value="d1">Results-day move</option><option value="mv">Move since results</option><option value="m">Market cap</option></select>
@@ -53,6 +56,13 @@ a.card{color:var(--mint-d);font-weight:700;font-size:12.5px;text-decoration:none
 
   <section class="panel" id="upP" hidden>
     <h2><span>Results calendar</span><small>board meetings announced on NSE</small></h2>
+    <div class="fbar">
+      <input type="search" id="uf" placeholder="Search a company">
+      <select id="uwhen" aria-label="When"><option value="0">All dates</option><option value="1">Today</option><option value="2">Tomorrow</option><option value="7">Next 7 days</option></select>
+      <select id="ucap" aria-label="Size"><option value="">All sizes</option><option>Large</option><option>Mid</option><option>Small</option><option>Micro</option></select>
+      <select id="usec" aria-label="Sector"><option value="">All sectors</option></select>
+      <span class="muted" id="ucnt" style="margin-left:auto;font-size:13px"></span>
+    </div>
     <div class="rowlist" id="up"></div>
   </section>
 </main>
@@ -61,8 +71,12 @@ a.card{color:var(--mint-d);font-weight:700;font-size:12.5px;text-decoration:none
   const { esc, inr, crs, pct, cls, capOf, stockUrl, fmtDate, fmtShort, co } = MM;
   const RT = ["Excellent", "Great", "Good", "OK", "Weak"];
   const RC = { Excellent: "#0f8f55", Great: "#5cc48a", Good: "#5b8fe0", OK: "#b8bec7", Weak: "#e0645c" };
-  const [er, sj] = await Promise.all([MM.getJSON("earnings.json"),
-    fetch("../data/season.json", { cache: "no-cache" }).then(r => r.ok ? r.json() : null).catch(() => null)]);
+  const [er, sj, dash] = await Promise.all([MM.getJSON("earnings.json"),
+    fetch("../data/season.json", { cache: "no-cache" }).then(r => r.ok ? r.json() : null).catch(() => null),
+    fetch("../data/dashboard.json", { cache: "no-cache" }).then(r => r.ok ? r.json() : null).catch(() => null)]);
+  // our Telegram results cards (updated every 5 min): numbers for a result the same day, before the NSE download at night
+  const cards = {};
+  for (const c of (dash && dash.results) || []) cards[c.sym + "|" + c.period] = c;
   // season.json (updated through the day) is the master list, so this page, the full table and the heatmap always agree.
   // earnings.json (built each evening) adds NSE sales / profit, the Telegram card link, logo and today's price.
   if (sj && sj.seasons) {
@@ -71,11 +85,11 @@ a.card{color:var(--mint-d);font-weight:700;font-size:12.5px;text-decoration:none
     er.seasons = Object.entries(sj.seasons).map(([label, sea]) => {
       const prev = old[label] || {};
       const rows = sea.rows.map(r => {
-        const o = prev[r.sym] || {}, b = by[r.sym] || {};
+        const o = prev[r.sym] || {}, b = by[r.sym] || {}, k = cards[r.sym + "|" + sea.period] || {};
         return Object.assign({}, o, { s: r.sym, n: b.n || o.n || r.name, d: r.day, m: r.mcap || o.m, sec: r.sector || o.sec,
           mv: r.move, d1: r.day1, rt: r.rating || null, sc: r.score, lg: o.lg ?? b.lg ?? 0, p: b.p ?? o.p ?? r.price, c: b.c ?? o.c,
-          sales: o.sales ?? r.sales, pat: o.pat ?? r.pat, opm: o.opm ?? (r.op != null && r.sales ? Math.round(r.op / r.sales * 1000) / 10 : null),
-          sy: o.sy ?? r.sales_yoy, py: o.py ?? r.pat_yoy });
+          sales: o.sales ?? k.sales ?? r.sales, pat: o.pat ?? k.pat ?? r.pat, opm: o.opm ?? (r.op != null && r.sales ? Math.round(r.op / r.sales * 1000) / 10 : null),
+          sy: o.sy ?? k.sales_yoy ?? r.sales_yoy, py: o.py ?? k.pat_yoy ?? r.pat_yoy, url: o.url || k.url });
       }).sort((a, b) => (b.d || "").localeCompare(a.d || ""));
       return { label, period: sea.period, asof: sea.asof, rows };
     });
@@ -108,7 +122,13 @@ a.card{color:var(--mint-d);font-weight:700;font-size:12.5px;text-decoration:none
     const sea = er.seasons[+seasonSel.value] || { rows: [] };
     stats(sea);
     const f = document.getElementById("f").value.trim().toUpperCase(), cap = document.getElementById("cap").value, sec = document.getElementById("sec").value, k = document.getElementById("sort").value;
-    let rs = sea.rows.filter(r => (!f || r.s.includes(f) || (r.n || "").toUpperCase().includes(f)) && (!st.rt || r.rt === st.rt) && (!cap || capOf(r.m) === cap) && (!sec || r.sec === sec));
+    const wd = +document.getElementById("when").value, mvf = document.getElementById("mvf").value, gro = document.getElementById("gro").value;
+    const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+    const ago = n => new Date(Date.now() - (n - 1) * 864e5).toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+    const mvOk = r => !mvf || (mvf === "up" ? r.d1 > 0 : mvf === "down" ? r.d1 < 0 : mvf === "up5" ? r.mv >= 5 : r.mv <= -5);
+    const groOk = r => !gro || (gro === "s20" ? r.sy >= 20 : gro === "p20" ? r.py >= 20 : gro === "both" ? r.sy > 0 && r.py > 0 : r.py < 0);
+    let rs = sea.rows.filter(r => (!f || r.s.includes(f) || (r.n || "").toUpperCase().includes(f)) && (!st.rt || r.rt === st.rt) && (!cap || capOf(r.m) === cap) && (!sec || r.sec === sec)
+      && (!wd || (wd === 1 ? r.d === today : (r.d || "") >= ago(wd))) && mvOk(r) && groOk(r));
     if (k !== "d") rs = rs.slice().sort((a, b) => (b[k] ?? -1e9) - (a[k] ?? -1e9));
     document.getElementById("cnt").textContent = rs.length.toLocaleString("en-IN") + " results";
     const n1 = v => v == null ? "–" : Math.abs(v) >= 1000 ? Math.round(v).toLocaleString("en-IN") : Number(v).toFixed(1);
@@ -123,8 +143,15 @@ a.card{color:var(--mint-d);font-weight:700;font-size:12.5px;text-decoration:none
     more.hidden = rs.length <= st.shown;
     more.textContent = `Show more (${(rs.length - st.shown).toLocaleString("en-IN")} left)`;
   }
+  const usecs = [...new Set((er.upcoming || []).map(u => u.sec).filter(Boolean))].sort();
+  document.getElementById("usec").innerHTML += usecs.map(s => `<option>${esc(s)}</option>`).join("");
   function drawUp() {
-    const up = (er.upcoming || []).slice().sort((a, b) => a.d.localeCompare(b.d));
+    const uf = document.getElementById("uf").value.trim().toUpperCase(), uw = +document.getElementById("uwhen").value;
+    const ucap = document.getElementById("ucap").value, usec = document.getElementById("usec").value;
+    const day = n => new Date(Date.now() + n * 864e5).toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+    const up = (er.upcoming || []).filter(u => (!uf || u.s.includes(uf) || (u.n || "").toUpperCase().includes(uf)) && (!ucap || capOf(u.m) === ucap) && (!usec || u.sec === usec)
+      && (!uw || (uw === 1 ? u.d === day(0) : uw === 2 ? u.d === day(1) : u.d >= day(0) && u.d <= day(6)))).sort((a, b) => a.d.localeCompare(b.d));
+    document.getElementById("ucnt").textContent = up.length + " companies";
     let last = "", html = "";
     for (const u of up) {
       if (u.d !== last) { html += `<div class="day">${fmtDate(u.d)}</div>`; last = u.d; }
@@ -141,7 +168,8 @@ a.card{color:var(--mint-d);font-weight:700;font-size:12.5px;text-decoration:none
   }
   document.getElementById("view").onclick = e => { const b = e.target.closest("button[data-v]"); if (b) view(b.dataset.v); };
   document.getElementById("rt").onclick = e => { const b = e.target.closest("button"); if (!b) return; st.rt = b.dataset.r; st.shown = 60; document.querySelectorAll("#rt button").forEach(x => x.classList.toggle("on", x === b)); draw(); };
-  ["f", "season", "cap", "sec", "sort"].forEach(id => document.getElementById(id).addEventListener("input", () => { st.shown = 60; draw(); }));
+  ["f", "season", "cap", "sec", "when", "mvf", "gro", "sort"].forEach(id => document.getElementById(id).addEventListener("input", () => { st.shown = 60; draw(); }));
+  ["uf", "uwhen", "ucap", "usec"].forEach(id => document.getElementById(id).addEventListener("input", drawUp));
   document.getElementById("more").onclick = () => { st.shown += 100; draw(); };
   draw(); drawUp();
   view(q.get("v") === "upcoming" ? "upcoming" : "results");
