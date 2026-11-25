@@ -136,7 +136,7 @@
     ["breakouts/", "Breakouts", "Breakouts", I.bo, "Stocks forming and breaking out"],
     ["market/", "Market & Indices", "Market", I.mkt, "Market health, indices, your own index"],
     ["rank/", "Mint Score", "Mint", I.rank, "Every stock rated 0–100"],
-    ["screener/", "Results screener", "Screener", I.scr, "Filter this season's results"],
+    ["screener/", "Screener", "Screener", I.scr, "Results + FII/DII buying screeners"],
     ["heatmap/", "Results heatmap", "Heatmap", I.heat, "This season at a glance"],
   ];
   const here = (() => {
