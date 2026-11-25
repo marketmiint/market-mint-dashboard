@@ -136,7 +136,6 @@
     ["orders/", "Order wins", "Orders", I.order, "Live order wins and their size"],
     ["breakouts/", "Breakouts", "Breakouts", I.bo, "Stocks forming and breaking out"],
     ["market/", "Market & Indices", "Market", I.mkt, "Market health, indices, your own index"],
-    ["rank/", "Mint Score", "Mint", I.rank, "Every stock rated 0–100"],
     ["screener/?v=inst", "FII + DII buying", "FII + DII", I.scr, "Stocks institutions keep adding"],
     ["about/", "About", "About", I.about, "Who we are, where the numbers come from"],
   ];

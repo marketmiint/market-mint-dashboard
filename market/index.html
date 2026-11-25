@@ -228,9 +228,9 @@ td input[type=checkbox]{width:16px;height:16px;accent-color:var(--mint-d)}
           <div class="sb">${ORDER.map(k => `<i title="${STAGE[k]}: ${counts[k] || 0}" style="width:${(counts[k] || 0) / tot * 100}%;background:${SC[k]}"></i>`).join("")}</div>
           <div class="chips" id="sf"><button data-f="" class="${dt.f === "" ? "on" : ""}">All ${tot}</button>${ORDER.map(k => counts[k] ? `<button data-f="${k}" class="${dt.f === k ? "on" : ""}">${STAGE[k]} ${counts[k]}</button>` : "").join("")}<button data-f="none" class="${dt.f === "none" ? "on" : ""}">No setup ${none}</button></div></div>
       </div>
-      <div class="tscroll"><table><thead><tr><th style="width:30px"><input type="checkbox" id="all" aria-label="Select all"></th><th style="text-align:left">Company</th><th>Price</th><th>Day</th><th>1 yr</th><th>Mint</th><th>Breakout stage</th></tr></thead>
+      <div class="tscroll"><table><thead><tr><th style="width:30px"><input type="checkbox" id="all" aria-label="Select all"></th><th style="text-align:left">Company</th><th>Price</th><th>Day</th><th>1 yr</th><th>Breakout stage</th></tr></thead>
         <tbody>${mem.map(r => `<tr><td><input type="checkbox" class="pick" value="${esc(r.s)}"></td><td style="text-align:left">${co(r.s, r.n, r.lg, `${esc(r.s)} · ${crs(r.m)}`)}</td>
-          <td>${inr(r.p)}</td><td class="${cls(r.c)}">${pct(r.c, 2)}</td><td class="${cls(r.r1y)}">${pct(r.r1y)}</td><td>${r.sc ?? "–"}</td><td>${stagePill(r.bo) || '<span class="muted">–</span>'}</td></tr>`).join("") || '<tr><td colspan="7" class="empty">No stocks in this group.</td></tr>'}</tbody></table></div>
+          <td>${inr(r.p)}</td><td class="${cls(r.c)}">${pct(r.c, 2)}</td><td class="${cls(r.r1y)}">${pct(r.r1y)}</td><td>${stagePill(r.bo) || '<span class="muted">–</span>'}</td></tr>`).join("") || '<tr><td colspan="6" class="empty">No stocks in this group.</td></tr>'}</tbody></table></div>
       <div class="acts"><span class="muted" style="font-size:13px" id="pickn">Tick stocks to build your own index from them.</span>
         <span style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
           ${x.mine ? `<button class="btn" id="edit">Edit this index</button>` : ""}
@@ -278,7 +278,7 @@ td input[type=checkbox]{width:16px;height:16px;accent-color:var(--mint-d)}
 
   // ---------------- industries
   document.getElementById("ind").innerHTML = (bo.industries || []).slice().sort((a, c) => c.rs - a.rs).map(x => `<tr>
-    <td><a href="../rank/?ind=${encodeURIComponent(x.name)}">${esc(x.name)}</a><small>${x.n} stocks${x.fresh || x.climbing ? ` · ${x.fresh || 0} fresh, ${x.climbing || 0} climbing` : ""}</small></td>
+    <td><b style="font-weight:600">${esc(x.name)}</b><small>${x.n} stocks${x.fresh || x.climbing ? ` · ${x.fresh || 0} fresh, ${x.climbing || 0} climbing` : ""}</small></td>
     <td><span class="rsb" style="display:inline-block;height:6px;border-radius:3px;background:var(--mint-d);vertical-align:middle;margin-right:6px;width:${Math.round(x.rs / 2)}px"></span>${Math.round(x.rs)}</td><td class="${cls(x.r1m)}">${pct(x.r1m * 100)}</td><td class="${cls(x.r3m)}">${pct(x.r3m * 100)}</td>
     <td>${Math.round(x.above50 * 100)}%</td><td>${spark(x.spark, 90, 26)}</td></tr>`).join("");
 

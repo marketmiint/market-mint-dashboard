@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>Stock scan | Market Mint</title>
-<meta name="description" content="Price, results since 2019, key numbers, shareholding, order wins and Mint Score for any NSE stock.">
+<meta name="description" content="Price, results since 2019, key numbers, shareholding, order wins and breakout stage for any NSE stock.">
 <link rel="icon" href="../logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -91,7 +91,7 @@ section{scroll-margin-top:170px}
   function notFound(msg) {
     document.title = "Scan a stock | Market Mint";
     app.innerHTML = `<div class="nf"><h1>Scan any NSE stock</h1>
-      <p class="muted">${msg || "Type a company name or NSE symbol to see its price, results since 2019, key numbers, shareholding, order wins and Mint Score."}</p>
+      <p class="muted">${msg || "Type a company name or NSE symbol to see its price, results since 2019, key numbers, shareholding, order wins and breakout stage."}</p>
       <label class="hs2"><input type="search" placeholder="e.g. BEL, HAL, Cochin Shipyard" autocomplete="off" autofocus></label></div>`;
     MM.attachSearch(app.querySelector("input"));
   }
@@ -154,7 +154,6 @@ section{scroll-margin-top:170px}
           </div>
         </div>
         <div>
-          ${mintPanel(c.mint)}
           ${stagePanel(c.bo, px)}
           ${growthPanel(h.cagr, k)}
           ${resultsPosted(c.results, c.next)}
@@ -338,8 +337,8 @@ section{scroll-margin-top:170px}
     if (!ps.length) return `<h2>Peers</h2><div class="empty">No listed peers found.</div>`;
     const me = { s: c.sym, n: c.name, lg: c.lg, bo: (c.bo || {}).stage, m: c.mcap, p: (c.px || {}).last, c: (c.px || {}).chg, pe: (c.key || {}).pe, roe: (c.key || {}).roe, sc: (c.mint || {}).score, r1y: ((c.px || {}).r || {})["1Y"] };
     const row = (r, mine) => `<tr ${mine ? 'style="background:var(--soft)"' : ""}><td>${MM.co(r.s, r.n, r.lg, esc(r.s) + (r.bo ? " · " + (MM.STAGE[r.bo] || r.bo) : ""), !mine)}</td>
-      <td>${crs(r.m)}</td><td>${inr(r.p)}</td><td class="${cls(r.c)}">${pct(r.c, 2)}</td><td class="${cls(r.r1y)}">${pct(r.r1y)}</td><td>${peT(r.pe)}</td><td>${r.roe == null ? "–" : r.roe.toFixed(1) + "%"}</td><td>${r.sc ?? "–"}</td></tr>`;
-    return `<h2>Peers <small>${esc(c.yind || c.ind)}</small></h2><div class="tscroll"><table><thead><tr><th>Company</th><th>M-cap</th><th>Price</th><th>Day</th><th>1 yr</th><th>P/E</th><th>ROE</th><th>Mint</th></tr></thead>
+      <td>${crs(r.m)}</td><td>${inr(r.p)}</td><td class="${cls(r.c)}">${pct(r.c, 2)}</td><td class="${cls(r.r1y)}">${pct(r.r1y)}</td><td>${peT(r.pe)}</td><td>${r.roe == null ? "–" : r.roe.toFixed(1) + "%"}</td></tr>`;
+    return `<h2>Peers <small>${esc(c.yind || c.ind)}</small></h2><div class="tscroll"><table><thead><tr><th>Company</th><th>M-cap</th><th>Price</th><th>Day</th><th>1 yr</th><th>P/E</th><th>ROE</th></tr></thead>
       <tbody>${row(me, true)}${ps.map(r => row(r)).join("")}</tbody></table></div>`;
   }
 })();
