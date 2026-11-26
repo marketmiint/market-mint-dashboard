@@ -45,7 +45,7 @@
 .ord .meta{display:flex;gap:6px 12px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:6px;align-items:center}
 .ord .fy{font-size:12.5px;margin-top:5px}
 .ord .rx{display:flex;gap:6px 14px;flex-wrap:wrap;font-size:12.5px;margin-top:4px}
-.ord .rx span{white-space:nowrap}.ord .rx b{font-variant-numeric:tabular-nums}
+.ord .rx span{white-space:nowrap}.ord .rx .shw{margin-left:auto}.ord .rx b{font-variant-numeric:tabular-nums}
 .ord .more2{display:none;margin-top:10px;font-size:13px;border-top:1px dashed var(--line);padding-top:10px}
 .ord.open .more2{display:block}
 .ord .open-h{font-size:12px;color:var(--mint-d);font-weight:700;margin-top:6px}
@@ -305,6 +305,9 @@ td.cust{max-width:300px;white-space:normal;text-align:left;font-size:13px}
     const c = $("mclr"); if (c) c.onclick = () => { st.mo = ""; draw(); };
   }
 
+  // ---------- share: our Telegram post if we posted it, else the company page
+  const shareO = o => MM.shareBtn(o.url || new URL(stockUrl(o.s), location.href).href,
+    `${o.n} wins ${crs(o.v)} order${o.cl ? " from " + o.cl : ""}${o.pr != null ? " (" + o.pr + "% of yearly revenue)" : ""} | Market Mint`);
   // ---------- one order card
   const card = o => {
     const tag = o.pr >= 10 ? `<span class="pill huge">HUGE</span>` : o.pr >= 3 ? `<span class="pill big">BIG</span>` : "";
@@ -317,15 +320,15 @@ td.cust{max-width:300px;white-space:normal;text-align:left;font-size:13px}
       <div class="meta">${tag}<span>${fmtShort(o.d)}</span>${o.pr != null ? `<span><b style="color:var(--ink)">${o.pr}%</b> of yearly revenue</span>` : ""}
         ${o.pm != null ? `<span>${o.pm}% of m-cap</span>` : ""}<span>${esc(o.th)}</span>${o.tl ? `<span>Delivery: ${esc(o.tl)}</span>` : ""}</div>
       ${o.fyn > 1 ? `<div class="fy"><b>${ord(o.fyn)} order in FY27</b> · ${crs(o.fyv)} so far${o.fyp != null ? ` (${o.fyp.toFixed(o.fyp >= 100 ? 0 : 1)}% of revenue)` : ""}</div>` : `<div class="fy muted">1st order in FY27</div>`}
-      <div class="rx">${fresh ? '<span class="muted">Share reaction shows after the next close</span>' : `<span>Next day ${mv(o.d1)}</span><span>Since ${mv(o.sn)}</span>${o.vs != null ? `<span class="muted">${pts(o.vs)}</span>` : ""}`}</div>
+      <div class="rx">${fresh ? '<span class="muted">Share reaction shows after the next close</span>' : `<span>Next day ${mv(o.d1)}</span><span>Since ${mv(o.sn)}</span>${o.vs != null ? `<span class="muted">${pts(o.vs)}</span>` : ""}`}<span class="shw">${shareO(o)}</span></div>
       <div class="open-h">Details ›</div>
       <div class="more2"><dl>
         <dt>Announced</dt><dd>${fmtDate(o.d)}${o.t && o.t.length > 15 ? ", " + o.t.slice(11, 16) : ""}</dd>
         ${o.od ? `<dt>Order date</dt><dd>${fmtDate(o.od)} (as given in the letter)</dd>` : ""}
         <dt>Sector</dt><dd>${esc(o.sec || "Other")}</dd><dt>Company size</dt><dd>${capOf(o.m) || "–"} cap · ${crs(o.m)} market cap</dd>
         ${o.tl ? `<dt>Delivery</dt><dd>${esc(o.tl)}</dd>` : ""}
-        <dt>Links</dt><dd>${[o.src ? `<a href="${esc(o.src)}" target="_blank" rel="noopener">Company's letter</a>` : "", o.url ? `<a href="${esc(o.url)}" target="_blank" rel="noopener">Telegram post</a>` : "", `<a href="${stockUrl(o.s)}">Company page</a>`].filter(Boolean).join(" · ")}</dd>
-      </dl>${o.card ? `<img loading="lazy" src="${ROOT}${esc(o.card)}" alt="Order card for ${esc(o.n)}">` : ""}</div>
+        <dt>Links</dt><dd>${[o.src ? `<a href="${esc(o.src)}" target="_blank" rel="noopener">Company's letter</a>` : "", `<a href="${stockUrl(o.s)}">Company page</a>`].filter(Boolean).join(" · ")}</dd>
+      </dl></div>
     </div></div>`;
   };
   all.forEach((o, i) => o.i = i);
@@ -338,9 +341,9 @@ td.cust{max-width:300px;white-space:normal;text-align:left;font-size:13px}
     const show = srt.slice(0, st.shown);
     let h = "";
     if (st.look === "table") {
-      h = `<div class="tscroll"><table><thead><tr><th class="l">Date</th><th class="l">Company</th><th class="l">Customer</th><th>Value</th><th>% revenue</th><th>% m-cap</th><th>Next day</th><th>Since</th><th class="l">Theme</th></tr></thead><tbody>` +
+      h = `<div class="tscroll"><table><thead><tr><th class="l">Date</th><th class="l">Company</th><th class="l">Customer</th><th>Value</th><th>% revenue</th><th>% m-cap</th><th>Next day</th><th>Since</th><th class="l">Theme</th><th><span style="position:absolute;left:-9999px">Share</span></th></tr></thead><tbody>` +
         show.map(o => `<tr><td class="l">${fmtShort(o.d)}</td><td class="l">${co(o.s, o.n, o.lg, capOf(o.m) + " cap")}</td><td class="cust">${esc(o.cl || "–")}${o.ty ? ` <span class="ty ${o.ty}">${TYN[o.ty]}</span>` : ""}</td>
-          <td><b>${crs(o.v)}</b></td><td>${o.pr != null ? o.pr + "%" : "–"}</td><td>${o.pm != null ? o.pm + "%" : "–"}</td><td>${mv(o.d1)}</td><td>${mv(o.sn)}</td><td class="l">${esc(o.th)}</td></tr>`).join("") + "</tbody></table></div>";
+          <td><b>${crs(o.v)}</b></td><td>${o.pr != null ? o.pr + "%" : "–"}</td><td>${o.pm != null ? o.pm + "%" : "–"}</td><td>${mv(o.d1)}</td><td>${mv(o.sn)}</td><td class="l">${esc(o.th)}</td><td>${shareO(o)}</td></tr>`).join("") + "</tbody></table></div>";
     } else if (k === "t") {
       let lastM = "", lastD = "";
       const mt = {}; rs.forEach(o => { mt[o.mo] = mt[o.mo] || { n: 0, v: 0 }; mt[o.mo].n++; mt[o.mo].v += o.v || 0; });
@@ -353,7 +356,7 @@ td.cust{max-width:300px;white-space:normal;text-align:left;font-size:13px}
     const left = srt.length - st.shown;
     $("main").innerHTML = (h || '<div class="empty">No order wins match these filters.</div>') + (left > 0 ? `<button class="more" id="more">Show more (${left} left)</button>` : "");
     const m = $("more"); if (m) m.onclick = () => { st.shown += 60; draw(); };
-    $("main").querySelectorAll(".ord").forEach(el => el.onclick = e => { if (e.target.closest("a")) return; el.classList.toggle("open"); });
+    $("main").querySelectorAll(".ord").forEach(el => el.onclick = e => { if (e.target.closest("a,button")) return; el.classList.toggle("open"); });
     return srt;
   }
 

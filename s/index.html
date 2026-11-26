@@ -165,7 +165,7 @@ section{scroll-margin-top:170px}
       <section id="pl" class="panel">${yearly(h, c.annual)}</section>
       <section id="bs" class="panel">${balance(c.annual)}</section>
       <section id="shp" class="panel">${holding(c.shp, c.pledge)}</section>
-      <section id="orders" class="panel">${orders(c.orders)}</section>
+      <section id="orders" class="panel">${orders(c.orders, c.name)}</section>
       <section id="peers" class="panel">${peers(c)}</section>`;
 
     // price chart with ranges + order/result markers
@@ -354,7 +354,7 @@ section{scroll-margin-top:170px}
       </tbody></table></div><div class="note">From the company's NSE shareholding filings.</div>`;
   }
 
-  function orders(os) {
+  function orders(os, name) {
     if (!(os && os.length)) return `<h2>Order wins</h2><div class="empty">No order wins reported since April 2026. Companies that announce orders on NSE show up here.</div>`;
     const tot = os.reduce((s, o) => s + (o.value_cr || 0), 0);
     return `<h2>Order wins <small>${os.length} since Apr 2026 · ${crs(tot)} in all</small></h2>
@@ -362,7 +362,7 @@ section{scroll-margin-top:170px}
         <b>${esc(o.client || "Order win")}</b>${o.work ? `<div class="sub">${esc(o.work)}</div>` : ""}
         <div class="meta"><span>${fmtDate(o.date)}</span>${o.pct != null ? `<span>${o.pct}% of yearly revenue</span>` : ""}
           ${o.source ? `<a href="${esc(o.source)}" target="_blank" rel="noopener">Filing</a>` : ""}
-          ${o.url ? `<a href="${esc(o.url)}" target="_blank" rel="noopener">Telegram</a>` : ""}</div></div></div>`).join("")}`;
+          ${o.url ? MM.shareBtn(o.url, `${name || ""} wins ${crs(o.value_cr)} order${o.client ? " from " + o.client : ""} | Market Mint`, "Share") : ""}</div></div></div>`).join("")}`;
   }
 
   function peers(c) {
