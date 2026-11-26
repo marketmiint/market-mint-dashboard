@@ -5,123 +5,482 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>Order wins | Market Mint</title>
-<meta name="description" content="Every order win announced on NSE this financial year, with the order size against yearly revenue and market cap.">
+<meta name="description" content="Every order win announced on NSE this financial year: order size against revenue and market cap, how the share reacted, who is giving the orders, and which themes are busiest.">
 <link rel="icon" href="../logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/nav.css">
 <link rel="stylesheet" href="../assets/mm.css">
 <style>
-.lay{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px;align-items:start}
-@media (max-width:960px){.lay{grid-template-columns:minmax(0,1fr)}}
-.ord{display:flex;gap:14px;padding:14px 18px;border-bottom:1px solid var(--line);align-items:flex-start}
-.ord:last-child{border-bottom:0}
+.lay{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:0;align-items:start}
+@media (max-width:960px){.lay{grid-template-columns:minmax(0,1fr)!important}#side{border-left:0!important;border-top:1px solid var(--line)}}
+.vtabs{margin:0 0 14px;overflow-x:auto}
+.hdr{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.hdr a.how{font-size:13px;color:var(--mint-d);font-weight:700;text-decoration:none;cursor:pointer;margin-bottom:16px}
+
+/* month chart */
+.mchart{padding:10px 14px 6px}
+.mchart svg{display:block;width:100%;height:auto;overflow:visible}
+.mchart .b{fill:var(--mint-d);opacity:.85;cursor:pointer}
+.mchart .b.dim{opacity:.25}.mchart .hit{fill:transparent;cursor:pointer}
+.mchart g:hover .b{opacity:1}
+.mchart text{font:12px Inter,system-ui,sans-serif;fill:var(--muted)}
+.mchart text.v{fill:var(--ink);font-weight:600}
+.mchart .grid{stroke:var(--line);stroke-width:1}
+.tip{position:absolute;pointer-events:none;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:8px 11px;font-size:12.5px;box-shadow:0 4px 14px rgba(15,23,42,.12);white-space:nowrap;display:none;z-index:50}
+.tip b{display:block;font-size:13px}
+
+/* order rows */
+.grp{padding:9px 18px;background:var(--soft);font-size:12.5px;font-weight:700;color:var(--muted);display:flex;justify-content:space-between;border-bottom:1px solid var(--line)}
+.grp.m{background:var(--acc-soft);color:var(--mint-d);font-size:13.5px}
+.ord{display:flex;gap:14px;padding:14px 18px;border-bottom:1px solid var(--line);align-items:flex-start;cursor:pointer}
+.ord:hover{background:var(--soft)}
 .ord .mid{flex:1;min-width:0}
 .ord .nm{display:flex;align-items:baseline;gap:8px;justify-content:space-between}
 .ord .nm a{font-weight:700;text-decoration:none;font-size:15px}.ord .nm a:hover{color:var(--mint-d)}
 .ord .amt{font-weight:800;font-size:17px;white-space:nowrap;font-variant-numeric:tabular-nums}
-.ord .cl{font-weight:600;font-size:14px;margin-top:2px}
+.ord .cl{font-weight:600;font-size:14px;margin-top:2px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .ord .wk{color:var(--muted);font-size:13.5px;margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ord.open .wk{display:block}
 .ord .meta{display:flex;gap:6px 12px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:6px;align-items:center}
-.ord .meta a{color:var(--mint-d);font-weight:700;text-decoration:none}
+.ord .fy{font-size:12.5px;margin-top:5px}
+.ord .rx{display:flex;gap:6px 14px;flex-wrap:wrap;font-size:12.5px;margin-top:4px}
+.ord .rx span{white-space:nowrap}.ord .rx b{font-variant-numeric:tabular-nums}
+.ord .more2{display:none;margin-top:10px;font-size:13px;border-top:1px dashed var(--line);padding-top:10px}
+.ord.open .more2{display:block}
+.ord .open-h{font-size:12px;color:var(--mint-d);font-weight:700;margin-top:6px}
+.ord.open .open-h{display:none}
+.more2 dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;margin:0}
+.more2 dt{color:var(--muted)}.more2 dd{margin:0}.more2 a{color:var(--mint-d);font-weight:700;text-decoration:none}
+.more2 img{max-width:100%;width:420px;border-radius:12px;border:1px solid var(--line);margin-top:10px;display:block}
 .big{background:#e6f0fd;color:#1f5fbf}.huge{background:#0f8f55;color:#fff}
+.ty{font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;background:var(--soft);color:var(--muted);white-space:nowrap}
+.ty.g{background:#fdf3e1;color:#9a6408}.ty.x{background:#efe8fb;color:#6b3fbf}.ty.p{background:#e6f0fd;color:#1f5fbf}
+
+/* side bars */
 .secb{padding:8px 18px 14px}
 .secb a{display:block;padding:8px 0;text-decoration:none;cursor:pointer}
-.secb .t{display:flex;justify-content:space-between;font-size:14px}.secb .t b{font-variant-numeric:tabular-nums}
+.secb .t{display:flex;justify-content:space-between;font-size:14px;gap:8px}.secb .t b{font-variant-numeric:tabular-nums}
+.secb .t>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .secb i{display:block;height:6px;border-radius:4px;background:var(--soft);margin-top:5px;overflow:hidden}.secb i em{display:block;height:100%;background:var(--mint-d)}
 .secb a.on .t span{color:var(--mint-d);font-weight:700}
+#side .ph{border-top:1px solid var(--line)}#side .ph:first-child{border-top:0}
+#side .ph a{cursor:pointer}
+
+/* tables */
+th.s{cursor:pointer;user-select:none}th.s:hover{color:var(--ink)}th.on{color:var(--mint-d)}
+td.l,th.l{text-align:left}
+td .co{max-width:260px}
+td.cust{max-width:300px;white-space:normal;text-align:left;font-size:13px}
+
+/* themes */
+.themes{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;padding:16px}
+.th{border:1px solid var(--line);border-radius:12px;padding:14px;cursor:pointer;background:var(--card)}
+.th:hover{border-color:var(--mint-d)}
+.th h3{margin:0;font-size:15px;display:flex;justify-content:space-between;align-items:baseline}
+.th h3 small{color:var(--muted);font-weight:500;font-size:12.5px}
+.th .big2{font-size:21px;font-weight:800;margin:4px 0 2px;font-variant-numeric:tabular-nums}
+.th small{color:var(--muted);font-size:12.5px}
+.th svg{display:block;width:100%;height:36px;margin:8px 0 6px}
+.th svg rect{fill:var(--mint-d);opacity:.8}
+.th .who{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:4px}
+
+.how{font-size:13.5px;line-height:1.6}
+.how ul{margin:0;padding-left:20px}.how li{margin:4px 0}
+.tools{display:flex;gap:8px;align-items:center;margin-left:auto;flex-wrap:wrap}
+.btn.sm{padding:6px 10px;font-size:12.5px}
+.warnline{font-size:12.5px;color:var(--muted);padding:10px 18px;border-bottom:1px solid var(--line);background:var(--soft)}
 </style>
 </head>
 <body data-root="../">
 <script src="../assets/mm.js"></script>
 <main class="wrap">
-  <h1 class="pt">Order wins</h1>
-  <p class="lead">Every order win announced on NSE since April 2026, sized against the company's yearly revenue and market cap.</p>
-  <div class="stats" id="stats"></div>
-  <div class="lay">
-    <section class="panel">
-      <div class="fbar">
-        <input type="search" id="f" placeholder="Search a company or customer">
-        <span class="seg2" id="per"><button data-p="7" class="on">7 days</button><button data-p="30">30 days</button><button data-p="90">3 months</button><button data-p="0">This year</button></span>
-      </div>
-      <div class="fbar" style="padding-top:10px">
-        <select id="cap" aria-label="Size"><option value="">All sizes</option><option>Large</option><option>Mid</option><option>Small</option><option>Micro</option></select>
-        <select id="secsel" aria-label="Sector"><option value="">All sectors</option></select>
-        <select id="val" aria-label="Order value"><option value="0">Any value</option><option value="10">₹10 Cr+</option><option value="100">₹100 Cr+</option><option value="500">₹500 Cr+</option><option value="1000">₹1,000 Cr+</option></select>
-        <select id="min" aria-label="Order size"><option value="0">Any size</option><option value="2">2%+ of revenue</option><option value="5">5%+ of revenue</option><option value="10">10%+ of revenue</option></select>
-        <select id="sort" aria-label="Sort"><option value="t">Newest first</option><option value="v">Biggest ₹</option><option value="pr">Biggest vs revenue</option></select>
-        <span class="muted" id="cnt" style="margin-left:auto;font-size:13px"></span>
-      </div>
-      <div id="list"></div>
-      <button class="more" id="more" hidden>Show more</button>
-    </section>
-    <aside>
-      <section class="panel"><h2><span>By sector</span><small id="secp"></small></h2><div class="secb" id="secs"></div></section>
-      <section class="panel"><h2><span>Most orders this year</span></h2><div class="rowlist" id="top"></div></section>
-    </aside>
+  <div class="hdr">
+    <div>
+      <h1 class="pt">Order wins</h1>
+      <p class="lead">Every order win announced on NSE this financial year (since 1 Apr 2026): how big it is for the company, how the share reacted, who gave it and which themes are busiest.</p>
+    </div>
+    <a class="how" id="howlink">How we count ›</a>
   </div>
+  <div class="stats" id="stats"><div class="s skel">Loading…</div></div>
+
+  <div class="vtabs"><span class="seg2" id="views">
+    <button data-v="list" class="on">All orders</button><button data-v="cos">Companies</button><button data-v="cust">Customers</button><button data-v="themes">Themes</button><button data-v="quiet">Big orders, quiet stocks</button>
+  </span></div>
+
+  <section class="panel">
+    <h2><span>Order value by month</span><small id="mlab"></small></h2>
+    <div class="mchart" id="mchart"></div>
+  </section>
+
+  <section class="panel">
+    <div class="fbar">
+      <input type="search" id="f" placeholder="Search a company, customer or work">
+      <span class="seg2" id="per"><button data-p="7">7 days</button><button data-p="30">30 days</button><button data-p="90">3 months</button><button data-p="0" class="on">This year</button></span>
+    </div>
+    <div class="fbar" style="padding-top:10px">
+      <select id="cap" aria-label="Company size"><option value="">All sizes</option><option>Large</option><option>Mid</option><option>Small</option><option>Micro</option></select>
+      <select id="secsel" aria-label="Sector"><option value="">All sectors</option></select>
+      <select id="thsel" aria-label="Theme"><option value="">All themes</option></select>
+      <select id="ty" aria-label="Customer type"><option value="">All customers</option><option value="g">Government / PSU</option><option value="p">Private</option><option value="x">Export</option></select>
+      <select id="val" aria-label="Order value"><option value="0">Any value</option><option value="10">₹10 Cr+</option><option value="100">₹100 Cr+</option><option value="500">₹500 Cr+</option><option value="1000">₹1,000 Cr+</option></select>
+      <select id="min" aria-label="Order size vs revenue"><option value="0">Any size</option><option value="2">2%+ of revenue</option><option value="5">5%+ of revenue</option><option value="10">10%+ of revenue</option><option value="25">25%+ of revenue</option></select>
+      <select id="sort" aria-label="Sort"><option value="t">Newest first</option><option value="v">Biggest ₹</option><option value="pr">Biggest vs revenue</option><option value="d1">Best next-day move</option><option value="sn">Best move since</option></select>
+    </div>
+    <div class="fbar" style="padding-top:10px">
+      <span class="muted" id="cnt" style="font-size:13px"></span>
+      <span class="tools">
+        <span class="seg2" id="look"><button data-k="cards" class="on">Cards</button><button data-k="table">Table</button></span>
+        <button class="btn sm" id="csv" title="Download what you see as a spreadsheet file">Download CSV</button>
+        <button class="btn sm" id="share" title="Copy a link to this exact view">Copy link</button>
+      </span>
+    </div>
+    <div class="lay">
+      <div id="main" style="min-width:0"></div>
+      <aside id="side" style="border-left:1px solid var(--line);min-width:0"></aside>
+    </div>
+  </section>
+
+  <section class="panel" id="howp">
+    <h2><span>How we count</span></h2>
+    <div class="pad how">
+      <ul>
+        <li><b>What is listed:</b> new order wins (letters of award, purchase orders, contracts) announced since 1 April 2026 by NSE-listed companies with a market cap of ₹1,000 Cr or more. SME companies are left out.</li>
+        <li><b>What is left out:</b> letters with no ₹ value, orders under ₹1 Cr, amendments and cancellations, and filings about loans, guarantees, share allotments and similar.</li>
+        <li><b>Order value</b> comes from the company's letter. Where the letter gives a range, we use the lower end. Foreign-currency orders are changed to ₹ at that day's rate.</li>
+        <li><b>% of revenue</b> = order value ÷ the company's sales over the last 4 quarters. <b>% of m-cap</b> = order value ÷ market cap.</li>
+        <li><b>BIG</b> = 3% to 10% of yearly revenue. <b>HUGE</b> = 10% or more.</li>
+        <li><b>Next day</b> = the share's move on the first session after the filing (the same day if filed before 3:30 PM). <b>Since</b> = move from the close before that session to the latest close. <b>vs Nifty 500</b> = that move minus the Nifty 500's move over the same days.</li>
+        <li><b>"Nth order in FY27"</b> counts only the orders on this page, so it can be lower than the company's own count.</li>
+        <li><b>Customer type</b> and <b>theme</b> are worked out from the customer's name and the work described, so a few may be wrong.</li>
+        <li>Data comes from NSE and BSE filings and NSE closing prices. This page is for information and learning only. It is not investment advice.</li>
+      </ul>
+    </div>
+  </section>
 </main>
+<div class="tip" id="tip"></div>
 <script>
 (async () => {
-  const { esc, inr, crs, pct, cls, capOf, stockUrl, fmtDate, fmtShort, logo, co } = MM;
-  const all = (await MM.getJSON("orders.json")).orders;
-  const st = { p: 7, sec: "", shown: 40 };
+  const { esc, crs, pct, cls, capOf, stockUrl, fmtDate, fmtShort, logo, co, ROOT } = MM;
+  const $ = id => document.getElementById(id);
+  let data;
+  try { data = await MM.getJSON("orders.json"); } catch (e) { $("stats").innerHTML = '<div class="s">Could not load the orders. Please refresh.</div>'; return; }
+  const all = data.orders;
+  const pxDay = data.prices_day;
+
+  // ---------- worked out once per order
+  const GOV = /ministry|government|govt|\bgoi\b|railway|locomotive|\brail\b|metro|nhai|national highways|highway|authority|nigam|\bboard\b|department|municipal|corporation of greater|council|police|indian (navy|army|air ?force|oil)|navy|army|air force|drdo|defence|isro|newspace|ntpc|power ?grid|\bseci\b|solar energy corporation|coal ?india|coalfields|\bongc\b|oil and natural gas|\bgail\b|\bbhel\b|bharat heavy|bharat electronics|\bbel\b|hindustan aeronautics|\bhal\b|indian oil|\biocl\b|bpcl|bharat petroleum|hpcl|hindustan petroleum|nhpc|sjvn|\brec\b|\bpfc\b|state electricity|vidyut|\bvij\b|urja|transmission corporation|distribution company|discom|msedcl|mahagenco|\bnmdc\b|steel authority|\bsail\b|airports authority|cochin shipyard|mazagon|garden reach|nuclear|npcil|wapcos|\brites\b|ircon|rvnl|rail vikas|\biit\b|aiims|national informatics|\bnic\b|state of|district|public works|\bjal\b|zila|panchayat|brahmos|ordnance|munitions|bharat dynamics|\bbdl\b|kalpasar|water resources|irrigation|electricity board|energy development|\bdmrc\b|\bmmrc|chittaranjan|chitiaranjan|integral coach|rdso|meteorolog|municipality|\bpsu\b|recruitment|\bstate\b[^,]{0,40}(corporation|development|limited)|development corporation|infrastructure development|\bpsu\b|nigam|\bmahanagar|\bcorporation of india\b|indian institute|ultra mega|rumsl|\bpgcil\b/i;
+  const EXP = /international|overseas|export|\busa\b|\bu\.s\.|\buae\b|dubai|saudi|qatar|oman|kuwait|middle east|europe|\buk\b|germany|africa|nigeria|kenya|bangladesh|nepal|sri lanka|australia|canada|america|foreign|\bllc\b|\bgmbh\b|\bpte\b/i;
+  const tyOf = o => {
+    const c = o.cl || "";
+    if (o.wh === "International" || EXP.test(c) || /\bexport/i.test(o.w || "")) return "x";
+    if (!c || /not disclosed|confidential|^domestic client/i.test(c)) return "";
+    return GOV.test(c) ? "g" : "p";
+  };
+  const TYN = { g: "Govt / PSU", p: "Private", x: "Export", "": "Not given" };
+  const THEMES = [
+    ["Defence", /defen[cs]e|navy|army|air ?force|missile|drdo|ammunition|munition|radar|weapon|brahmos|warship|corvette|frigate|submarine|ordnance|aerospace|aircraft|helicopter|electro-optic|hindustan aeronautics|military/i],
+    ["Railways", /railway|locomotive|\brail\b|wagon|coach|kavach|signalling|rolling stock|vande|\brdso\b|bogie|traction|chittaranjan|chitiaranjan|integral coach/i],
+    ["Metro & urban", /metro|smart city|municipal|urban|building|housing|hospital|airport|depot|campus|real estate/i],
+    ["Roads & bridges", /highway|\broads?\b|nhai|bridge|tunnel|expressway|flyover|morth|\blane\b/i],
+    ["Solar & renewables", /solar|\bwind\b|renewable|\bre\b|green hydrogen|electrolyser|\bbess\b|battery|\bpv\b|seci|hybrid power|pumped storage|rtc power/i],
+    ["Power T&D", /transmission|substation|sub-station|\bkv\b|transformer|cable|conductor|distribution|smart meter|\bmeters?\b|switchgear|discom|power ?grid|electrification|\bhvdc|tower/i],
+    ["Power generation", /thermal|power plant|\bbtg\b|boiler|turbine|ntpc|nhpc|nuclear|hydro|generation|power purchase|power supply/i],
+    ["Water & irrigation", /water|irrigation|sewage|sewerage|\bstp\b|canal|\bdam\b|\bjal\b|desalination|kalpasar|effluent/i],
+    ["Ships & ports", /\bships?\b|vessel|\bports?\b|dredg|marine|offshore|harbour|\btugs?\b|ferry/i],
+    ["Oil, gas & mining", /\boil\b|\bgas\b|ongc|refinery|petro|\bcoal|mining|\bmines?\b|mineral|drilling|\bgail\b|\blng\b|\bcgd\b/i],
+    ["IT & digital", /software|communication|\bit\b|digital|cloud|data cent|cyber|platform|telecom|network|\b5g\b|\bict\b|e-governance|surveillance|cctv|technology services/i],
+    ["Metals & materials", /steel|alumin|copper|zinc|cement|metal|ingot|billet|\bpipes?\b|chemical|fertili/i],
+    // sector fallback when the letter gives no work description
+    ["Construction & EPC", /construction|\bepc\b|civil|infra|engineering|real estate|realty|developer/i],
+    ["Machinery & equipment", /capital goods|equipment|machinery|electrical|industrial|auto|components|electronics/i],
+  ];
+  const THN = [...THEMES.map(t => t[0]), "Other"];
+  const themeOf = o => { const t = `${o.w || ""} ${o.cl || ""} ${o.sec || ""}`; for (const [n, rx] of THEMES) if (rx.test(t)) return n; return "Other"; };
+  const CUST = [   // one name for the many spellings / units of the same customer
+    ["Indian Railways", /railway|chittaranjan|chitiaranjan|locomotive works|integral coach|rdso|rail coach|\brcf\b|\bdlw\b|banaras loco/i],
+    ["Ministry of Defence & forces", /ministry of defen[cs]e|indian navy|indian army|indian air ?force|\bmod\b|defence research|drdo|ordnance/i],
+    ["NHAI / MoRTH (roads)", /national highways|nhai|ministry of road|morth|nhidcl/i],
+    ["NTPC group", /\bntpc\b/i], ["Power Grid", /power ?grid|\bpgcil\b/i], ["SECI", /\bseci\b|solar energy corporation/i],
+    ["Coal India group", /coal india|coalfields|\bccl\b|\bmcl\b|\bncl\b|\bsecl\b|\bwcl\b|\bbccl\b/i],
+    ["ONGC", /\bongc\b|oil and natural gas/i], ["BHEL", /\bbhel\b|bharat heavy/i], ["Bharat Electronics", /bharat electronics|\bbel\b/i],
+    ["Hindustan Aeronautics", /hindustan aeronautics|\bhal\b/i], ["Indian Oil", /indian oil|\biocl\b/i], ["NewSpace India / ISRO", /newspace|\bisro\b/i],
+    ["Adani group", /\badani\b/i], ["Reliance group", /\breliance\b/i], ["Tata group", /\btata\b/i], ["L&T", /larsen|\bl&t\b/i],
+    ["Maharashtra power (MSEDCL, Mahagenco)", /msedcl|maharashtra state electricity|mahagenco|mahatransco/i],
+    ["Gujarat power (GUVNL, GETCO, DISCOMs)", /gujarat urja|guvnl|getco|gujarat energy transmission|paschim gujarat|madhya gujarat|uttar gujarat|dakshin gujarat/i],
+    ["Rajasthan power (RVPN, DISCOMs)", /rajasthan rajya vidyut|rvpn|jaipur vidyut|ajmer vidyut|jodhpur vidyut/i],
+    ["Metro rail companies", /metro rail|\bdmrc\b|\bmmrc|mumbai metro|gurugram metro|bangalore metro|chennai metro/i],
+  ];
+  const custOf = o => { const c = o.cl || ""; if (!c || /not disclosed|confidential|^domestic client|^international client|leading|renowned|reputed|^(a|an|one of)\s/i.test(c)) return ""; for (const [n, rx] of CUST) if (rx.test(c)) return n; return c.replace(/\s+(together|include|includes|including|and others)\b.*$/i, "").replace(/\s+\w$/, "").replace(/,?\s+(private limited|pvt\.? ltd\.?|limited|ltd\.?)$/i, "").replace(/^the\s+/i, ""); };
+
+  // FY27 running count per company (oldest first)
+  const byT = all.slice().sort((a, b) => (a.t || a.d).localeCompare(b.t || b.d));
+  const run = {};
+  byT.forEach(o => {
+    o.ty = tyOf(o); o.th = themeOf(o); o.cu = custOf(o); o.mo = o.d.slice(0, 7);
+    const r = run[o.s] = run[o.s] || { n: 0, v: 0, p: 0, pOk: true };
+    r.n++; r.v += o.v || 0; if (o.pr != null) r.p += o.pr; else r.pOk = false;
+    o.fyn = r.n; o.fyv = r.v; o.fyp = r.pOk ? r.p : null;
+  });
+  const ord = n => n + (n % 100 >= 11 && n % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][n % 10] || "th");
+
+  // ---------- state (kept in the link so a view can be shared)
+  const q0 = new URLSearchParams(location.search);
+  const st = { v: q0.get("v") || "list", p: q0.has("p") ? +q0.get("p") : 0, sec: q0.get("sec") || "", th: q0.get("th") || "", mo: q0.get("mo") || "",
+    look: q0.get("look") || "cards", shown: 40, csort: "v", usort: "v" };
+  const FIELDS = [["f", "q"], ["cap", "cap"], ["ty", "ty"], ["val", "val"], ["min", "min"], ["sort", "sort"]];
+  FIELDS.forEach(([id, k]) => { if (q0.has(k)) $(id).value = q0.get(k); });
+  $("secsel").innerHTML += [...new Set(all.map(o => o.sec || "Other"))].sort().map(s => `<option>${esc(s)}</option>`).join("");
+  $("thsel").innerHTML += THN.map(s => `<option>${esc(s)}</option>`).join("");
+  $("secsel").value = st.sec; $("thsel").value = st.th;
+
+  function saveURL() {
+    const u = new URLSearchParams();
+    if (st.v !== "list") u.set("v", st.v);
+    if (st.p) u.set("p", st.p);
+    if (st.mo) u.set("mo", st.mo);
+    if (st.sec) u.set("sec", st.sec);
+    if (st.th) u.set("th", st.th);
+    if (st.look !== "cards") u.set("look", st.look);
+    FIELDS.forEach(([id, k]) => { const v = $(id).value.trim(); if (v && v !== "0" && !(k === "sort" && v === "t")) u.set(k, v); });
+    history.replaceState(null, "", location.pathname + (u.toString() ? "?" + u : ""));
+  }
+
   const now = Date.now();
-  const days = o => (now - new Date((o.t || o.d + "T12:00:00+05:30"))) / 864e5;
-
-  function filtered(ignoreSec) {
-    const f = document.getElementById("f").value.trim().toUpperCase(), cap = document.getElementById("cap").value, mn = +document.getElementById("min").value, val = +document.getElementById("val").value;
-    return all.filter(o => (!st.p || days(o) <= st.p) && (!f || o.s.includes(f) || (o.n || "").toUpperCase().includes(f) || (o.cl || "").toUpperCase().includes(f))
-      && (!cap || capOf(o.m) === cap) && (!mn || (o.pr || 0) >= mn) && (!val || (o.v || 0) >= val) && (ignoreSec || !st.sec || (o.sec || "Other") === st.sec));
+  const days = o => (now - new Date(o.t || o.d + "T12:00:00+05:30")) / 864e5;
+  function filtered({ noMonth = false, noSec = false } = {}) {
+    const f = $("f").value.trim().toUpperCase(), cap = $("cap").value, mn = +$("min").value, val = +$("val").value, ty = $("ty").value;
+    return all.filter(o => (!st.p || days(o) <= st.p) && (noMonth || !st.mo || o.mo === st.mo)
+      && (!f || o.s.includes(f) || [o.n, o.cl, o.w, o.cu].some(x => (x || "").toUpperCase().includes(f)))
+      && (!cap || capOf(o.m) === cap) && (!mn || (o.pr || 0) >= mn) && (!val || (o.v || 0) >= val) && (!ty || o.ty === ty)
+      && (noSec || !st.sec || (o.sec || "Other") === st.sec) && (!st.th || o.th === st.th));
   }
-  function draw() {
-    const base = filtered(true), rs0 = filtered(false);
-    const k = document.getElementById("sort").value;
-    const rs = k === "t" ? rs0 : rs0.slice().sort((a, b) => (b[k] ?? -1) - (a[k] ?? -1));
+  const MON = m => new Date(m + "-15T12:00:00+05:30").toLocaleDateString("en-IN", { month: "short" });
+  const MONY = m => new Date(m + "-15T12:00:00+05:30").toLocaleDateString("en-IN", { month: "long", year: "numeric" });
+  const perLbl = () => st.mo ? MONY(st.mo) : ({ 7: "last 7 days", 30: "last 30 days", 90: "last 3 months", 0: "this year (FY27)" }[st.p]);
+  const mv = v => v == null ? '<span class="muted">–</span>' : `<b class="${cls(v)}">${v > 0 ? "▲" : v < 0 ? "▼" : ""} ${Math.abs(v).toFixed(1)}%</b>`;
+  const pts = v => v == null ? "" : `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(1)} pts vs Nifty 500`;
+  const avg = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null;
+
+  // ---------- top numbers
+  function stats(rs) {
     const tot = rs.reduce((a, o) => a + (o.v || 0), 0);
-    const big = rs.reduce((a, o) => (o.v || 0) > (a ? a.v || 0 : -1) ? o : a, null);
-    const rel = rs.reduce((a, o) => (o.pr || 0) > (a ? a.pr || 0 : -1) ? o : a, null);
-    const lbl = { 7: "last 7 days", 30: "last 30 days", 90: "last 3 months", 0: "since Apr 2026" }[st.p];
-    document.getElementById("stats").innerHTML = `
-      <div class="s"><small>Order wins</small><b>${rs.length.toLocaleString("en-IN")}</b><span>${lbl}</span></div>
-      <div class="s"><small>Total value</small><b>${crs(tot)}</b><span>${lbl}</span></div>
+    const big = rs.reduce((a, o) => !a || (o.v || 0) > a.v ? o : a, null);
+    const r1 = rs.filter(o => o.d1 != null), up = r1.filter(o => o.d1 > 0).length, a1 = avg(r1.map(o => o.d1));
+    $("stats").innerHTML = `
+      <div class="s"><small>Order wins</small><b>${rs.length.toLocaleString("en-IN")}</b><span>${new Set(rs.map(o => o.s)).size} companies · ${perLbl()}</span></div>
+      <div class="s"><small>Total value</small><b>${crs(tot)}</b><span>${perLbl()}</span></div>
       <div class="s"><small>Biggest order</small><b>${big ? crs(big.v) : "–"}</b><span>${big ? esc(big.n) : ""}</span></div>
-      <div class="s"><small>Biggest vs revenue</small><b>${rel && rel.pr != null ? rel.pr.toFixed(rel.pr >= 100 ? 0 : 1) + "%" : "–"}</b><span>${rel ? esc(rel.n) : ""}</span></div>`;
-    document.getElementById("cnt").textContent = rs.length + " orders";
-    document.getElementById("list").innerHTML = rs.slice(0, st.shown).map(o => {
-      const tag = o.pr >= 10 ? `<span class="pill huge">HUGE</span>` : o.pr >= 3 ? `<span class="pill big">BIG</span>` : "";
-      return `<div class="ord">${logo(o.s, o.n, o.lg)}<div class="mid">
-        <div class="nm"><a href="${stockUrl(o.s)}">${esc(o.n)}</a><span class="amt">${crs(o.v)}</span></div>
-        ${o.cl ? `<div class="cl">${esc(o.cl)}</div>` : ""}${o.w ? `<div class="wk">${esc(o.w)}</div>` : ""}
-        <div class="meta">${tag}<span>${fmtShort(o.d)}</span>${o.pr != null ? `<span><b style="color:var(--ink)">${o.pr}%</b> of yearly revenue</span>` : ""}
-          ${o.pm != null ? `<span>${o.pm}% of m-cap</span>` : ""}${o.sec ? `<span>${esc(o.sec)}</span>` : ""}
-          ${o.src ? `<a href="${esc(o.src)}" target="_blank" rel="noopener">Filing</a>` : ""}${o.url ? `<a href="${esc(o.url)}" target="_blank" rel="noopener">Telegram</a>` : ""}</div></div></div>`;
-    }).join("") || '<div class="empty">No order wins match these filters.</div>';
-    const more = document.getElementById("more");
-    more.hidden = rs.length <= st.shown;
-    more.textContent = `Show more (${rs.length - st.shown} left)`;
-
-    // sectors (ignoring the sector filter itself)
-    const sec = {};
-    base.forEach(o => { const k2 = o.sec || "Other"; sec[k2] = sec[k2] || { n: 0, v: 0 }; sec[k2].n++; sec[k2].v += o.v || 0; });
-    const ss = Object.entries(sec).sort((a, b) => b[1].v - a[1].v).slice(0, 12), mx = ss.length ? ss[0][1].v : 1;
-    document.getElementById("secp").textContent = st.sec ? "tap again to clear" : lbl;
-    document.getElementById("secs").innerHTML = ss.map(([k2, v]) => `<a data-s="${esc(k2)}" class="${st.sec === k2 ? "on" : ""}"><span class="t"><span>${esc(k2)} <small class="muted">${v.n}</small></span><b>${crs(v.v)}</b></span><i><em style="width:${v.v / mx * 100}%"></em></i></a>`).join("") || '<div class="empty">–</div>';
+      <div class="s"><small>Share move the next day</small><b class="${cls(a1)}">${a1 == null ? "–" : pct(a1)}</b><span>${r1.length ? `average · rose ${Math.round(up / r1.length * 100)}% of the time` : ""}</span></div>`;
   }
-  // most orders this year (not filtered)
-  const cnt = {};
-  all.forEach(o => { cnt[o.s] = cnt[o.s] || { o, n: 0, v: 0 }; cnt[o.s].n++; cnt[o.s].v += o.v || 0; });
-  document.getElementById("top").innerHTML = Object.values(cnt).sort((a, b) => b.n - a.n || b.v - a.v).slice(0, 8).map(x =>
-    `<a href="${stockUrl(x.o.s)}">${co(x.o.s, x.o.n, x.o.lg, `${x.n} orders`, false)}<span class="rt"><b>${crs(x.v)}</b></span></a>`).join("");
 
-  document.getElementById("per").onclick = e => { const b = e.target.closest("button"); if (!b) return; st.p = +b.dataset.p; st.shown = 40; document.querySelectorAll("#per button").forEach(x => x.classList.toggle("on", x === b)); draw(); };
-  const secSel = document.getElementById("secsel");
-  secSel.innerHTML += [...new Set(all.map(o => o.sec || "Other"))].sort().map(s => `<option>${esc(s)}</option>`).join("");
-  secSel.onchange = () => { st.sec = secSel.value; st.shown = 40; draw(); };
-  document.getElementById("secs").onclick = e => { const a = e.target.closest("a[data-s]"); if (!a) return; st.sec = st.sec === a.dataset.s ? "" : a.dataset.s; secSel.value = st.sec; st.shown = 40; draw(); };
-  ["f", "cap", "val", "min", "sort"].forEach(id => document.getElementById(id).addEventListener("input", () => { st.shown = 40; draw(); }));
-  document.getElementById("more").onclick = () => { st.shown += 60; draw(); };
+  // ---------- month chart: one series, order value per month of FY27
+  function monthChart() {
+    const rs = filtered({ noMonth: true });
+    const ms = []; for (let d = new Date("2026-04-15T12:00:00Z"); d <= new Date(); d.setUTCMonth(d.getUTCMonth() + 1)) ms.push(d.toISOString().slice(0, 7));
+    const agg = ms.map(m => { const x = rs.filter(o => o.mo === m); return { m, n: x.length, v: x.reduce((a, o) => a + (o.v || 0), 0), top: x.slice().sort((a, b) => b.v - a.v)[0] }; });
+    const W = Math.max(360, Math.min(1100, $("mchart").clientWidth || 760)), H = 190, L = 6, B = 24, T = 22, mx = Math.max(1, ...agg.map(a => a.v));
+    const bw = (W - L * 2) / agg.length, barw = Math.min(56, bw - 12);
+    const y = v => H - B - (v / mx) * (H - B - T);
+    let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Order value by month"><line class="grid" x1="0" x2="${W}" y1="${H - B}" y2="${H - B}"/>`;
+    agg.forEach((a, i) => {
+      const x = L + i * bw + (bw - barw) / 2, yy = y(a.v), h = Math.max(0, H - B - yy), r = Math.min(4, h / 2);
+      const dim = st.mo && st.mo !== a.m ? " dim" : "";
+      s += `<g data-m="${a.m}"><rect class="hit" x="${L + i * bw}" y="0" width="${bw}" height="${H}"/>`;
+      if (h > 0) s += `<path class="b${dim}" d="M${x},${H - B} V${yy + r} Q${x},${yy} ${x + r},${yy} H${x + barw - r} Q${x + barw},${yy} ${x + barw},${yy + r} V${H - B} Z"/>`;
+      s += `<text class="v" x="${x + barw / 2}" y="${yy - 6}" text-anchor="middle">${a.v ? crs(a.v).replace("₹", "").replace(" Cr", "") : ""}</text>`;
+      s += `<text x="${x + barw / 2}" y="${H - 6}" text-anchor="middle">${MON(a.m)}</text></g>`;
+    });
+    $("mchart").innerHTML = s + "</svg>";
+    $("mlab").innerHTML = st.mo ? `${MONY(st.mo)} only · <a id="mclr" style="cursor:pointer">show all months</a>` : "₹ Cr · tap a month to see only that month";
+    const tip = $("tip");
+    $("mchart").querySelectorAll("g[data-m]").forEach(g => {
+      const a = agg.find(x => x.m === g.dataset.m);
+      g.onmousemove = e => { tip.style.display = "block"; tip.innerHTML = `<b>${MONY(a.m)}</b>${a.n} orders · ${crs(a.v)}${a.top ? `<br><span class="muted">Biggest: ${esc(a.top.n)} ${crs(a.top.v)}</span>` : ""}`;
+        tip.style.left = Math.min(e.pageX + 14, innerWidth - tip.offsetWidth - 10) + "px"; tip.style.top = (e.pageY - 12) + "px"; };
+      g.onmouseleave = () => tip.style.display = "none";
+      g.onclick = () => { tip.style.display = "none"; st.mo = st.mo === a.m ? "" : a.m; if (st.mo) { st.p = 0; setPer(); } st.shown = 40; draw(); };
+    });
+    const c = $("mclr"); if (c) c.onclick = () => { st.mo = ""; draw(); };
+  }
+
+  // ---------- one order card
+  const card = o => {
+    const tag = o.pr >= 10 ? `<span class="pill huge">HUGE</span>` : o.pr >= 3 ? `<span class="pill big">BIG</span>` : "";
+    const val = o.hi ? `${crs(o.v)} – ${crs(o.hi).replace("₹", "")}` : crs(o.v);
+    const fresh = o.d1 == null && days(o) < 5;
+    return `<div class="ord" data-i="${o.i}">${logo(o.s, o.n, o.lg)}<div class="mid">
+      <div class="nm"><a href="${stockUrl(o.s)}">${esc(o.n)}</a><span class="amt">${val}</span></div>
+      <div class="cl">${o.cl ? esc(o.cl) : '<span class="muted" style="font-weight:500">Customer not named in the letter</span>'}${o.ty ? `<span class="ty ${o.ty}">${TYN[o.ty]}</span>` : ""}</div>
+      ${o.w ? `<div class="wk">${esc(o.w)}</div>` : ""}
+      <div class="meta">${tag}<span>${fmtShort(o.d)}</span>${o.pr != null ? `<span><b style="color:var(--ink)">${o.pr}%</b> of yearly revenue</span>` : ""}
+        ${o.pm != null ? `<span>${o.pm}% of m-cap</span>` : ""}<span>${esc(o.th)}</span>${o.tl ? `<span>Delivery: ${esc(o.tl)}</span>` : ""}</div>
+      ${o.fyn > 1 ? `<div class="fy"><b>${ord(o.fyn)} order in FY27</b> · ${crs(o.fyv)} so far${o.fyp != null ? ` (${o.fyp.toFixed(o.fyp >= 100 ? 0 : 1)}% of revenue)` : ""}</div>` : `<div class="fy muted">1st order in FY27</div>`}
+      <div class="rx">${fresh ? '<span class="muted">Share reaction shows after the next close</span>' : `<span>Next day ${mv(o.d1)}</span><span>Since ${mv(o.sn)}</span>${o.vs != null ? `<span class="muted">${pts(o.vs)}</span>` : ""}`}</div>
+      <div class="open-h">Details ›</div>
+      <div class="more2"><dl>
+        <dt>Announced</dt><dd>${fmtDate(o.d)}${o.t && o.t.length > 15 ? ", " + o.t.slice(11, 16) : ""}</dd>
+        ${o.od ? `<dt>Order date</dt><dd>${fmtDate(o.od)} (as given in the letter)</dd>` : ""}
+        <dt>Sector</dt><dd>${esc(o.sec || "Other")}</dd><dt>Company size</dt><dd>${capOf(o.m) || "–"} cap · ${crs(o.m)} market cap</dd>
+        ${o.tl ? `<dt>Delivery</dt><dd>${esc(o.tl)}</dd>` : ""}
+        <dt>Links</dt><dd>${[o.src ? `<a href="${esc(o.src)}" target="_blank" rel="noopener">Company's letter</a>` : "", o.url ? `<a href="${esc(o.url)}" target="_blank" rel="noopener">Telegram post</a>` : "", `<a href="${stockUrl(o.s)}">Company page</a>`].filter(Boolean).join(" · ")}</dd>
+      </dl>${o.card ? `<img loading="lazy" src="${ROOT}${esc(o.card)}" alt="Order card for ${esc(o.n)}">` : ""}</div>
+    </div></div>`;
+  };
+  all.forEach((o, i) => o.i = i);
+  const ist = t => new Date(t + 5.5 * 36e5).toISOString().slice(0, 10);
+  const dayLbl = d => d === ist(Date.now()) ? "Today" : d === ist(Date.now() - 864e5) ? "Yesterday" : fmtDate(d);
+
+  function listView(rs) {
+    const k = $("sort").value;
+    const srt = k === "t" ? rs : rs.slice().sort((a, b) => (b[k] ?? -1e9) - (a[k] ?? -1e9));
+    const show = srt.slice(0, st.shown);
+    let h = "";
+    if (st.look === "table") {
+      h = `<div class="tscroll"><table><thead><tr><th class="l">Date</th><th class="l">Company</th><th class="l">Customer</th><th>Value</th><th>% revenue</th><th>% m-cap</th><th>Next day</th><th>Since</th><th class="l">Theme</th></tr></thead><tbody>` +
+        show.map(o => `<tr><td class="l">${fmtShort(o.d)}</td><td class="l">${co(o.s, o.n, o.lg, capOf(o.m) + " cap")}</td><td class="cust">${esc(o.cl || "–")}${o.ty ? ` <span class="ty ${o.ty}">${TYN[o.ty]}</span>` : ""}</td>
+          <td><b>${crs(o.v)}</b></td><td>${o.pr != null ? o.pr + "%" : "–"}</td><td>${o.pm != null ? o.pm + "%" : "–"}</td><td>${mv(o.d1)}</td><td>${mv(o.sn)}</td><td class="l">${esc(o.th)}</td></tr>`).join("") + "</tbody></table></div>";
+    } else if (k === "t") {
+      let lastM = "", lastD = "";
+      const mt = {}; rs.forEach(o => { mt[o.mo] = mt[o.mo] || { n: 0, v: 0 }; mt[o.mo].n++; mt[o.mo].v += o.v || 0; });
+      show.forEach(o => {
+        if (o.mo !== lastM) { lastM = o.mo; lastD = ""; h += `<div class="grp m"><span>${MONY(o.mo)}</span><span>${mt[o.mo].n} orders · ${crs(mt[o.mo].v)}</span></div>`; }
+        if (o.d !== lastD) { lastD = o.d; h += `<div class="grp"><span>${dayLbl(o.d)}</span></div>`; }
+        h += card(o);
+      });
+    } else h = show.map(card).join("");
+    const left = srt.length - st.shown;
+    $("main").innerHTML = (h || '<div class="empty">No order wins match these filters.</div>') + (left > 0 ? `<button class="more" id="more">Show more (${left} left)</button>` : "");
+    const m = $("more"); if (m) m.onclick = () => { st.shown += 60; draw(); };
+    $("main").querySelectorAll(".ord").forEach(el => el.onclick = e => { if (e.target.closest("a")) return; el.classList.toggle("open"); });
+    return srt;
+  }
+
+  function sortTable(rows, cols, key, onSort) {
+    const head = cols.map(c => `<th class="${c.l ? "l " : ""}${c.k ? "s" : ""}${c.k === key ? " on" : ""}" data-k="${c.k || ""}">${c.h}${c.k === key ? " ↓" : ""}</th>`).join("");
+    const body = rows.slice().sort((a, b) => (b[key] ?? -1e9) - (a[key] ?? -1e9)).map(r => `<tr>${cols.map(c => `<td class="${c.l ? "l" : ""}">${c.f(r)}</td>`).join("")}</tr>`).join("");
+    $("main").innerHTML = `<div class="tscroll"><table><thead><tr>${head}</tr></thead><tbody>${body || `<tr><td colspan="${cols.length}" class="l muted">Nothing matches these filters.</td></tr>`}</tbody></table></div><div class="note">Tap a column title to sort by it.</div>`;
+    $("main").querySelectorAll("th.s").forEach(th => th.onclick = () => onSort(th.dataset.k));
+  }
+
+  function companiesView(rs) {
+    const g = {};
+    rs.forEach(o => { const x = g[o.s] = g[o.s] || { o, n: 0, v: 0, pr: 0, prOk: true, big: 0, last: "", first: null }; x.n++; x.v += o.v || 0; if (o.pr != null) x.pr += o.pr; else x.prOk = false; x.big = Math.max(x.big, o.v || 0); if (o.d > x.last) x.last = o.d; if (!x.first || (o.t || o.d) < (x.first.t || x.first.d)) x.first = o; });
+    const rows = Object.values(g).map(x => ({ ...x, prv: x.prOk ? x.pr : null, sn: x.first.sn, vs: x.first.vs, lastT: +new Date(x.last) }));
+    sortTable(rows, [
+      { h: "Company", l: 1, f: r => co(r.o.s, r.o.n, r.o.lg, `${capOf(r.o.m)} cap · ${esc(r.o.sec || "Other")}`) },
+      { h: "Orders", k: "n", f: r => r.n }, { h: "Total value", k: "v", f: r => `<b>${crs(r.v)}</b>` },
+      { h: "% of yearly revenue", k: "prv", f: r => r.prv != null ? r.prv.toFixed(r.prv >= 100 ? 0 : 1) + "%" : "–" },
+      { h: "Biggest order", k: "big", f: r => crs(r.big) }, { h: "Latest", k: "lastT", f: r => fmtShort(r.last) },
+      { h: "Share move since 1st order", k: "sn", f: r => mv(r.sn) + (r.vs != null ? `<small>${pts(r.vs)}</small>` : "") },
+    ], st.csort, k => { st.csort = k; draw(); });
+    return rs;
+  }
+
+  function customersView(rs) {
+    const g = {};
+    rs.filter(o => o.cu).forEach(o => { const x = g[o.cu] = g[o.cu] || { c: o.cu, ty: o.ty, n: 0, v: 0, cos: {} }; x.n++; x.v += o.v || 0; x.cos[o.s] = (x.cos[o.s] || 0) + (o.v || 0); });
+    const rows = Object.values(g).map(x => ({ ...x, nc: Object.keys(x.cos).length }));
+    const nm = {}; all.forEach(o => nm[o.s] = o.n);
+    sortTable(rows, [
+      { h: "Customer", l: 1, f: r => `<span style="white-space:normal"><b>${esc(r.c)}</b> ${r.ty ? `<span class="ty ${r.ty}">${TYN[r.ty]}</span>` : ""}</span>` },
+      { h: "Orders", k: "n", f: r => r.n }, { h: "Total value", k: "v", f: r => `<b>${crs(r.v)}</b>` }, { h: "Companies", k: "nc", f: r => r.nc },
+      { h: "Who won them", l: 1, f: r => `<span style="white-space:normal;font-size:13px">${Object.entries(r.cos).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([s]) => `<a href="${stockUrl(s)}">${esc(nm[s] || s)}</a>`).join(", ")}${r.nc > 4 ? ` +${r.nc - 4} more` : ""}</span>` },
+    ], st.usort, k => { st.usort = k; draw(); });
+    const miss = rs.filter(o => !o.cu).length;
+    if (miss) $("main").insertAdjacentHTML("afterbegin", `<div class="warnline">${miss} of ${rs.length} orders don't name the customer, so they are not in this table.</div>`);
+    return rs;
+  }
+
+  function themesView(rs) {
+    const ms = [...new Set(all.map(o => o.mo))].sort();
+    const tl = THN.map(n => {
+      const x = rs.filter(o => o.th === n), r1 = x.filter(o => o.d1 != null);
+      const by = {}; x.forEach(o => by[o.s] = (by[o.s] || 0) + o.v);
+      return { n, x, v: x.reduce((a, o) => a + o.v, 0), a1: avg(r1.map(o => o.d1)), mv: ms.map(m => x.filter(o => o.mo === m).reduce((a, o) => a + o.v, 0)), top: Object.entries(by).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([s]) => all.find(o => o.s === s).n) };
+    }).filter(t => t.x.length).sort((a, b) => b.v - a.v);
+    $("main").innerHTML = `<div class="themes">${tl.map(t => {
+      const mx = Math.max(1, ...t.mv), bw = 200 / t.mv.length;
+      const bars = t.mv.map((v, i) => { const h = v / mx * 34; return `<rect x="${i * bw + 1}" y="${36 - h}" width="${bw - 3}" height="${h}" rx="2"><title>${MON(ms[i])}: ${crs(v)}</title></rect>`; }).join("");
+      return `<div class="th" data-t="${esc(t.n)}"><h3><span>${esc(t.n)}</span><small>${t.x.length} orders</small></h3><div class="big2">${crs(t.v)}</div>
+        <svg viewBox="0 0 200 36" preserveAspectRatio="none" aria-label="Order value by month">${bars}</svg>
+        <small>${MON(ms[0])} → ${MON(ms[ms.length - 1])} · next-day move ${t.a1 == null ? "–" : `<b class="${cls(t.a1)}">${pct(t.a1)}</b>`} on average</small>
+        <div class="who">Top: ${t.top.map(esc).join(", ")}</div></div>`;
+    }).join("") || '<div class="empty">Nothing matches these filters.</div>'}</div><div class="note">Tap a theme to see its orders. Themes are worked out from the work described and the customer, so a few orders may sit in the wrong theme.</div>`;
+    $("main").querySelectorAll(".th").forEach(el => el.onclick = () => { st.th = el.dataset.t; $("thsel").value = st.th; setView("list"); });
+    return rs;
+  }
+
+  function quietView(rs) {
+    const x = rs.filter(o => o.pr >= 10 && o.d1 != null && o.d1 < 1).sort((a, b) => b.pr - a.pr);
+    $("main").innerHTML = `<div class="warnline">Orders worth <b>10% or more of the company's yearly revenue</b> where the share moved <b>less than 1%</b> the next day. A list to study, not a buy list. This is not investment advice.</div>
+      <div class="tscroll"><table><thead><tr><th class="l">Company</th><th class="l">Customer</th><th>Order</th><th>% revenue</th><th>Next day</th><th>Since</th><th>vs Nifty 500</th></tr></thead><tbody>${x.map(o => `<tr>
+      <td class="l">${co(o.s, o.n, o.lg, fmtShort(o.d) + " · " + capOf(o.m) + " cap")}</td><td class="cust">${esc(o.cl || "–")}</td><td><b>${crs(o.v)}</b></td><td>${o.pr}%</td><td>${mv(o.d1)}</td><td>${mv(o.sn)}</td>
+      <td>${o.vs == null ? "–" : `<span class="${cls(o.vs)}">${o.vs >= 0 ? "+" : "−"}${Math.abs(o.vs).toFixed(1)} pts</span>`}</td></tr>`).join("") || '<tr><td colspan="7" class="l muted">None in this period.</td></tr>'}</tbody></table></div>`;
+    return x;
+  }
+
+  // ---------- side panels (All orders view only)
+  function side(rs) {
+    const lay = document.querySelector(".lay");
+    if (st.v !== "list") { $("side").hidden = true; lay.style.gridTemplateColumns = "minmax(0,1fr)"; return; }
+    $("side").hidden = false; lay.style.gridTemplateColumns = "";
+    const base = filtered({ noSec: true });
+    const sec = {}; base.forEach(o => { const k = o.sec || "Other"; sec[k] = sec[k] || { n: 0, v: 0 }; sec[k].n++; sec[k].v += o.v || 0; });
+    const ss = Object.entries(sec).sort((a, b) => b[1].v - a[1].v).slice(0, 10), mx = ss.length ? ss[0][1].v : 1;
+    const tyc = { g: 0, p: 0, x: 0, "": 0 }; rs.forEach(o => tyc[o.ty] += o.v || 0); const tt = Object.values(tyc).reduce((a, b) => a + b, 0) || 1;
+    const cu = {}; rs.filter(o => o.cu).forEach(o => { cu[o.cu] = cu[o.cu] || { n: 0, v: 0 }; cu[o.cu].n++; cu[o.cu].v += o.v; });
+    const cos = {}; rs.forEach(o => { cos[o.s] = cos[o.s] || { o, n: 0, v: 0 }; cos[o.s].n++; cos[o.s].v += o.v || 0; });
+    $("side").innerHTML = `
+      <h2 class="ph"><span>Who gave the orders</span><small>share of ₹ value</small></h2>
+      <div class="secb">${["g", "p", "x", ""].filter(k => tyc[k]).map(k => `<a data-ty="${k}" class="${k && $("ty").value === k ? "on" : ""}"><span class="t"><span>${TYN[k]}</span><b>${Math.round(tyc[k] / tt * 100)}%</b></span><i><em style="width:${tyc[k] / tt * 100}%"></em></i></a>`).join("")}</div>
+      <h2 class="ph"><span>By sector</span><small>${st.sec ? "tap again to clear" : ""}</small></h2>
+      <div class="secb">${ss.map(([k, v]) => `<a data-s="${esc(k)}" class="${st.sec === k ? "on" : ""}"><span class="t"><span>${esc(k)} <small class="muted">${v.n}</small></span><b>${crs(v.v)}</b></span><i><em style="width:${v.v / mx * 100}%"></em></i></a>`).join("") || '<div class="empty">–</div>'}</div>
+      <h2 class="ph"><span>Top customers</span><a data-go="cust">See all ›</a></h2>
+      <div class="rowlist">${Object.entries(cu).sort((a, b) => b[1].v - a[1].v).slice(0, 6).map(([k, v]) => `<div class="r0"><span class="co"><span class="t"><b>${esc(k)}</b><small>${v.n} order${v.n > 1 ? "s" : ""}</small></span></span><span class="rt"><b>${crs(v.v)}</b></span></div>`).join("") || '<div class="empty">–</div>'}</div>
+      <h2 class="ph"><span>Most orders</span><a data-go="cos">See all ›</a></h2>
+      <div class="rowlist">${Object.values(cos).sort((a, b) => b.n - a.n || b.v - a.v).slice(0, 6).map(x => `<a href="${stockUrl(x.o.s)}">${co(x.o.s, x.o.n, x.o.lg, `${x.n} orders`, false)}<span class="rt"><b>${crs(x.v)}</b></span></a>`).join("")}</div>`;
+    $("side").querySelectorAll("a[data-s]").forEach(a => a.onclick = () => { st.sec = st.sec === a.dataset.s ? "" : a.dataset.s; $("secsel").value = st.sec; st.shown = 40; draw(); });
+    $("side").querySelectorAll("a[data-ty]").forEach(a => a.onclick = () => { if (!a.dataset.ty) return; $("ty").value = $("ty").value === a.dataset.ty ? "" : a.dataset.ty; st.shown = 40; draw(); });
+    $("side").querySelectorAll("a[data-go]").forEach(a => a.onclick = () => setView(a.dataset.go));
+  }
+
+  let current = [];
+  function draw() {
+    const rs = filtered();
+    stats(rs); monthChart();
+    $("look").style.display = $("sort").style.display = st.v === "list" ? "" : "none";
+    current = st.v === "cos" ? companiesView(rs) : st.v === "cust" ? customersView(rs) : st.v === "themes" ? themesView(rs) : st.v === "quiet" ? quietView(rs) : listView(rs);
+    $("cnt").textContent = `${(st.v === "quiet" ? current : rs).length} orders · ${perLbl()}${pxDay ? ` · share moves to ${fmtShort(pxDay)} close` : ""}`;
+    side(rs); saveURL();
+  }
+  function setPer() { document.querySelectorAll("#per button").forEach(x => x.classList.toggle("on", +x.dataset.p === st.p)); }
+  function setView(v) { st.v = v; st.shown = 40; document.querySelectorAll("#views button").forEach(b => b.classList.toggle("on", b.dataset.v === v)); draw(); }
+
+  // ---------- controls
+  $("views").onclick = e => { const b = e.target.closest("button"); if (b) setView(b.dataset.v); };
+  $("per").onclick = e => { const b = e.target.closest("button"); if (!b) return; st.p = +b.dataset.p; st.mo = ""; st.shown = 40; setPer(); draw(); };
+  $("look").onclick = e => { const b = e.target.closest("button"); if (!b) return; st.look = b.dataset.k; document.querySelectorAll("#look button").forEach(x => x.classList.toggle("on", x === b)); draw(); };
+  $("secsel").onchange = () => { st.sec = $("secsel").value; st.shown = 40; draw(); };
+  $("thsel").onchange = () => { st.th = $("thsel").value; st.shown = 40; draw(); };
+  FIELDS.forEach(([id]) => $(id).addEventListener("input", () => { st.shown = 40; draw(); }));
+  $("howlink").onclick = () => $("howp").scrollIntoView({ behavior: "smooth" });
+  $("share").onclick = async () => { try { await navigator.clipboard.writeText(location.href); $("share").textContent = "Link copied"; } catch (e) { prompt("Copy this link:", location.href); } setTimeout(() => $("share").textContent = "Copy link", 1800); };
+  $("csv").onclick = () => {
+    const rs = st.v === "quiet" ? current : filtered();
+    const q = v => v == null ? "" : /[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v);
+    const head = ["Date", "Symbol", "Company", "Customer", "Customer type", "Work", "Value (Rs Cr)", "% of yearly revenue", "% of market cap", "Sector", "Theme", "Delivery", "Next-day move %", "Move since %", "vs Nifty 500 (pts)", "Letter"];
+    const lines = [head.join(",")].concat(rs.map(o => [o.d, o.s, o.n, o.cl, TYN[o.ty], o.w, o.v, o.pr, o.pm, o.sec, o.th, o.tl, o.d1, o.sn, o.vs, o.src].map(q).join(",")));
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob(["﻿" + lines.join("\n")], { type: "text/csv" }));
+    a.download = `market-mint-orders-${ist(Date.now())}.csv`; a.click();
+  };
+
+  let rz; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(monthChart, 200); });
+  setPer();
+  document.querySelectorAll("#look button").forEach(x => x.classList.toggle("on", x.dataset.k === st.look));
+  document.querySelectorAll("#views button").forEach(b => b.classList.toggle("on", b.dataset.v === st.v));
   draw();
+  if (MM.updated && pxDay) MM.updated(pxDay);
 })();
 </script>
 </body>
