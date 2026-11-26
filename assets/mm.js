@@ -340,7 +340,7 @@
 
   window.MM = { share, shareBtn, toast, ROOT, DATA, TG, esc, inr, crs, pct, cls, capOf, stockUrl, fmtDate, fmtShort, index, getJSON, attachSearch, lineChart, spark,
                 TABS, svg, I, logo, co, STAGE, stagePill, stageOf, updated, earnViews,
-                live, applyLive, onLive, liveOpen, liveShown };
+                live, applyLive, onLive, liveOpen, liveShown, _liveNow: () => liveD };
   header();
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", footer); else footer();
 })();
