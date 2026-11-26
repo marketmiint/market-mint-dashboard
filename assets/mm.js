@@ -261,7 +261,26 @@
     return { stage: st, pivot, vs_pivot: vs };
   }
 
-  window.MM = { ROOT, DATA, TG, esc, inr, crs, pct, cls, capOf, stockUrl, fmtDate, fmtShort, index, getJSON, attachSearch, lineChart, spark,
+  // Share button: phone share sheet (WhatsApp, Telegram, ...) or copy the link on a computer.
+  // <button class="shr" data-share-url="..." data-share-text="...">  - one click handler for every page
+  function toast(msg) {
+    let t = document.querySelector(".mmtoast");
+    if (!t) { t = document.createElement("div"); t.className = "mmtoast"; document.body.appendChild(t); }
+    t.textContent = msg; t.classList.add("on"); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("on"), 2200);
+  }
+  async function share(url, text) {
+    if (navigator.share) { try { await navigator.share({ title: "Market Mint", text, url }); } catch (e) {} return; }
+    try { await navigator.clipboard.writeText((text ? text + "\n" : "") + url); toast("Link copied, paste it anywhere to share"); }
+    catch (e) { window.open("https://t.me/share/url?url=" + encodeURIComponent(url) + "&text=" + encodeURIComponent(text || ""), "_blank", "noopener"); }
+  }
+  const SHARE_ICON = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg>';
+  const shareBtn = (url, text, label = "") => `<button class="shr" type="button" data-share-url="${esc(url)}" data-share-text="${esc(text || "")}" title="Share" aria-label="Share">${SHARE_ICON}${label ? `<span>${esc(label)}</span>` : ""}</button>`;
+  document.addEventListener("click", e => {
+    const b = e.target.closest("[data-share-url]"); if (!b) return;
+    e.preventDefault(); e.stopPropagation(); share(b.dataset.shareUrl, b.dataset.shareText);
+  });
+
+  window.MM = { share, shareBtn, toast, ROOT, DATA, TG, esc, inr, crs, pct, cls, capOf, stockUrl, fmtDate, fmtShort, index, getJSON, attachSearch, lineChart, spark,
                 TABS, svg, I, logo, co, STAGE, stagePill, stageOf, updated, earnViews };
   header();
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", footer); else footer();

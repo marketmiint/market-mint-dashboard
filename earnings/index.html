@@ -21,7 +21,6 @@ td .co{max-width:260px}
 .day{padding:10px 18px;font-size:13px;font-weight:700;color:var(--muted);background:var(--soft);border-bottom:1px solid var(--line)}
 .dist{display:flex;height:8px;border-radius:5px;overflow:hidden;margin-top:8px}
 .dist i{display:block;height:100%}
-a.card{color:var(--mint-d);font-weight:700;font-size:12.5px;text-decoration:none}
 </style>
 </head>
 <body data-root="../">
@@ -48,7 +47,7 @@ a.card{color:var(--mint-d);font-weight:700;font-size:12.5px;text-decoration:none
         <option value="d1">Results-day move</option><option value="mv">Move since results</option><option value="m">Market cap</option></select>
     </div>
     <div class="fbar" style="padding-top:10px"><span class="chips" id="rt"></span><span class="muted" id="cnt" style="margin-left:auto;font-size:13px"></span></div>
-    <div class="tscroll"><table><thead><tr><th>Company</th><th>Date</th><th>Grade</th><th>Sales ₹ Cr</th><th>Net profit ₹ Cr</th><th>OPM</th><th>Results day</th><th>Since results</th><th>Price</th></tr></thead>
+    <div class="tscroll"><table><thead><tr><th>Company</th><th>Date</th><th>Grade</th><th>Sales ₹ Cr</th><th>Net profit ₹ Cr</th><th>OPM</th><th>Results day</th><th>Since results</th><th>Price</th><th><span class="sr" style="position:absolute;left:-9999px">Share</span></th></tr></thead>
       <tbody id="tb"><tr><td colspan="9" class="empty">Loading…</td></tr></tbody></table></div>
     <button class="more" id="more" hidden>Show more</button>
     <div class="note">Grades come from the Market Mint results bot (Excellent, Great, Good, OK, Weak). Sales and profit are from the NSE filing, consolidated where filed; growth is against the same quarter last year (from Yahoo Finance for a few hours until the NSE numbers are in). Results day = share move on the first trading day after the result; since results = move from the day before the result to the latest close. "–" grade = not graded yet. <span data-upd></span></div>
@@ -118,6 +117,7 @@ a.card{color:var(--mint-d);font-weight:700;font-size:12.5px;text-decoration:none
       <div class="s"><small>Rose on results day</small><b>${mv.length ? Math.round(mv.filter(v => v > 0).length / mv.length * 100) + "%" : "–"}</b><span>of ${mv.length.toLocaleString("en-IN")} results</span></div>`;
   }
 
+  const shareText = r => `${r.n || r.s} results${r.rt ? ": " + r.rt : ""}` + (r.sy != null ? ` · Sales ${pct(r.sy)} YoY` : "") + (r.py != null ? ` · Profit ${pct(r.py)} YoY` : "") + " | Market Mint";
   function draw() {
     const sea = er.seasons[+seasonSel.value] || { rows: [] };
     stats(sea);
@@ -134,11 +134,12 @@ a.card{color:var(--mint-d);font-weight:700;font-size:12.5px;text-decoration:none
     const n1 = v => v == null ? "–" : Math.abs(v) >= 1000 ? Math.round(v).toLocaleString("en-IN") : Number(v).toFixed(1);
     document.getElementById("tb").innerHTML = rs.slice(0, st.shown).map(r => `<tr>
       <td>${co(r.s, r.n, r.lg, `${esc(r.s)} · ${crs(r.m)}`)}</td><td>${fmtShort(r.d)}</td>
-      <td>${r.rt ? `<span class="pill rt-${esc(r.rt)}">${esc(r.rt)}</span>` : "–"}${r.url ? `<br><a class="card" href="${esc(r.url)}" target="_blank" rel="noopener">Card ↗</a>` : ""}</td>
+      <td>${r.rt ? `<span class="pill rt-${esc(r.rt)}">${esc(r.rt)}</span>` : "–"}</td>
       <td>${n1(r.sales)}<span class="yo ${cls(r.sy)}">${r.sy == null ? "" : pct(r.sy) + " YoY"}</span></td>
       <td>${n1(r.pat)}<span class="yo ${cls(r.py)}">${r.py == null ? "" : pct(r.py) + " YoY"}</span></td>
       <td>${r.opm == null ? "–" : r.opm.toFixed(1) + "%"}</td>
-      <td class="${cls(r.d1)}">${pct(r.d1)}</td><td class="${cls(r.mv)}">${pct(r.mv)}</td><td>${inr(r.p)}<span class="yo ${cls(r.c)}">${pct(r.c, 2)} today</span></td></tr>`).join("") || '<tr><td colspan="9" class="empty">No results match.</td></tr>';
+      <td class="${cls(r.d1)}">${pct(r.d1)}</td><td class="${cls(r.mv)}">${pct(r.mv)}</td><td>${inr(r.p)}<span class="yo ${cls(r.c)}">${pct(r.c, 2)} today</span></td>
+      <td>${MM.shareBtn(r.url || new URL(stockUrl(r.s), location.href).href, shareText(r))}</td></tr>`).join("") || '<tr><td colspan="10" class="empty">No results match.</td></tr>';
     const more = document.getElementById("more");
     more.hidden = rs.length <= st.shown;
     more.textContent = `Show more (${(rs.length - st.shown).toLocaleString("en-IN")} left)`;
