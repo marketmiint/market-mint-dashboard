@@ -76,6 +76,7 @@ section{scroll-margin-top:170px}
 </head>
 <body data-root="../">
 <script src="../assets/mm.js"></script>
+<script src="../assets/mmchart.js"></script>
 <main class="wrap" id="app"><div class="skel">Loading…</div></main>
 
 <script>
@@ -131,7 +132,7 @@ section{scroll-margin-top:170px}
             <span>${esc(c.yind || c.ind || "")}</span>${c.next ? `<span class="tag" style="color:var(--teal)">Results ${fmtDate(c.next)}</span>` : ""}</div>
           <div class="acts">
             <button class="btn" id="star" type="button" aria-pressed="false">☆ Watchlist</button>
-            <a class="btn" href="https://www.tradingview.com/chart/?symbol=NSE:${encodeURIComponent(c.sym)}" target="_blank" rel="noopener">Chart on TradingView ↗</a>
+            <button class="btn" id="fullc" type="button">Full chart ⤢</button>
             <a class="btn" href="https://www.nseindia.com/get-quotes/equity?symbol=${encodeURIComponent(c.sym)}" target="_blank" rel="noopener">NSE page ↗</a>
           </div></div></div>
         <div class="px" id="pxb">${pxHtml(px)}</div>
@@ -139,10 +140,11 @@ section{scroll-margin-top:170px}
       <nav class="subnav"><div class="in">${secs.map(s => `<a href="#${s[0]}">${s[1]}</a>`).join("")}</div></nav>
       <section id="overview" class="grid">
         <div>
-          <div class="panel"><div class="crow"><b>Share price</b><div class="seg" id="rng">${["1M", "3M", "6M", "1Y"].map(r => `<button data-r="${r}" class="${r === "1Y" ? "on" : ""}">${r}</button>`).join("")}</div></div>
-            <div class="chart" id="chart"></div>
+          <div class="panel"><div class="crow" id="pxhd" style="display:none"><b>Share price</b><div class="seg" id="rng">${["1M", "3M", "6M", "1Y"].map(r => `<button data-r="${r}" class="${r === "1Y" ? "on" : ""}">${r}</button>`).join("")}</div></div>
+            <div id="mmchart"></div>
+            <div class="chart" id="chart" hidden></div>
             <div class="rets">${Object.entries(px.r || {}).map(([a, v]) => `<span>${a}<b class="${cls(v)}">${pct(v)}</b></span>`).join("")}
-              <span class="muted" style="background:none"><b style="color:var(--amber);margin:0">●</b> order win &nbsp;<b style="color:var(--teal);margin:0">◆</b> result</span></div></div>
+              <span class="muted" style="background:none" id="mklg"><b style="color:#1f6fd1;margin:0">●</b> order win &nbsp;<b style="color:#c98a0c;margin:0">●</b> result</span></div></div>
           <div class="panel"><h2>Key numbers <small>trailing 12 months</small></h2>
             <div class="keys">
               ${[["Market cap", crs(c.mcap)], ["P/E", peT(k.pe)], ["P/B", x(k.pb)], ["EV/EBITDA", x(k.ev_ebitda)],
@@ -187,8 +189,22 @@ section{scroll-margin-top:170px}
       document.getElementById("chart").innerHTML = lineChart(pts, { marks, labels: lab }) || '<div class="empty">No price history yet.</div>';
       document.querySelectorAll("#rng button").forEach(b => b.classList.toggle("on", b.dataset.r === r));
     };
-    draw("1Y");
     document.getElementById("rng").addEventListener("click", e => { if (e.target.dataset.r) draw(e.target.dataset.r); });
+    // our own full chart (assets/mmchart.js): candles, volume, 50/200-day, order + result markers, breakout level.
+    // Stocks without a chart file (very new or illiquid) keep the simple 1-year line above.
+    const bo = c.bo || {}, cmarks = [], clines = [];
+    (c.orders || []).forEach(o => o.date && cmarks.push({ date: String(o.date).slice(0, 10), kind: "order", text: "Order" + (o.value_cr ? " " + crs(o.value_cr) : "") }));
+    (c.results || []).forEach(o => o.filed && cmarks.push({ date: String(o.filed).slice(0, 10), kind: "result", text: "Result" + (o.rating ? " · " + o.rating : "") }));
+    if (bo.pivot && bo.stage && bo.stage !== "played")
+      clines.push({ price: bo.pivot, kind: "pivot", title: bo.stage === "forming" ? "Pivot" : "Breakout level" });
+    const copt = { sym: c.sym, name: c.name, ex: "NSE", lines: clines, marks: cmarks, range: "1Y" };
+    const fallback = () => { const m = document.getElementById("mmchart"); if (m) m.remove();
+      document.getElementById("pxhd").style.display = ""; document.getElementById("chart").hidden = false; draw("1Y");
+      const f = document.getElementById("fullc"); if (f) f.hidden = true; };
+    if (window.MMChart) {
+      MMChart.mount(document.getElementById("mmchart"), copt).then(ok => { if (!ok) fallback(); }).catch(fallback);
+      document.getElementById("fullc").onclick = () => MMChart.open(Object.assign({}, copt, { range: "1Y" }));
+    } else fallback();
 
     // show all quarters
     const more = document.getElementById("qmore");
