@@ -157,7 +157,7 @@ section{scroll-margin-top:170px}
         </div>
         <div>
           ${stagePanel(c.bo, px)}
-          ${growthPanel(h.cagr, k)}
+          ${growthPanel(h.cagr, k, h.quarters)}
           ${resultsPosted(c.results, c.next)}
         </div>
       </section>
@@ -227,12 +227,28 @@ section{scroll-margin-top:170px}
         ${b.pivot ? ` · pivot ${inr(b.pivot)} (${pct((b.vs_pivot || 0) * 100)} away)` : ""}${b.base_weeks ? ` · base ${Math.round(b.base_weeks)} weeks` : ""}</div></div></div></div>`;
   }
 
-  function growthPanel(g, k) {
-    g = g || {};
-    const rows = [["Sales, 3 yr", g.sales_3y], ["Profit, 3 yr", g.pat_3y], ["Sales, 5 yr", g.sales_5y], ["Profit, 5 yr", g.pat_5y]];
-    if (rows.every(r => r[1] == null)) return "";
+  function growthPanel(g, k, qs) {
+    g = g || {}; qs = qs || [];
+    // trailing-12-month total ending n years before the latest quarter (same method as the server)
+    const by = Object.fromEntries(qs.map(q => [q.q.slice(0, 7), q]));
+    const back = (qe, n) => { let y = +qe.slice(0, 4), m = +qe.slice(5, 7) - 3 * n; while (m <= 0) { m += 12; y--; } return `${y}-${String(m).padStart(2, "0")}`; };
+    const ttm = (qe, key) => { let s = 0; for (let i = 0; i < 4; i++) { const x = by[back(qe, i)]; if (!x || x[key] == null) return null; s += x[key]; } return s; };
+    const end = qs.length ? qs[qs.length - 1].q : null;
+    // compounded growth has no meaning across a loss, so say what happened instead of a dash
+    const why = (key, n) => {
+      if (!end) return null;
+      const now = ttm(end, key), then = ttm(back(end, 4 * n) + "-01", key);
+      if (now == null || then == null) return null;
+      if (now <= 0) return ["In loss", "down"];
+      if (then <= 0) return ["Turned profitable", "up"];
+      return null;
+    };
+    const cell = (v, key, n) => { if (v != null) return `<b class="${cls(v)}">${pct(v)}</b>`; const w = why(key, n);
+      return w ? `<b class="${w[1]}" title="Growth per year can't be worked out when one end is a loss">${w[0]}</b>` : `<b>–</b>`; };
+    const rows = [["Sales, 3 yr", g.sales_3y, "sales", 3], ["Profit, 3 yr", g.pat_3y, "pat", 3], ["Sales, 5 yr", g.sales_5y, "sales", 5], ["Profit, 5 yr", g.pat_5y, "pat", 5]];
+    if (rows.every(r => r[1] == null && !why(r[2], r[3]))) return "";
     return `<div class="panel"><h2>Growth <small>per year, compounded</small></h2><div class="keys">
-      ${rows.map(([a, v]) => `<div><span>${a}</span><b class="${cls(v)}">${pct(v)}</b></div>`).join("")}</div></div>`;
+      ${rows.map(([a, v, key, n]) => `<div><span>${a}</span>${cell(v, key, n)}</div>`).join("")}</div></div>`;
   }
 
   function resultsPosted(rs, next) {
