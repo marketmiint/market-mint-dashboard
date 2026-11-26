@@ -40,9 +40,14 @@ nav.tabsbar a{padding:11px 12px;text-decoration:none;font-weight:700;font-size:1
 nav.tabsbar a.on{color:var(--acc);border-color:var(--acc)}
 section.page{display:none;padding-bottom:30px}section.page.on{display:block}
 h1.t{font-size:clamp(22px,3vw,28px);letter-spacing:-.02em;margin:22px 0 4px;line-height:1.15;font-weight:800}
-.hero{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px 18px;margin-bottom:14px}
-.hero h1.t{margin:0;font-size:clamp(20px,2.6vw,24px)}
-.hero .lead{font-size:13.5px;margin:2px 0 12px}
+.hero{margin:6px 0 18px}
+.hhead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+.eyebrow{font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--acc)}
+.hero h1.t{margin:4px 0 0;font-size:clamp(22px,2.8vw,28px);letter-spacing:-.025em}
+.hero .lead{font-size:13.5px;margin:4px 0 0;color:var(--muted)}
+.mlight{display:inline-flex;align-items:center;gap:8px;padding:6px 12px 6px 10px;border:1px solid var(--line);border-radius:999px;font-size:13px;font-weight:600;text-decoration:none;background:var(--card);white-space:nowrap}
+.mlight:hover{border-color:var(--faint)}.mlight .lamp{width:8px;height:8px;box-shadow:0 0 0 3px color-mix(in srgb,currentColor 20%,transparent)}
+.mlight .mut{font-weight:500}.mlight i{font-style:normal;color:var(--faint)}
 .lead{color:var(--muted);margin:0 0 14px;max-width:680px;font-size:14px}
 .box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:14px}
 .box h3{margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
@@ -69,18 +74,27 @@ h1.t{font-size:clamp(22px,3vw,28px);letter-spacing:-.02em;margin:22px 0 4px;line
 .fgrid input[type=range]{accent-color:var(--acc);width:100%}
 .dhead{display:flex;justify-content:space-between;align-items:center;margin:14px 0 8px;font-weight:800;font-size:14px}
 .link{border:0;background:none;font-weight:700;cursor:pointer;text-decoration:underline;padding:0}
-.stages{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-@media (max-width:720px){.stages{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.stage{position:relative;border:1px solid var(--line);cursor:pointer;text-align:left;border-radius:12px;padding:10px 12px;background:var(--card);transition:border-color .15s}
-.stage:hover{border-color:var(--acc)}
-.stage:after{content:"›";position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:18px;color:var(--faint)}
-.stage b{display:block;font-size:22px;line-height:1.1;font-weight:800;letter-spacing:-.02em}
-.stage .nm{display:block;font-weight:700;font-size:13.5px;margin-top:2px}.stage small{display:block;color:var(--muted);font-size:11.5px;line-height:1.3}
-.stage.on{background:var(--acc-soft);border-color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc)}.stage.on:after,.stage.on b{color:var(--acc)}
-.feed .fi{display:flex;gap:10px;align-items:center;padding:7px 0;font-size:14px;border-top:1px solid var(--line)}
-.feed .fi:first-of-type{border-top:0}
-.tagx{font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
-.fi .t{flex:1;min-width:0}.fi .p{white-space:nowrap}
+.stages{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card)}
+@media (max-width:720px){.stages{grid-template-columns:repeat(2,minmax(0,1fr))}.stage:nth-child(2){border-right:0}.stage:nth-child(-n+2){border-bottom:1px solid var(--line)}}
+.stage{position:relative;border:0;border-right:1px solid var(--line);cursor:pointer;text-align:left;padding:14px 16px 13px;background:none;transition:background .15s}
+.stage:last-child{border-right:0}
+.stage:hover{background:var(--soft)}
+.stage:before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:transparent}
+.stage .nm{display:block;font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.stage b{display:block;font-size:28px;line-height:1.1;font-weight:700;letter-spacing:-.03em;margin-top:6px}
+.stage small{display:block;color:var(--faint);font-size:12px;line-height:1.3;margin-top:2px}
+.stage.on{background:var(--acc-soft)}.stage.on:before{background:var(--acc)}.stage.on .nm,.stage.on b{color:var(--acc)}
+.feed{padding:4px 16px}
+.fhead{display:flex;justify-content:space-between;align-items:baseline;padding:10px 0 6px}
+.fhead h3{margin:0}.fhead .link{font-size:13px;text-decoration:none;color:var(--acc)}
+.feed .fi{display:flex;gap:12px;align-items:center;padding:10px 0;font-size:14px;border-top:1px solid var(--line)}
+.feed .fhead+.fi{border-top:0}
+.tagx{display:inline-flex;align-items:center;gap:6px;width:78px;flex:0 0 auto;font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap}
+.tagx:before{content:"";width:6px;height:6px;border-radius:50%;background:var(--faint)}
+.tagx.up:before{background:var(--up)}.tagx.dn:before{background:var(--down)}.tagx.fm:before{background:var(--ink)}
+.fi .t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fi .t a{text-decoration:none;font-weight:600}.fi .t .mut{margin-left:6px}
+.fi .p{white-space:nowrap;font-size:13.5px}.fi .p span{display:inline-block;min-width:54px;text-align:right}
+@media (max-width:560px){.tagx{width:auto}.tagx span{display:none}.fi .t .mut{display:block;margin:0;font-size:12.5px}}
 .lh{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin:20px 0 12px}
 .lh h2{margin:0;font-size:18px;letter-spacing:-.01em}.lh h2 span{color:var(--muted);font-weight:600}
 .tools{display:flex;gap:8px;flex-wrap:wrap}
@@ -183,10 +197,11 @@ header:not(.mmh) .bar>.brand{display:none}
     </div>
   </div>
   <div class="hero">
-    <h1 class="t">Spot the market's next leaders.</h1>
-    <p class="lead" id="lead">Loading…</p>
+    <div class="hhead"><div><div class="eyebrow" id="eyebrow">Breakout Desk</div>
+      <h1 class="t">Spot the market's next leaders.</h1>
+      <p class="lead" id="lead">Loading…</p></div>
+      <a class="mlight" id="lightbox" href="../market/"></a></div>
     <div class="stages" id="stages"></div>
-    <div class="light slim" id="lightbox"></div>
   </div>
   <div class="box feed" id="feed"></div>
   <div class="lh"><h2 id="lt"></h2>
@@ -433,9 +448,10 @@ function table(rows) {
 
 /* ---------- screens page ---------- */
 function lightLine(l) {
-  const b = (D.backtest || {})[S.screen] || {}, lt = b.light || {};
-  const days = D.market.light_days;
-  return `${lamp(l)}<div><b>Market ${LIGHT[l][0].toLowerCase()}</b>${days ? ` <span class="mut">· ${days}d</span>` : ""}${lt[l] ? ` <span class="mut">· ${SCREENS[S.screen].t} breakouts avg <b class="${cls(lt[l].avg)}">${pct(lt[l].avg)}</b> in ${l} vs <b class="up">${pct((lt.green || {}).avg)}</b> in green</span>` : ""}</div><a href="../market/">Details ›</a>`;
+  const b = (D.backtest || {})[S.screen] || {}, lt = b.light || {}, days = D.market.light_days;
+  const tip = LIGHT[l][1] + (lt[l] ? ` ${SCREENS[S.screen].t} breakouts average ${pct(lt[l].avg)} in ${l} vs ${pct((lt.green || {}).avg)} in green.` : "");
+  $("lightbox").title = tip;
+  return `<span class="lamp l-${l}"></span>Market ${LIGHT[l][0].toLowerCase()}${days ? ` <span class="mut">· ${days}d</span>` : ""} <i>›</i>`;
 }
 function pager(total) {
   const pages = Math.max(1, Math.ceil(total / S.per));
@@ -450,7 +466,8 @@ function renderScreens() {
   $("lightbox").innerHTML = lightLine(D.market.light);
   $("tabs").innerHTML = Object.entries(SCREENS).map(([k, v]) => `<button class="tab ${k === S.screen ? "on" : ""}" data-s="${k}">${v.t}</button>`).join("")
     + `<button class="fbtn" id="fbtn">Filters${nFilters() ? `<b>${nFilters()}</b>` : ""}</button>`;
-  $("stages").innerHTML = Object.entries(STAGES).map(([k, [t, s]]) => `<button class="stage ${k === S.stage ? "on" : ""}" data-s="${k}"><b class="n">${vis.filter(r => r.stage === k).length}</b><span class="nm">${t}</span><small>${s}</small></button>`).join("");
+  $("stages").innerHTML = Object.entries(STAGES).map(([k, [t, s]]) => `<button class="stage ${k === S.stage ? "on" : ""}" data-s="${k}"><span class="nm">${t}</span><b class="n">${vis.filter(r => r.stage === k).length}</b><small>${s}</small></button>`).join("");
+  $("eyebrow").textContent = `${SCREENS[S.screen].t} screen · ${fmtD(D.date)}`;
   const key = SORTS[S.sort][1], rows = vis.filter(r => r.stage === S.stage).sort((a, b) => key(a) - key(b) || a.sym.localeCompare(b.sym));
   $("lt").innerHTML = `${STAGES[S.stage][0]} <span>· ${rows.length}</span>`;
   const pg = pager(rows.length); $("pg1").innerHTML = pg; $("pg2").innerHTML = pg;
@@ -463,15 +480,17 @@ function renderScreens() {
 }
 function feed(vis) {
   const d = D.date, items = [];
+  const nm = r => `<a href="#" data-open="${esc(r.sym)}">${esc(r.name)}</a>`;
   for (const r of vis) {
-    if (r.stage === "fresh" && r.entry_date === d) items.push([0, "up", "Breakout", `<b>${esc(r.name)}</b> cleared ${inr(r.pivot)} on ${r.relvol ? r.relvol.toFixed(1) + "×" : "–"} volume`, r]);
-    if (r.stage === "played" && r.exit_date === d) items.push([1, "mut", "Exit", `<b>${esc(r.name)}</b> ${esc(r.why).toLowerCase()}, ${pct(r.result)}`, r]);
-    if (r.stage === "forming" && r.new) items.push([2, "", "Forming", `<b>${esc(r.name)}</b> ${pct(r.vs_pivot)} under ${inr(r.pivot)}`, r]);
+    if (r.stage === "fresh" && r.entry_date === d) items.push([0, "up", "Breakout", `${nm(r)}<span class="mut">cleared ${inr(r.pivot)}${r.relvol ? ` · ${r.relvol.toFixed(1)}× volume` : ""}</span>`, r]);
+    if (r.stage === "played" && r.exit_date === d) items.push([1, r.result >= 0 ? "" : "dn", "Exit", `${nm(r)}<span class="mut">${esc(r.why).replace(/,?\s*[−-]?\d+(\.\d+)?%$/, "")} · trade <span class="${cls(r.result)}">${pct(r.result)}</span></span>`, r]);
+    if (r.stage === "forming" && r.new) items.push([2, "fm", "Forming", `${nm(r)}<span class="mut">${pct(r.vs_pivot)} below ${inr(r.pivot)} pivot</span>`, r]);
   }
   items.sort((a, b) => a[0] - b[0]);
-  const show = feedAll ? items : items.slice(0, 4);
-  $("feed").innerHTML = `<h3>What changed · ${fmtD(d)}</h3>` + (show.length ? show.map(([, c, lab, t, r]) => `<div class="fi"><span class="tagx ${c}">${lab}</span><span class="t">${t}</span><span class="p n">${inr(r.close)} <span class="${cls(r.chg)}">${pct(r.chg)}</span></span></div>`).join("")
-    : `<div class="fi mut">No changes in ${SCREENS[S.screen].t} today.</div>`) + (items.length > 4 ? `<button class="link" id="more" style="margin-top:6px">${feedAll ? "Show less" : "Show all " + items.length}</button>` : "");
+  const show = feedAll ? items : items.slice(0, 3);
+  $("feed").innerHTML = `<div class="fhead"><h3>What changed · ${fmtD(d)}</h3>${items.length > 3 ? `<button class="link" id="more">${feedAll ? "Show less" : "All " + items.length + " ›"}</button>` : ""}</div>`
+    + (show.length ? show.map(([, c, lab, t, r]) => `<div class="fi"><span class="tagx ${c}"><span>${lab}</span></span><span class="t">${t}</span><span class="p n">${inr(r.close)}<span class="${cls(r.chg)}">${pct(r.chg)}</span></span></div>`).join("")
+    : `<div class="fi mut">No changes in ${SCREENS[S.screen].t} today.</div>`);
 }
 function how() {
   const sc = SCREENS[S.screen], b = (D.backtest || {})[S.screen];
@@ -642,7 +661,7 @@ Promise.all([fetch("data.json?" + Date.now()).then(r => r.json()), fetch("../dat
     for (const o of dash.orders || []) if (!ANN.ord[o.sym] || ANN.ord[o.sym].date < o.date) ANN.ord[o.sym] = o;
     for (const c of dash.calendar || []) ANN.cal[c.sym] = c;
   }
-  $("lead").textContent = `${d.liquid.toLocaleString("en-IN")} liquid NSE and BSE stocks scanned after every close. Only the few in a real setup make it here.`;
+  $("lead").textContent = `${d.liquid.toLocaleString("en-IN")} liquid NSE + BSE stocks scanned after every close.`;
   $("foot").textContent = `Data for ${fmtD(d.date)} · updated ${d.made} IST · B# = bases · ▲ = breakout · grey line = 50-day average · personal research, not advice.`;
   buildControls(); wire(); show(location.hash.slice(1) || S.page_);
   if (window.MM && MM.live) MM.live().then(L => {
