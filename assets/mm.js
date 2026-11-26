@@ -173,14 +173,7 @@
     b.querySelector("button").onclick = () => { sh.hidden = false; };
     sh.onclick = e => { if (e.target === sh) sh.hidden = true; };
     document.body.append(b, sh);
-    // Full table / Heatmap pages: show the Earnings views bar under the header
-    const rest2 = location.href.replace(/[?#].*$/, "").slice(ROOT.length);
-    if (here === "earnings/" && !rest2.startsWith("earnings/")) {
-      const v = document.createElement("div");
-      v.className = "mmviews";
-      v.innerHTML = earnViews(rest2.startsWith("heatmap/") ? "heatmap/" : "screener/");
-      h.after(v);
-    }
+    // Full table / Heatmap pages draw the Earnings views switch in their own title row (site/season_pages.py)
   }
   function earnViews(on) {
     return `<span class="seg2" aria-label="Earnings views">${EARN_VIEWS.map(([p, t]) => `<a href="${ROOT}${p}" class="${p === on ? "on" : ""}">${t}</a>`).join("")}</span>`;
