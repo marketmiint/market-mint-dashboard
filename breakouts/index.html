@@ -98,7 +98,8 @@ h1.t{font-size:clamp(22px,3vw,28px);letter-spacing:-.02em;margin:22px 0 4px;line
 .ctop{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800}
 .badge{padding:3px 10px;border-radius:999px;border:1px solid var(--line)}
 .badge{color:var(--muted)}.badge.s-fresh,.badge.s-climbing{background:var(--acc-soft);color:var(--acc);border-color:var(--acc-soft)}
-.ctop .tv{margin-left:auto;color:var(--acc);text-decoration:none}
+.ctop .tv{margin-left:auto;color:var(--acc);text-decoration:none;border:0;background:none;font:inherit;font-weight:700;cursor:pointer;padding:0}
+.card .chart{cursor:zoom-in}
 .cname{display:flex;align-items:flex-start;gap:10px;margin-top:8px}
 .cname .nm{flex:1;min-width:0;font-weight:700;font-size:16.5px;letter-spacing:-.01em;line-height:1.25}
 .cname .sub{display:block;font-size:12.5px;color:var(--muted);font-weight:600;margin-top:2px}
@@ -153,6 +154,7 @@ footer{color:var(--muted);font-size:12px;padding:6px 0 30px}
 header:not(.mmh) .bar>.brand{display:none}
 </style></head><body>
 <script src="../assets/mm.js"></script>
+<script src="../assets/mmchart.js"></script>
 <div class="bgfx" aria-hidden="true"></div>
 <header><div class="wrap bar"><a class="brand" href="#screens"><img src="../logo.png" alt="">MARKET MINT</a>
   <div class="srch"><input id="search" type="search" placeholder="Search any stock" autocomplete="off" aria-label="Search any NSE stock"><div class="sug" id="sug"></div></div>
@@ -255,7 +257,6 @@ const fmtD = s => s ? dD(s).toLocaleDateString("en-IN", {day: "numeric", month: 
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
 const save = () => store.set("bo2", {...S, page: 1});
 const daysTo = s => Math.round((dD(s) - dD(D.date)) / 864e5);
-const tvUrl = (s, ex) => "https://www.tradingview.com/chart/?symbol=" + (ex || "NSE") + ":" + encodeURIComponent(s);
 const lamp = l => `<span class="lamp l-${l}"></span>`;
 
 /* ---------- data ---------- */
@@ -412,7 +413,7 @@ function card(r) {
   for (const a of annOf(r.sym)) chips.push(`<span class="chip news">${a.url ? `<a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.t)}</a>` : esc(a.t)} · ${fmtD(a.d)}</span>`);
   const st = {forming: "Forming", fresh: "Fresh breakout", climbing: "Climbing", played: "Played out"}[r.stage];
   return `<article class="card">
-    <div class="ctop"><span class="badge s-${r.stage}">${st} · B${r.bnum}</span><a class="tv" href="${tvUrl(r.sym, r.ex)}" target="_blank" rel="noopener">Open chart ↗</a></div>
+    <div class="ctop"><span class="badge s-${r.stage}">${st} · B${r.bnum}</span><button class="tv" type="button" data-chart="${esc(r.sym)}" data-scr="${esc(r.screen)}">Full chart ⤢</button></div>
     <div class="cname"><button class="star ${on ? "on" : ""}" data-star="${esc(r.sym)}" aria-label="${on ? "Remove from" : "Add to"} watchlist">${on ? "★" : "☆"}</button>
       <div class="nm"><a href="#" data-open="${esc(r.sym)}" style="text-decoration:none">${esc(r.name)}</a><span class="sub">${esc(r.sym)}${r.ex === "BSE" ? " · BSE" : ""} · ${esc(r.ind)}${r.idx ? " · " + esc(r.idx) : ""}</span></div>
       <div class="px"><b class="n">${inr(r.close)}</b><span class="${cls(r.chg)}">${pct(r.chg, 2)}</span></div></div>
@@ -526,6 +527,21 @@ function livePx(o) {
   return o;
 }
 function applyLiveAll() { if (!LIVE) return; D.rows.forEach(livePx); for (const [k, o] of Object.entries(PROF)) { o.sym = o.sym || k; livePx(o); } }
+/* ---------- full chart (our own, assets/mmchart.js) ---------- */
+function openChart(sym, scr) {
+  const r = D.rows.find(x => x.sym === sym && (!scr || x.screen === scr)) || D.rows.find(x => x.sym === sym) || PROF[sym] || {sym};
+  const k = chartOf(sym) || {}, lines = [], marks = [];
+  if (r.stage === "forming") lines.push({price: r.pivot, title: "Pivot", kind: "pivot"});
+  else if (r.stage === "fresh" || r.stage === "climbing") { lines.push({price: r.entry, title: "Breakout", kind: "entry"}); lines.push({price: r.stop, title: "8% below", kind: "stop"}); }
+  else if (!r.stage && r.pivot) lines.push({price: r.pivot, title: "6-mo high", kind: "pivot"});
+  const dt = i => k.dates && i != null ? k.dates[Math.min(i, k.dates.length - 1)] : null;
+  const bases = (k.bases || []).map(b => ({n: b.n, from: dt(b.s), to: dt(b.e), pivot: b.pivot, low: b.low, on: b.n === r.bnum})).filter(b => b.from && b.to);
+  for (const b of k.bases || []) if (b.entry != null && dt(b.entry)) marks.push({date: dt(b.entry), text: "B" + b.n, kind: "up"});
+  const o = ANN.ord[sym], rs = ANN.res[sym];
+  if (o && o.date) marks.push({date: String(o.date).slice(0, 10), text: "Order", kind: "order"});
+  if (rs && rs.filed) marks.push({date: String(rs.filed).slice(0, 10), text: "Results", kind: "result"});
+  MMChart.open({sym, name: r.name || (PROF[sym] || {}).name, ex: r.ex, lines, bases, marks, range: "6M"});
+}
 async function openStock(sym) {
   $("sug").classList.remove("open"); $("search").value = "";
   let p = PROF[sym];
@@ -537,9 +553,9 @@ async function openStock(sym) {
   if (rows.length) html = rows.map(card).join("");
   else if (p) {
     const r = {...p, stage: "none", bnum: -1};
-    html = `<article class="card"><div class="ctop"><span class="badge">Not on a screen today</span><a class="tv" href="${tvUrl(sym, p.ex)}" target="_blank" rel="noopener">Open chart ↗</a></div>
+    html = `<article class="card"><div class="ctop"><span class="badge">Not on a screen today</span><button class="tv" type="button" data-chart="${esc(sym)}">Full chart ⤢</button></div>
       <div class="cname"><button class="star ${WATCH.has(sym) ? "on" : ""}" data-star="${esc(sym)}" aria-label="Watchlist">${WATCH.has(sym) ? "★" : "☆"}</button><div class="nm">${esc(p.name)}<span class="sub">${esc(sym)} · ${esc(p.ind)}${p.idx ? " · " + esc(p.idx) : ""}</span></div>
-      <div class="px"><b class="n">${inr(p.close)}</b><span class="${cls(p.chg)}">${pct(p.chg, 2)}</span></div></div><div class="chart">${svgChart(r)}</div>
+      <div class="px"><b class="n">${inr(p.close)}</b><span class="${cls(p.chg)}">${pct(p.chg, 2)}</span></div></div><div class="chart" data-chart="${esc(r.sym)}" data-scr="${esc(r.screen || "")}" title="Open full chart">${svgChart(r)}</div>
       <div class="keys"><div class="key"><span>RS</span><b class="n">${p.rs ?? "–"}</b></div><div class="key"><span>vs 6-mo high</span><b class="n">${pct(p.vs_pivot)}</b></div><div class="key"><span>52w high</span><b class="n">${pct(p.from_high)}</b></div></div>
       <div class="keys"><div class="key"><span>1 month</span><b class="n ${cls(p.r1m)}">${pct(p.r1m)}</b></div><div class="key"><span>3 months</span><b class="n ${cls(p.r3m)}">${pct(p.r3m)}</b></div><div class="key"><span>1 year</span><b class="n ${cls(p.r1y)}">${pct(p.r1y)}</b></div></div>
       <div class="plan">Why not on a screen: ${whyNot(p)}</div></article>`;
@@ -607,6 +623,7 @@ function wire() {
     const st = e.target.closest("[data-star]");
     if (st) { const s = st.dataset.star; WATCH.has(s) ? WATCH.delete(s) : WATCH.add(s); store.set("bo_watch", [...WATCH]); watchOpts();
       st.classList.toggle("on", WATCH.has(s)); st.textContent = WATCH.has(s) ? "★" : "☆"; if (S.page_ === "screens") render(); return; }
+    const fc = e.target.closest("[data-chart]"); if (fc) { e.preventDefault(); openChart(fc.dataset.chart, fc.dataset.scr); return; }
     const op = e.target.closest("[data-open]"); if (op) { e.preventDefault(); openStock(op.dataset.open); return; }
     const pg = e.target.closest("[data-pg]"); if (pg && !pg.disabled) { S.page = +pg.dataset.pg; render(); $("lt").scrollIntoView({behavior: "smooth"}); return; }
     if (e.target.id === "more") { feedAll = !feedAll; feed(visible()); }
