@@ -515,10 +515,23 @@ async function suggest() {
   $("sug").innerHTML = hit.length ? hit.map(([s, n, i]) => `<button data-open="${esc(s)}"><span><b>${esc(s)}</b> <small>${esc(n)}</small></span><small>${esc(i)}</small></button>`).join("") : `<button disabled><small>Not in today's liquid stocks</small></button>`;
   $("sug").classList.add("open");
 }
+/* ---------- live prices (mm.js, every 2 min in market hours) ----------
+   Only the price, day % and gain follow the live price. Stages, pivots, charts and the light stay end-of-day. */
+let LIVE = null;
+function livePx(o) {
+  if (!LIVE || !o || o.ex === "BSE" || !(LIVE.t.slice(0, 10) > D.date)) return o;
+  const q = LIVE.s[o.sym]; if (!q) return o;
+  o.close = q[0]; o.chg = q[1] / 100;
+  if (o.entry && o.stage !== "forming" && o.gain != null) o.gain = o.close / o.entry - 1;
+  return o;
+}
+function applyLiveAll() { if (!LIVE) return; D.rows.forEach(livePx); for (const [k, o] of Object.entries(PROF)) { o.sym = o.sym || k; livePx(o); } }
 async function openStock(sym) {
   $("sug").classList.remove("open"); $("search").value = "";
   let p = PROF[sym];
   if (!p && !D.charts[sym]) { try { Object.assign(PROF, await (await fetch(ALL + "p_" + sym[0] + ".json?" + D.date)).json()); } catch (e) {} p = PROF[sym]; }
+  if (p && !p.sym) p.sym = sym;
+  livePx(p);
   const rows = D.rows.filter(r => r.sym === sym);
   let html;
   if (rows.length) html = rows.map(card).join("");
@@ -615,6 +628,12 @@ Promise.all([fetch("data.json?" + Date.now()).then(r => r.json()), fetch("../dat
   $("lead").textContent = `${d.liquid.toLocaleString("en-IN")} liquid NSE and BSE stocks scanned after every close. Only the few in a real setup make it here.`;
   $("foot").textContent = `Data for ${fmtD(d.date)} · updated ${d.made} IST · B# = bases · ▲ = breakout · grey line = 50-day average · personal research, not advice.`;
   buildControls(); wire(); show(location.hash.slice(1) || S.page_);
+  if (window.MM && MM.live) MM.live().then(L => {
+    LIVE = L; if (!L || !(L.t.slice(0, 10) > D.date)) return;
+    applyLiveAll(); MM.liveShown();        // "Live prices" tag in the header + refresh every 2 min
+    if (S.page_ === "screens") render();
+    MM.onLive(L2 => { LIVE = L2; applyLiveAll(); if (S.page_ === "screens") render(); });
+  });
 }).catch(e => { $("lead").textContent = "Could not load today's data."; console.error(e); });
 </script>
 </body></html>
