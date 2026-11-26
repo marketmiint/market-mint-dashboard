@@ -215,11 +215,15 @@
   // ---- watchlist (★ on stock pages and the Breakout Desk)
   let wl = [];
   try { wl = JSON.parse(localStorage.getItem("bo_watch") || "[]").filter(s => by[s]); } catch (e) {}
-  if (wl.length) {
+  function drawWl() {
+    if (!wl.length) return;
     document.getElementById("wlp").hidden = false;
     document.getElementById("wl").innerHTML = wl.slice(0, 12).map(s => by[s]).map(r => `<a href="${stockUrl(r.s)}">${co(r.s, r.n, r.lg, esc(r.s), false)}
       <span class="rt"><b>${inr(r.p)}</b>${chg(r.c)}</span></a>`).join("");
   }
+  drawWl();
+  // live prices (every 2 min in market hours): movers, indices and watchlist redraw with the new numbers
+  MM.onLive(() => { drawMovers(); drawIdx((document.querySelector("#ig button.on") || {}).dataset?.g || "Broad"); drawWl(); });
   MM.updated && MM.updated(d.made);
 })();
 </script>

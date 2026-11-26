@@ -100,8 +100,7 @@ section{scroll-margin-top:170px}
 
   if (!sym) return notFound();
 
-  fetch(DATA + "scan/co/" + encodeURIComponent(sym) + ".json", { cache: "no-cache" })
-    .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  MM.getJSON("co/" + encodeURIComponent(sym) + ".json")        // mm.js puts the live price in during market hours
     .then(render)
     .catch(() => notFound(`We don't have <b>${esc(sym)}</b>. It may be a new listing, an SME stock or a BSE-only company. Try another search:`));
 
@@ -113,7 +112,12 @@ section{scroll-margin-top:170px}
     b.onclick = () => { const a = get(), i = a.indexOf(sym); if (i >= 0) a.splice(i, 1); else a.push(sym); try { localStorage.setItem(key, JSON.stringify(a)); } catch (e) {} show(); };
     show();
   }
+  // price box: live price in market hours (mm.js live prices), else the last close
+  const pxHtml = px => `<div class="p">${inr(px.last)}</div>
+          <div class="c ${cls(px.chg)}">${pct(px.chg, 2)} <span class="muted" style="font-weight:500">${px.live ? "today" : "on the day"}</span></div>
+          <small>${px.live ? `<span style="color:var(--up);font-weight:700">● Live</span> · ${px.live}` : "Close of " + fmtDate(px.d)}</small>`;
   function render(c) {
+    MM.onLive(() => { const e = document.getElementById("pxb"); if (e && c.px) e.innerHTML = pxHtml(c.px); });
     setTimeout(() => starBtn(c.sym), 0);
     if (MM.updated && c.px && c.px.d) MM.updated(c.px.d);
     document.title = `${c.name} (${c.sym}) share price, results & analysis | Market Mint`;
@@ -130,9 +134,7 @@ section{scroll-margin-top:170px}
             <a class="btn" href="https://www.tradingview.com/chart/?symbol=NSE:${encodeURIComponent(c.sym)}" target="_blank" rel="noopener">Chart on TradingView ↗</a>
             <a class="btn" href="https://www.nseindia.com/get-quotes/equity?symbol=${encodeURIComponent(c.sym)}" target="_blank" rel="noopener">NSE page ↗</a>
           </div></div></div>
-        <div class="px"><div class="p">${inr(px.last)}</div>
-          <div class="c ${cls(px.chg)}">${pct(px.chg, 2)} <span class="muted" style="font-weight:500">on the day</span></div>
-          <small>Close of ${fmtDate(px.d)}</small></div>
+        <div class="px" id="pxb">${pxHtml(px)}</div>
       </div>
       <nav class="subnav"><div class="in">${secs.map(s => `<a href="#${s[0]}">${s[1]}</a>`).join("")}</div></nav>
       <section id="overview" class="grid">

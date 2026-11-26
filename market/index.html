@@ -347,6 +347,7 @@ td input[type=checkbox]{width:16px;height:16px;accent-color:var(--mint-d)}
   if (first) state.g = first.group;
   await drawGrid();
   if (first) open(first);
+  MM.onLive(() => drawGrid());          // live index levels every 2 min in market hours
 })();
 </script>
 </body>

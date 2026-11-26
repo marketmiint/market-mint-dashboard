@@ -172,6 +172,13 @@ td .co{max-width:260px}
   ["f", "season", "cap", "sec", "when", "mvf", "gro", "sort"].forEach(id => document.getElementById(id).addEventListener("input", () => { st.shown = 60; draw(); }));
   ["uf", "uwhen", "ucap", "usec"].forEach(id => document.getElementById(id).addEventListener("input", drawUp));
   document.getElementById("more").onclick = () => { st.shown += 100; draw(); };
+  // live prices: the Price / today column follows MM.index() (live in market hours)
+  async function livePx() {
+    const idx = await MM.index().catch(() => null); if (!idx) return;
+    for (const sea of er.seasons) for (const r of sea.rows) { const b = idx.by[r.s]; if (b && b.p != null) { r.p = b.p; r.c = b.c; } }
+  }
+  await livePx();
+  MM.onLive(async () => { await livePx(); draw(); });
   draw(); drawUp();
   view(q.get("v") === "upcoming" ? "upcoming" : "results");
 })();

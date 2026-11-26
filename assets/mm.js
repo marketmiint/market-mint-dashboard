@@ -43,8 +43,64 @@
   async function getJSON(name) {
     const r = await fetch(DATA + "scan/" + name, { cache: "no-cache" });
     if (!r.ok) throw new Error(name + " " + r.status);
-    return r.json();
+    const o = await r.json();
+    const kind = name === "indices.json" ? "indices" : name.startsWith("co/") ? "co" : null;
+    if (kind) { await live(); applyLive(kind, o); liveObjs.push([kind, o]); }
+    return o;
   }
+
+  // ---------- live prices: site/live_prices.py on the server pushes NSE's last price + day % for every stock
+  // and index every 2 minutes in market hours to the repo's one-file "live" branch. They replace the last close
+  // wherever a price is shown; stages, pivots, charts and the safety light stay end-of-day.
+  const LIVE_URL = "https://raw.githubusercontent.com/marketmiint/market-mint-dashboard/live/live.json";
+  let liveP = null, liveD = null, liveUsed = false, pollT = null;
+  const liveSubs = [], liveObjs = [];
+  const fetchLive = () => fetch(LIVE_URL + "?m=" + Math.floor(Date.now() / 60000), { cache: "no-cache" })
+    .then(r => r.ok ? r.json() : null).then(L => L && L.s && L.t ? L : null).catch(() => null);
+  function live() { if (!liveP) liveP = fetchLive().then(L => { liveD = L; return L; }); return liveP; }
+  const liveAge = L => (Date.now() - Date.parse(L.t + ":00+05:30")) / 60000;          // minutes; L.t is India time
+  const liveOpen = L => !!(L && L.open && liveAge(L) < 20);
+  // live beats a saved close only when it is from a later day (the evening files already hold today's close)
+  function applyLive(kind, o) {
+    const L = liveD; if (!L || !o) return false;
+    const day = L.t.slice(0, 10), hm = L.t.slice(11, 16), q = s => L.s[s];
+    let used = false;
+    if (kind === "index" && day > (o.day || "")) {
+      for (const r of o.list) { const x = q(r.s); if (x) { r.p = x[0]; r.c = x[1]; used = true; } }
+    } else if (kind === "indices" && day > (o.day || "")) {
+      for (const x of o.indices) { const u = String(x.name).toUpperCase(), v = L.i[u] || L.i[u + " INDEX"]; if (v) { x.official = Object.assign({}, x.official, { close: v[0], chg: v[1] }); used = true; } }
+    } else if (kind === "co" && o.px && day > (o.px.d || "") || kind === "co" && o.px && o.px.live) {
+      const x = q(o.sym); if (x) { Object.assign(o.px, { last: x[0], chg: x[1], d: day, live: liveOpen(L) ? hm : null }); used = true; }
+      for (const r of o.peers || []) { const y = q(r.s); if (y) { r.p = y[0]; r.c = y[1]; } }
+    }
+    if (used) { liveUsed = true; badge(); startPoll(); }
+    return used;
+  }
+  // small "Live 10:32" / "Close 26 Nov" tag in the header, only on pages that show live prices
+  function badge() {
+    const e = document.querySelector(".mmh .mmlive"); if (!e || !liveD || !liveUsed) return;
+    const op = liveOpen(liveD), hm = liveD.t.slice(11, 16);
+    e.hidden = false;
+    e.className = "mmlive" + (op ? " on" : "");
+    e.innerHTML = op ? `<i></i>Live prices · ${hm}` : liveD.open ? `Prices as of ${hm}, ${fmtDate(liveD.t.slice(0, 10))}` : `Closing prices · ${fmtDate(liveD.t.slice(0, 10))}`;
+    e.title = "Prices from NSE, a few minutes behind. Breakout stages and charts update after the close.";
+  }
+  // while the market is open, fetch again every 2 minutes and tell the page (MM.onLive(fn)) to redraw
+  function startPoll() {
+    if (pollT || !liveOpen(liveD)) return;
+    pollT = setInterval(async () => {
+      const L = await fetchLive();
+      if (!L || L.t === liveD.t) { badge(); return; }
+      liveD = L;
+      liveObjs.forEach(([k, o]) => applyLive(k, o));
+      badge();
+      liveSubs.forEach(f => { try { f(L); } catch (e) { console.error(e); } });
+      if (!liveOpen(L)) { clearInterval(pollT); pollT = null; }
+    }, 120000);
+  }
+  const onLive = f => liveSubs.push(f);
+  // pages that patch live prices themselves (Breakout Desk) call this to show the header tag and keep polling
+  function liveShown() { if (!liveD) return; liveUsed = true; badge(); startPoll(); }
 
   // ---------- search list (index.json), cached for the browser session
   let idxPromise = null;
@@ -62,7 +118,8 @@
         delete raw.rows;
         try { sessionStorage.setItem("mm-idx2", JSON.stringify({ at: Date.now(), d: raw })); } catch (e) {}
         return raw;
-      })().then(d => { d.by = Object.fromEntries(d.list.map(r => [r.s, r])); return d; });
+      })().then(async d => { d.by = Object.fromEntries(d.list.map(r => [r.s, r]));
+        await live(); applyLive("index", d); liveObjs.push(["index", d]); return d; });
     }
     return idxPromise;
   }
@@ -157,6 +214,7 @@
     h.innerHTML = `<div class="in"><div class="row1">
         <a class="brand" href="${ROOT}"><img src="${ROOT}logo.png" alt=""><span>MARKET MINT</span></a>
         <label class="hs">${svg(I.srch, 16)}<input type="search" placeholder="Search any NSE stock" autocomplete="off" aria-label="Search stocks"></label>
+        <span class="mmlive" hidden></span>
         <a class="join" href="${TG}" target="_blank" rel="noopener">Join Telegram</a></div>
       <nav class="tabs" aria-label="Sections">${TABS.map(t => `<a href="${ROOT}${t[0]}" class="${t[0] === here ? "on" : ""}">${svg(t[3])}${t[1]}</a>`).join("")}</nav></div>`;
     document.body.prepend(h);
@@ -281,7 +339,8 @@
   });
 
   window.MM = { share, shareBtn, toast, ROOT, DATA, TG, esc, inr, crs, pct, cls, capOf, stockUrl, fmtDate, fmtShort, index, getJSON, attachSearch, lineChart, spark,
-                TABS, svg, I, logo, co, STAGE, stagePill, stageOf, updated, earnViews };
+                TABS, svg, I, logo, co, STAGE, stagePill, stageOf, updated, earnViews,
+                live, applyLive, onLive, liveOpen, liveShown };
   header();
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", footer); else footer();
 })();
