@@ -18,6 +18,8 @@ h1{font-size:28px;line-height:1.15;margin:0;letter-spacing:-.02em}
 .px{text-align:right}.px .p{font-size:32px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .px .c{font-weight:700;font-variant-numeric:tabular-nums}.px small{display:block;color:var(--muted);font-size:12px}
 .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.qtable td:first-child,.qtable th:first-child{position:sticky;left:0;z-index:1;background:var(--card,#fff);font-weight:600}
+.qtable th:first-child{background:var(--soft)}
 .subnav{position:sticky;top:108px;z-index:30;background:var(--bg);border-bottom:1px solid var(--line);margin-bottom:14px}
 .subnav .in{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:8px 0}
 .subnav a{flex:0 0 auto;text-decoration:none;font-size:13.5px;font-weight:600;color:var(--muted);padding:6px 11px;border-radius:8px}
@@ -188,7 +190,11 @@ section{scroll-margin-top:170px}
 
     // show all quarters
     const more = document.getElementById("qmore");
-    if (more) more.onclick = () => { document.querySelectorAll("#results tr[hidden]").forEach(r => r.hidden = false); more.remove(); };
+    const qsc = document.querySelector("#results .qtable"); if (qsc) qsc.scrollLeft = qsc.scrollWidth; // newest quarter in view
+    if (more) more.onclick = () => {
+      document.querySelectorAll("#results .qold").forEach(r => r.hidden = false); more.remove();
+      const sc = document.querySelector("#results .qtable"); if (sc) sc.scrollLeft = sc.scrollWidth;
+    };
 
     // highlight current section in the sub nav
     const links = [...document.querySelectorAll(".subnav a")];
@@ -264,15 +270,27 @@ section{scroll-margin-top:170px}
     if (!qs.length) return `<h2>Quarterly results</h2><div class="empty">No results history for this company yet.</div>`;
     const by = Object.fromEntries(qs.map(q => [q.q, q]));
     const yago = q => by[(+q.slice(0, 4) - 1) + q.slice(4)];
-    const rows = qs.slice().reverse().map((q, i) => {
+    // quarters run left (oldest) to right (newest); only the latest 12 show until "Show all"
+    const cols = qs.map((q, i) => {
       const p = yago(q.q), sy = p && p.sales ? (q.sales / p.sales - 1) * 100 : null, py = p && p.pat && p.pat > 0 && q.pat != null ? (q.pat / p.pat - 1) * 100 : null;
       const opm = q.op != null && q.sales ? q.op / q.sales * 100 : null;
-      return `<tr ${i >= 12 ? "hidden" : ""}><td>${qlabel(q.q)}</td><td>${n1(q.sales)}</td><td class="${cls(sy)}">${pct(sy)}</td><td>${n1(q.op)}</td><td>${opm == null ? "–" : opm.toFixed(1) + "%"}</td>
-        <td>${n1(q.pat)}</td><td class="${cls(py)}">${pct(py)}</td><td>${q.eps == null ? "–" : Number(q.eps).toFixed(2)}</td></tr>`;
-    }).join("");
+      return { q, sy, py, opm, old: i < qs.length - 12 };
+    });
+    const hid = c => c.old ? ` class="qold" hidden` : "";
+    const cell = (c, v, k) => `<td${c.old ? " hidden" : ""} class="${c.old ? "qold " : ""}${k || ""}">${v}</td>`;
+    const line = (title, f) => `<tr><td>${title}</td>${cols.map(c => f(c)).join("")}</tr>`;
+    const rows = [
+      line("Sales", c => cell(c, n1(c.q.sales))),
+      line("YoY", c => cell(c, pct(c.sy), cls(c.sy))),
+      line("Op profit", c => cell(c, n1(c.q.op))),
+      line("OPM", c => cell(c, c.opm == null ? "–" : c.opm.toFixed(1) + "%")),
+      line("Net profit", c => cell(c, n1(c.q.pat))),
+      line("YoY", c => cell(c, pct(c.py), cls(c.py))),
+      line("EPS ₹", c => cell(c, c.q.eps == null ? "–" : Number(c.q.eps).toFixed(2))),
+    ].join("");
     return `<h2>Quarterly results <small>${qs.length} quarters · ₹ Cr</small></h2>
       <div class="qchart">${bars(qs, "sales", "Sales per quarter")}${bars(qs, "pat", "Net profit per quarter")}</div>
-      <div class="tscroll"><table><thead><tr><th>Quarter</th><th>Sales</th><th>YoY</th><th>Op profit</th><th>OPM</th><th>Net profit</th><th>YoY</th><th>EPS ₹</th></tr></thead><tbody>${rows}</tbody></table></div>
+      <div class="tscroll qtable"><table><thead><tr><th>Quarter</th>${cols.map(c => `<th${hid(c)}>${qlabel(c.q.q)}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div>
       ${qs.length > 12 ? `<button class="more" id="qmore">Show all ${qs.length} quarters</button>` : ""}
       <div class="note">From the company's NSE results filings. Consolidated figures where the company files them, else standalone. For banks, sales = interest earned and operating profit is not shown.</div>`;
   }
