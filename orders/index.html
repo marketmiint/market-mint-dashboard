@@ -248,12 +248,13 @@ td.cust{max-width:300px;white-space:normal;text-align:left;font-size:13px}
 
   const now = Date.now();
   const days = o => (now - new Date(o.t || o.d + "T12:00:00+05:30")) / 864e5;
+  const isQuiet = o => o.pr >= 10 && o.d1 != null && o.d1 < 1;   // big order (10%+ of revenue), share moved <1% next day
   function filtered({ noMonth = false, noSec = false } = {}) {
     const f = $("f").value.trim().toUpperCase(), cap = $("cap").value, mn = +$("min").value, val = +$("val").value, ty = $("ty").value;
     return all.filter(o => (!st.p || days(o) <= st.p) && (noMonth || !st.mo || o.mo === st.mo)
       && (!f || o.s.includes(f) || [o.n, o.cl, o.w, o.cu].some(x => (x || "").toUpperCase().includes(f)))
       && (!cap || capOf(o.m) === cap) && (!mn || (o.pr || 0) >= mn) && (!val || (o.v || 0) >= val) && (!ty || o.ty === ty)
-      && (noSec || !st.sec || (o.sec || "Other") === st.sec) && (!st.th || o.th === st.th));
+      && (noSec || !st.sec || (o.sec || "Other") === st.sec) && (!st.th || o.th === st.th) && (st.v !== "quiet" || isQuiet(o)));
   }
   const MON = m => new Date(m + "-15T12:00:00+05:30").toLocaleDateString("en-IN", { month: "short" });
   const MONY = m => new Date(m + "-15T12:00:00+05:30").toLocaleDateString("en-IN", { month: "long", year: "numeric" });
@@ -292,7 +293,7 @@ td.cust{max-width:300px;white-space:normal;text-align:left;font-size:13px}
       s += `<text x="${x + barw / 2}" y="${H - 6}" text-anchor="middle">${MON(a.m)}</text></g>`;
     });
     $("mchart").innerHTML = s + "</svg>";
-    $("mlab").innerHTML = st.mo ? `${MONY(st.mo)} only · <a id="mclr" style="cursor:pointer">show all months</a>` : "₹ Cr · tap a month to see only that month";
+    $("mlab").innerHTML = (st.v === "quiet" ? "Big orders, quiet stocks only · " : "") + (st.mo ? `${MONY(st.mo)} only · <a id="mclr" style="cursor:pointer">show all months</a>` : "₹ Cr · tap a month to see only that month");
     const tip = $("tip");
     $("mchart").querySelectorAll("g[data-m]").forEach(g => {
       const a = agg.find(x => x.m === g.dataset.m);
@@ -412,7 +413,7 @@ td.cust{max-width:300px;white-space:normal;text-align:left;font-size:13px}
   }
 
   function quietView(rs) {
-    const x = rs.filter(o => o.pr >= 10 && o.d1 != null && o.d1 < 1).sort((a, b) => b.pr - a.pr);
+    const x = rs.filter(isQuiet).sort((a, b) => b.pr - a.pr);
     $("main").innerHTML = `<div class="warnline">Orders worth <b>10% or more of the company's yearly revenue</b> where the share moved <b>less than 1%</b> the next day. A list to study, not a buy list. This is not investment advice.</div>
       <div class="tscroll"><table><thead><tr><th class="l">Company</th><th class="l">Customer</th><th>Order</th><th>% revenue</th><th>Next day</th><th>Since</th><th>vs Nifty 500</th></tr></thead><tbody>${x.map(o => `<tr>
       <td class="l">${co(o.s, o.n, o.lg, fmtShort(o.d) + " · " + capOf(o.m) + " cap")}</td><td class="cust">${esc(o.cl || "–")}</td><td><b>${crs(o.v)}</b></td><td>${o.pr}%</td><td>${mv(o.d1)}</td><td>${mv(o.sn)}</td>
