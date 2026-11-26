@@ -66,13 +66,18 @@ td input[type=checkbox]{width:16px;height:16px;accent-color:var(--mint-d)}
 .sel button{border:0;background:var(--card);border-radius:50%;width:20px;height:20px;cursor:pointer;line-height:1;color:var(--muted)}
 .dlg .ft{display:flex;justify-content:space-between;gap:8px;padding:14px 18px;border-top:1px solid var(--line)}
 .spark{display:block}
+.mtabs{display:flex;gap:6px;flex-wrap:wrap;padding:14px 18px 4px;border-top:1px solid var(--line)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);padding:0 18px 12px}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
+.bt{padding:0 18px 14px}.bt table td,.bt table th{text-align:right}.bt table td:first-child,.bt table th:first-child{text-align:left}
+.bt h4{margin:14px 0 8px;font-size:15px}
 </style>
 </head>
 <body data-root="../">
 <script src="../assets/mm.js"></script>
 <main class="wrap">
   <h1 class="pt">Market &amp; Indices</h1>
-  <p class="lead">How healthy the market is, 40 NSE indices with their breakout stage, and your own custom index from any stocks.</p>
+  <p class="lead">How healthy the market is (the safety light, breadth and a year of history), 40 NSE indices with their breakout stage, and your own custom index from any stocks.</p>
 
   <section class="panel" id="top"><div class="empty">Loading…</div></section>
 
@@ -87,7 +92,7 @@ td input[type=checkbox]{width:16px;height:16px;accent-color:var(--mint-d)}
 
   <section class="panel" id="detail" hidden></section>
 
-  <h2 class="sec"><span>Industries</span><small class="muted" style="font-size:13px;font-weight:500">tap a column to sort</small></h2>
+  <h2 class="sec" id="industries"><span>Industries</span><small class="muted" style="font-size:13px;font-weight:500">tap a column to sort · tap a name to see its breakout setups</small></h2>
   <section class="panel"><div class="fbar"><input type="search" id="nq" placeholder="Find an industry">
     <select id="nf" aria-label="Show"><option value="">All industries</option><option value="bo">With fresh or climbing breakouts</option><option value="up">Up in the last month</option><option value="dn">Down in the last month</option></select></div>
     <div class="tscroll"><table><thead id="indh"><tr><th data-k="name">Industry</th><th data-k="rs">RS ▼</th><th data-k="r1m">1 mo</th><th data-k="r3m">3 mo</th><th data-k="above50">Above 50d</th><th>Trend</th></tr></thead><tbody id="ind"></tbody></table></div></section>
@@ -119,19 +124,39 @@ td input[type=checkbox]{width:16px;height:16px;accent-color:var(--mint-d)}
   const word = { green: ["Green", "Good market for breakouts. Most stocks are above their averages."],
                  amber: ["Amber", "Mixed market. Be choosy and keep positions smaller."],
                  red: ["Red", "Weak market. Most breakouts fail here; protect capital."] }[m.light] || ["–", ""];
-  let bchart = "";
-  if (b.d && b.d.length > 2) {
-    const W = 760, H = 200, P = { l: 40, r: 60, t: 12, b: 22 }, n = b.d.length;
-    const X = i => P.l + i * (W - P.l - P.r) / (n - 1), Y = v => P.t + (1 - v) * (H - P.t - P.b);
-    const nl = Math.min(...b.nifty), nh = Math.max(...b.nifty), YN = v => P.t + (nh - v) / ((nh - nl) || 1) * (H - P.t - P.b);
-    const path = (arr, f) => arr.map((v, i) => (i ? "L" : "M") + X(i).toFixed(1) + " " + f(v).toFixed(1)).join("");
-    const grid = [0, .25, .5, .75, 1].map(v => `<line x1="${P.l}" x2="${W - P.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)" stroke-dasharray="3 4"/><text x="${P.l - 6}" y="${Y(v) + 4}" font-size="11" text-anchor="end" fill="var(--muted)">${v * 100}%</text>`).join("");
-    const labs = [0, Math.floor(n / 2), n - 1].map(i => `<text x="${X(i)}" y="${H - 4}" font-size="11" fill="var(--muted)" text-anchor="${i === 0 ? "start" : i === n - 1 ? "end" : "middle"}">${fmtDate(b.d[i])}</text>`).join("");
-    bchart = `<svg viewBox="0 0 ${W} ${H}">${grid}<path d="${path(b.nifty, YN)}" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 3"/>
-      <path d="${path(b.a50, Y)}" fill="none" stroke="var(--mint-d)" stroke-width="2.2"/>
-      <text x="${W - P.r + 6}" y="${YN(b.nifty[n - 1]) + 4}" font-size="11" fill="var(--muted)">Nifty</text>
-      <text x="${W - P.r + 6}" y="${Y(b.a50[n - 1]) + 4}" font-size="11" font-weight="700" fill="var(--mint-d)">${Math.round(b.a50[n - 1] * 100)}%</text>${labs}</svg>`;
+  // one-year charts (moved here from Breakout Desk so market health lives in one place)
+  const niceStep = x => { const p = Math.pow(10, Math.floor(Math.log10(x || 1))), q = x / p; return (q < 1.5 ? 1 : q < 3.5 ? 2 : q < 7.5 ? 5 : 10) * p; };
+  function line(series, o = {}) {
+    const W = innerWidth < 560 ? 420 : 900, H = o.h || 220, L = 4, R = 54, T = 10, B = 22, n = series[0].y.length;
+    const all = series.flatMap(sr => sr.y).filter(v => v != null);
+    let lo = o.lo ?? Math.min(...all), hi = o.hi ?? Math.max(...all);
+    if (o.lo == null) { const p = (hi - lo) * .06; lo -= p; hi += p; }
+    const X = i => L + i / (n - 1) * (W - L - R), Y = v => T + (hi - v) / (hi - lo || 1) * (H - T - B);
+    let s = `<svg viewBox="0 0 ${W} ${H}" font-family="Inter, sans-serif">`;
+    if (o.bands) o.bands.forEach((c, i) => { if (c) s += `<rect x="${X(i)}" y="${T}" width="${(W - L - R) / (n - 1) + .5}" height="${H - T - B}" fill="var(--${c === "green" ? "up" : c === "amber" ? "amber" : "down"})" opacity=".1"/>`; });
+    const step = niceStep((hi - lo) / 4);
+    for (let p = Math.ceil(lo / step) * step; p <= hi; p += step)
+      s += `<line x1="${L}" x2="${W - R}" y1="${Y(p)}" y2="${Y(p)}" stroke="var(--line)"/><text x="${W - R + 6}" y="${Y(p) + 4}" font-size="11" fill="var(--muted)">${o.fmt ? o.fmt(p) : Math.round(p).toLocaleString("en-IN")}</text>`;
+    if (o.mark != null) s += `<line x1="${L}" x2="${W - R}" y1="${Y(o.mark)}" y2="${Y(o.mark)}" stroke="var(--muted)" stroke-dasharray="4 4"/>`;
+    for (const sr of series) {
+      if (sr.bars) { sr.y.forEach((v, i) => { const y0 = Y(0), y1 = Y(v); s += `<rect x="${X(i) - 1}" y="${Math.min(y0, y1)}" width="2" height="${Math.abs(y1 - y0)}" fill="${sr.col}" opacity=".8"/>`; }); continue; }
+      let p = ""; sr.y.forEach((v, i) => { if (v != null) p += (p ? "L" : "M") + X(i).toFixed(1) + "," + Y(v).toFixed(1); });
+      s += `<path d="${p}" fill="none" stroke="${sr.col}" stroke-width="${sr.w || 1.8}"/>`;
+    }
+    if (o.dates) for (const i of [0, Math.round(n / 3), Math.round(2 * n / 3), n - 1]) s += `<text x="${X(i)}" y="${H - 5}" font-size="11" text-anchor="${i === 0 ? "start" : i === n - 1 ? "end" : "middle"}" fill="var(--muted)">${fmtDate(o.dates[i])}</text>`;
+    return s + "</svg>";
   }
+  const CH = b.d && b.d.length > 2 ? {
+    nifty: ["Nifty 50 and the light", () => line([{ y: b.nifty, col: "var(--ink)" }], { bands: b.light, dates: b.d }),
+      `<span><i style="background:var(--up)"></i>green</span><span><i style="background:var(--amber)"></i>amber</span><span><i style="background:var(--down)"></i>red</span><span>shaded = the light on that day</span>`],
+    breadth: ["Stocks above averages", () => line([{ y: b.a50.map(x => x * 100), col: "var(--mint-d)" }, { y: b.a200.map(x => x * 100), col: "var(--muted)" }], { lo: 0, hi: 100, mark: 50, dates: b.d, fmt: v => v + "%" }),
+      `<span><i style="background:var(--mint-d)"></i>above 50-day</span><span><i style="background:var(--muted)"></i>above 200-day</span><span>% of liquid NSE stocks</span>`],
+    hilo: ["52-week highs vs lows", () => line([{ y: b.hi, col: "var(--up)", bars: true }, { y: b.lo.map(x => -x), col: "var(--down)", bars: true }], { dates: b.d, h: 180, fmt: v => Math.abs(v) }),
+      `<span><i style="background:var(--up)"></i>new highs</span><span><i style="background:var(--down)"></i>new lows</span>`] } : null;
+  const SCN = { vcp: "VCP", bluesky: "Blue sky", multiyear: "Multi-year", ipo: "IPO base" };
+  const bt = bo.backtest || {};
+  const btRows = Object.entries(SCN).filter(([k]) => bt[k] && bt[k].light).map(([k, t]) => `<tr><td>${t}</td>${["green", "amber", "red"].map(x => { const l = bt[k].light[x];
+    return l ? `<td><b class="${cls(l.avg)}">${pct(l.avg * 100)}</b> <span class="muted">· ${l.trades.toLocaleString("en-IN")}</span></td>` : "<td>–</td>"; }).join("")}</tr>`).join("");
   document.getElementById("top").innerHTML = `<div class="hero"><span class="light l-${m.light}"><i></i>${word[0]}</span>
       <span>${word[1]}${m.light_days ? ` <span class="muted">(${m.light_days} days in a row)</span>` : ""}</span>
       <span class="muted" style="margin-left:auto;font-size:13px">As of ${fmtDate(bo.date || ix.day)}</span></div>
@@ -140,8 +165,16 @@ td input[type=checkbox]{width:16px;height:16px;accent-color:var(--mint-d)}
       <div><small>52-week highs / lows</small><b>${m.highs ?? "–"} / ${m.lows ?? "–"}</b></div>
       <div><small>Above 50-day average</small><b>${m.breadth50 != null ? Math.round(m.breadth50 * 100) + "%" : "–"}</b></div>
       <div><small>Above 200-day average</small><b>${m.breadth200 != null ? Math.round(m.breadth200 * 100) + "%" : "–"}</b></div></div>
-    ${bchart ? `<details class="bd"><summary>Show breadth chart (stocks above 50-day average, 12 months) ▾</summary><div class="chart">${bchart}</div></details>` : ""}
-    <div class="note">Safety light backtest (VCP breakouts, 2016–2026): average trade +4.3% when green, +2.9% amber, +1.6% red.</div>`;
+    ${CH ? `<div class="mtabs chips" id="mct">${Object.entries(CH).map(([k, v], i) => `<button data-c="${k}" class="${i ? "" : "on"}">${v[0]}</button>`).join("")}<span class="muted" style="font-size:12.5px;align-self:center">· last 12 months</span></div>
+    <div class="chart" id="mch"></div><div class="legend" id="mlg"></div>` : ""}
+    ${btRows ? `<div class="bt"><h4>How breakouts did in each light · 10-year backtest</h4><div class="tscroll"><table><thead><tr><th>Screen</th><th>Green</th><th>Amber</th><th>Red</th></tr></thead><tbody>${btRows}</tbody></table></div>
+      <small class="muted">Average result per breakout after costs, and number of trades, by the light on the day of the breakout. <a href="../breakouts/">Open Breakout Desk ›</a></small></div>` : ""}`;
+  if (CH) {
+    const drawCh = k => { document.getElementById("mch").innerHTML = CH[k][1](); document.getElementById("mlg").innerHTML = CH[k][2];
+      document.querySelectorAll("#mct button").forEach(x => x.classList.toggle("on", x.dataset.c === k)); };
+    document.getElementById("mct").onclick = e => { const x = e.target.closest("button[data-c]"); if (x) drawCh(x.dataset.c); };
+    drawCh("nifty");
+  }
 
   // ---------------- custom indices (this browser)
   const loadMine = () => { try { return JSON.parse(localStorage.getItem("mm-custom") || "[]"); } catch (e) { return []; } };
@@ -299,7 +332,7 @@ td input[type=checkbox]{width:16px;height:16px;accent-color:var(--mint-d)}
       .sort((a, c) => ist2.k === "name" ? a.name.localeCompare(c.name) * ist2.dir : ((a[ist2.k] ?? -1e9) - (c[ist2.k] ?? -1e9)) * ist2.dir);   // dir -1 = high to low
     document.querySelectorAll("#indh th[data-k]").forEach(th => th.textContent = th.textContent.replace(/ [▲▼]$/, "") + (th.dataset.k === ist2.k ? (ist2.dir < 0 ? " ▼" : " ▲") : ""));
     document.getElementById("ind").innerHTML = rs.map(x => `<tr>
-    <td><b style="font-weight:600">${esc(x.name)}</b><small>${x.n} stocks${x.fresh || x.climbing ? ` · ${x.fresh || 0} fresh, ${x.climbing || 0} climbing` : ""}</small></td>
+    <td><a href="../breakouts/?ind=${encodeURIComponent(x.name)}#screens" title="See this industry's setups in Breakout Desk" style="font-weight:600;color:inherit">${esc(x.name)}</a><small>${x.n} stocks${x.fresh || x.climbing ? ` · ${x.fresh || 0} fresh, ${x.climbing || 0} climbing` : ""}</small></td>
     <td><span class="rsb" style="display:inline-block;height:6px;border-radius:3px;background:var(--mint-d);vertical-align:middle;margin-right:6px;width:${Math.round(x.rs / 2)}px"></span>${Math.round(x.rs)}</td><td class="${cls(x.r1m)}">${pct(x.r1m * 100)}</td><td class="${cls(x.r3m)}">${pct(x.r3m * 100)}</td>
     <td>${Math.round(x.above50 * 100)}%</td><td>${spark(x.spark, 90, 26)}</td></tr>`).join("") || '<tr><td colspan="6" class="empty">No industries match.</td></tr>';
   }
