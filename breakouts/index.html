@@ -158,8 +158,7 @@ header:not(.mmh) .bar>.brand{display:none}
   <div class="srch"><input id="search" type="search" placeholder="Search any stock" autocomplete="off" aria-label="Search any NSE stock"><div class="sug" id="sug"></div></div>
 </div>
 <nav class="tabsbar"><div class="wrap" id="nav">
-  <a href="#screens" data-p="screens">Screens</a><a href="#market" data-p="market">Market</a><a href="#industries" data-p="industries">Industries</a>
-  <a href="#indices" data-p="indices">Indices</a><a href="#track" data-p="track">Track record</a>
+  <a href="#screens" data-p="screens">Screens</a><a href="#track" data-p="track">Track record</a>
 </div></nav></header>
 <main class="wrap">
 <!-- SCREENS -->
@@ -194,32 +193,6 @@ header:not(.mmh) .bar>.brand{display:none}
   </div>
   <div class="pager" id="pg1"></div><div id="list"></div><div class="pager" id="pg2"></div>
   <div class="box" id="how"></div>
-</section>
-<!-- MARKET -->
-<section class="page" id="p-market">
-  <h1 class="t">Market health</h1>
-  <p class="lead">Breakouts work best when the whole market is lifting. One light, three numbers, a year of history.</p>
-  <div class="box light" id="m-light"></div>
-  <div class="box"><h3>Today</h3><div class="stats" id="m-stats"></div></div>
-  <div class="box"><h3>Nifty 50 and the market light · 1 year</h3><div class="mchart" id="m-nifty"></div>
-    <div class="legend"><span><i style="background:var(--up)"></i>green</span><span><i style="background:var(--amber)"></i>amber</span><span><i style="background:var(--down)"></i>red</span></div></div>
-  <div class="box"><h3>% of liquid NSE stocks above their averages</h3><div class="mchart" id="m-breadth"></div>
-    <div class="legend"><span><i style="background:var(--ink)"></i>above 50-day</span><span><i style="background:var(--ma)"></i>above 200-day</span></div></div>
-  <div class="box"><h3>New 52-week highs vs lows</h3><div class="mchart" id="m-hilo"></div></div>
-  <div class="box"><h3>How breakouts did in each light · 10-year backtest</h3><div id="m-bt"></div></div>
-</section>
-<!-- INDUSTRIES -->
-<section class="page" id="p-industries">
-  <h1 class="t">Industries, strongest first</h1>
-  <p class="lead">Leaders come in groups. Ranked by the median RS rating of each industry's liquid stocks. Tap a row to see its setups.</p>
-  <div class="tbl" id="ind-table"></div>
-</section>
-<!-- INDICES -->
-<section class="page" id="p-indices">
-  <h1 class="t">Indices at a glance</h1>
-  <p class="lead">Broad and sector indices, each tagged with where it stands: forming a base, breaking out, climbing, pulling back or in a downtrend.</p>
-  <div class="tabs" id="idx-f"></div>
-  <div class="igrid" id="idx-grid"></div>
 </section>
 <!-- TRACK -->
 <section class="page" id="p-track">
@@ -264,7 +237,7 @@ const DIALS = [["rs", "Min RS rating", 0, 99, 1, 0, v => v || "any"], ["depth", 
   ["dry", "Max volume dry-up", 0.2, 1.5, 0.05, 1.5, v => v >= 1.5 ? "any" : v.toFixed(2) + "×"], ["turn", "Min turnover", 1, 50, 1, 1, v => "₹" + v + " cr/day"]];
 const FKEYS = ["watch", "ind", "fo", "ann", "res"];
 const FDEF = {page_: "screens", screen: "vcp", stage: "forming", watch: "", ind: "", fo: "", ann: "", res: "", sort: "rs", view: "cards", per: 40, page: 1,
-  cap: 1000000, risk: 1.5, trs: "all", idxf: "all", dials: Object.fromEntries(DIALS.map(d => [d[0], d[5]]))};
+  cap: 1000000, risk: 1.5, trs: "all", dials: Object.fromEntries(DIALS.map(d => [d[0], d[5]]))};
 const store = {get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }};
 let S = Object.assign(JSON.parse(JSON.stringify(FDEF)), store.get("bo2", {}));
@@ -380,27 +353,6 @@ function svgChart(r) {
     s += `<text x="${X(i)}" y="${H - 4}" font-size="10.5" text-anchor="middle" fill="var(--muted)">${dD(k.dates[i]).toLocaleDateString("en-IN", {month: "short", year: "2-digit"})}</text>`;
   return s + "</svg>";
 }
-function line(series, opts = {}) {      // simple multi-line chart: series = [{y:[], col, w}], optional bands, bars
-  const W = innerWidth < 560 ? 420 : 900, H = opts.h || 220, L = 4, R = 54, T = 10, B = 22, n = series[0].y.length;
-  const all = series.flatMap(s => s.y).filter(v => v != null);
-  let lo = opts.lo ?? Math.min(...all), hi = opts.hi ?? Math.max(...all);
-  if (opts.lo == null) { const p = (hi - lo) * .06; lo -= p; hi += p; }
-  const X = i => L + i / (n - 1) * (W - L - R), Y = v => T + (hi - v) / (hi - lo || 1) * (H - T - B);
-  let s = `<svg viewBox="0 0 ${W} ${H}" font-family="Inter, sans-serif">`;
-  if (opts.bands) opts.bands.forEach((b, i) => { if (b) s += `<rect x="${X(i)}" y="${T}" width="${(W - L - R) / (n - 1) + .5}" height="${H - T - B}" fill="var(--${b === "green" ? "up" : b === "amber" ? "amber" : "down"})" opacity=".09"/>`; });
-  const step = niceStep((hi - lo) / 4);
-  for (let p = Math.ceil(lo / step) * step; p <= hi; p += step)
-    s += `<line x1="${L}" x2="${W - R}" y1="${Y(p)}" y2="${Y(p)}" stroke="var(--line)"/><text x="${W - R + 6}" y="${Y(p) + 4}" font-size="11" fill="var(--muted)">${opts.fmt ? opts.fmt(p) : num(p, 0)}</text>`;
-  if (opts.mark != null) s += `<line x1="${L}" x2="${W - R}" y1="${Y(opts.mark)}" y2="${Y(opts.mark)}" stroke="var(--muted)" stroke-dasharray="4 4"/>`;
-  for (const sr of series) {
-    if (sr.bars) { sr.y.forEach((v, i) => { const y0 = Y(0), y1 = Y(v); s += `<rect x="${X(i) - 1}" y="${Math.min(y0, y1)}" width="2" height="${Math.abs(y1 - y0)}" fill="${sr.col}" opacity=".8"/>`; }); continue; }
-    let p = ""; sr.y.forEach((v, i) => { if (v != null) p += (p ? "L" : "M") + X(i).toFixed(1) + "," + Y(v).toFixed(1); });
-    s += `<path d="${p}" fill="none" stroke="${sr.col}" stroke-width="${sr.w || 1.8}"/>`;
-  }
-  const d = opts.dates;
-  if (d) for (const i of [0, Math.round(n / 3), Math.round(2 * n / 3), n - 1]) s += `<text x="${X(i)}" y="${H - 5}" font-size="11" text-anchor="${i === 0 ? "start" : i === n - 1 ? "end" : "middle"}" fill="var(--muted)">${dD(d[i]).toLocaleDateString("en-IN", {month: "short", year: "2-digit"})}</text>`;
-  return s + "</svg>";
-}
 
 /* ---------- trade plan ---------- */
 // The buy / share-count plan is for the owner only (open the page once with ?owner=1 on your own device; ?owner=0 undoes it).
@@ -482,7 +434,7 @@ function table(rows) {
 function lightLine(l) {
   const b = (D.backtest || {})[S.screen] || {}, lt = b.light || {};
   const days = D.market.light_days;
-  return `${lamp(l)}<div><b>Market ${LIGHT[l][0].toLowerCase()}</b>${days ? ` <span class="mut">· ${days}d</span>` : ""}${lt[l] ? ` <span class="mut">· ${SCREENS[S.screen].t} breakouts avg <b class="${cls(lt[l].avg)}">${pct(lt[l].avg)}</b> in ${l} vs <b class="up">${pct((lt.green || {}).avg)}</b> in green</span>` : ""}</div><a href="#market">Details ›</a>`;
+  return `${lamp(l)}<div><b>Market ${LIGHT[l][0].toLowerCase()}</b>${days ? ` <span class="mut">· ${days}d</span>` : ""}${lt[l] ? ` <span class="mut">· ${SCREENS[S.screen].t} breakouts avg <b class="${cls(lt[l].avg)}">${pct(lt[l].avg)}</b> in ${l} vs <b class="up">${pct((lt.green || {}).avg)}</b> in green</span>` : ""}</div><a href="../market/">Details ›</a>`;
 }
 function pager(total) {
   const pages = Math.max(1, Math.ceil(total / S.per));
@@ -530,51 +482,6 @@ function how() {
   $("how").innerHTML = h;
 }
 
-/* ---------- market page ---------- */
-function renderMarket() {
-  const m = D.market, b = D.breadth;
-  $("m-light").innerHTML = `${lamp(m.light)}<div><b>Market light: ${LIGHT[m.light][0]}</b> <span class="mut">· for ${m.light_days} day${m.light_days > 1 ? "s" : ""}</span><div class="mut">${LIGHT[m.light][1]}</div></div>`;
-  const st = [["Nifty 50", `${num(m.nifty, 0)}`, pct(m.chg, 2), cls(m.chg)], ["Above 50-day", Math.round(m.breadth50 * 100) + "%", "of liquid stocks", ""],
-    ["Above 200-day", Math.round(m.breadth200 * 100) + "%", "of liquid stocks", ""], ["New highs / lows", `${m.highs} / ${m.lows}`, "52-week", ""],
-    ["Advancers / decliners", `${m.adv} / ${m.dec}`, "today", ""]];
-  $("m-stats").innerHTML = st.map(([t, v, s, c]) => `<div class="stat"><span>${t}</span><b class="n">${v}</b><div class="mut ${c}" style="font-size:12.5px">${s}</div></div>`).join("");
-  $("m-nifty").innerHTML = line([{y: b.nifty, col: "var(--ink)"}], {bands: b.light, dates: b.d});
-  $("m-breadth").innerHTML = line([{y: b.a50.map(x => x * 100), col: "var(--ink)"}, {y: b.a200.map(x => x * 100), col: "var(--ma)"}], {lo: 0, hi: 100, mark: 50, dates: b.d, fmt: v => v + "%"});
-  $("m-hilo").innerHTML = line([{y: b.hi, col: "var(--up)", bars: true}, {y: b.lo.map(x => -x), col: "var(--down)", bars: true}], {dates: b.d, h: 180, fmt: v => num(Math.abs(v), 0)});
-  const bt = D.backtest || {};
-  let h = `<table><tr><th>Screen</th><th>Green</th><th>Amber</th><th>Red</th></tr>`;
-  for (const [k, v] of Object.entries(SCREENS)) { const l = (bt[k] || {}).light || {};
-    h += `<tr><td>${v.t}</td>${["green", "amber", "red"].map(x => l[x] ? `<td class="n ${cls(l[x].avg)}">${pct(l[x].avg)} <span class="mut">· ${l[x].trades}</span></td>` : "<td>–</td>").join("")}</tr>`; }
-  $("m-bt").innerHTML = `<div class="tbl" style="box-shadow:none">${h}</table></div><p class="mut" style="font-size:13px;margin:8px 0 0">Average result per breakout after costs, and number of trades, by the light on the day of the breakout.</p>`;
-}
-
-/* ---------- industries ---------- */
-function spark(y, W = 120, H = 30) {
-  const lo = Math.min(...y), hi = Math.max(...y), X = i => i / (y.length - 1) * W, Y = v => H - 2 - (v - lo) / (hi - lo || 1) * (H - 4);
-  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}"><path d="${y.map((v, i) => (i ? "L" : "M") + X(i).toFixed(1) + "," + Y(v).toFixed(1)).join("")}" fill="none" stroke="${y[y.length - 1] >= y[0] ? "var(--up)" : "var(--down)"}" stroke-width="1.5"/></svg>`;
-}
-function renderIndustries() {
-  let h = `<table><tr><th>#</th><th style="text-align:left">Industry</th><th>RS</th><th>1M</th><th>3M</th><th>Above 50-day</th><th>Forming</th><th>Breakouts</th><th>6 months</th></tr>`;
-  D.industries.forEach((r, i) => h += `<tr class="click" data-ind="${esc(r.name)}"><td class="n mut">${i + 1}</td><td style="text-align:left"><b>${esc(r.name)}</b> <span class="mut">· ${r.n}</span></td>
-    <td class="n">${Math.round(r.rs)}<span class="bar-rs" style="width:${Math.round(r.rs * .6)}px"></span></td><td class="n ${cls(r.r1m)}">${pct(r.r1m)}</td><td class="n ${cls(r.r3m)}">${pct(r.r3m)}</td>
-    <td class="n">${Math.round(r.above50 * 100)}%</td><td class="n">${r.forming || "–"}</td><td class="n ${r.fresh ? "up" : ""}">${r.fresh || "–"}</td><td>${spark(r.spark)}</td></tr>`);
-  $("ind-table").innerHTML = h + "</table>";
-}
-
-/* ---------- indices ---------- */
-const ISTAGE = {fresh: "Breaking out", climbing: "Climbing", forming: "Forming a base", pullback: "Pulling back", downtrend: "Downtrend"};
-function renderIndices() {
-  const f = S.idxf;
-  $("idx-f").innerHTML = [["all", "All"], ...Object.entries(ISTAGE)].map(([k, t]) => `<button class="tab ${k === f ? "on" : ""}" data-if="${k}">${t} <span class="mut">${k === "all" ? D.indices.length : D.indices.filter(x => x.stage === k).length}</span></button>`).join("");
-  $("idx-grid").innerHTML = D.indices.filter(x => f === "all" || x.stage === f).map(x => {
-    const W = 260, H = 70, y = x.spark, lo = Math.min(...y, ...x.sma50.filter(Boolean)), hi = Math.max(...y, x.pivot || 0), X = i => i / (y.length - 1) * W, Y = v => H - 2 - (v - lo) / (hi - lo || 1) * (H - 4);
-    const p = a => a.map((v, i) => v == null ? "" : (i ? "L" : "M") + X(i).toFixed(1) + "," + Y(v).toFixed(1)).join("");
-    return `<div class="icard"><div class="top"><b>${esc(x.name)}</b><span class="badge ${x.stage === "fresh" ? "s-fresh" : x.stage === "climbing" ? "s-climbing" : ""}" style="font-size:11.5px;font-weight:800">${ISTAGE[x.stage]}</span></div>
-      <div class="n" style="font-size:18px;margin-top:4px">${num(x.close, 0)} <span class="${cls(x.chg)}" style="font-size:13px">${pct(x.chg, 2)}</span></div>
-      <svg viewBox="0 0 ${W} ${H}">${x.pivot ? `<line x1="0" x2="${W}" y1="${Y(x.pivot)}" y2="${Y(x.pivot)}" stroke="var(--ink)" stroke-dasharray="4 3"/>` : ""}<path d="${p(x.sma50)}" fill="none" stroke="var(--ma)" stroke-width="1"/><path d="${p(y)}" fill="none" stroke="${x.above50 ? "var(--up)" : "var(--down)"}" stroke-width="1.6"/></svg>
-      <div class="rets"><span>1M <b class="n ${cls(x.r1m)}">${pct(x.r1m)}</b></span><span>3M <b class="n ${cls(x.r3m)}">${pct(x.r3m)}</b></span><span>1Y <b class="n ${cls(x.r1y)}">${pct(x.r1y)}</b></span></div></div>`;
-  }).join("");
-}
 
 /* ---------- track record ---------- */
 async function renderTrack() {
@@ -639,11 +546,12 @@ function whyNot(p) {
 
 /* ---------- routing + controls ---------- */
 function show(pg) {
-  if (!["screens", "market", "industries", "indices", "track"].includes(pg)) pg = "screens";
+  if (["market", "industries", "indices"].includes(pg)) { location.replace("../market/" + (pg === "market" ? "" : "#" + pg)); return; }   // moved to Market & Indices
+  if (!["screens", "track"].includes(pg)) pg = "screens";
   S.page_ = pg;
   document.querySelectorAll("section.page").forEach(s => s.classList.toggle("on", s.id === "p-" + pg));
   document.querySelectorAll("#nav a").forEach(a => a.classList.toggle("on", a.dataset.p === pg));
-  ({screens: renderScreens, market: renderMarket, industries: renderIndustries, indices: renderIndices, track: renderTrack})[pg]();
+  ({screens: renderScreens, track: renderTrack})[pg]();
   save();
 }
 function render() { renderScreens(); save(); }
@@ -673,9 +581,7 @@ function wire() {
   $("view").onclick = e => { const b = e.target.closest("button"); if (b) { S.view = b.dataset.v; render(); } };
   $("tabs").onclick = e => { if (e.target.closest("#fbtn")) { $("drawer").classList.toggle("open"); return; }
     const b = e.target.closest(".tab"); if (b) { S.screen = b.dataset.s; S.page = 1; feedAll = false; render(); } };
-  $("idx-f").onclick = e => { const b = e.target.closest("[data-if]"); if (b) { S.idxf = b.dataset.if; renderIndices(); save(); } };
   $("tr-tabs").onclick = e => { const b = e.target.closest("[data-tr]"); if (b) { S.trs = b.dataset.tr; renderTrack(); save(); } };
-  $("ind-table").onclick = e => { const r = e.target.closest("[data-ind]"); if (r) { S.ind = r.dataset.ind; S.page = 1; buildControls(); location.hash = "screens"; } };
   $("search").oninput = suggest;
   $("search").onkeydown = e => { const b = [...$("sug").querySelectorAll("button[data-open]")]; if (!b.length) return;
     if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); sugI = (sugI + (e.key === "ArrowDown" ? 1 : -1) + b.length) % b.length; b.forEach((x, i) => x.classList.toggle("on", i === sugI)); }
@@ -699,6 +605,8 @@ function wire() {
 Promise.all([fetch("data.json?" + Date.now()).then(r => r.json()), fetch("../data/dashboard.json?" + Date.now()).then(r => r.json()).catch(() => null)]).then(([d, dash]) => {
   D = d;
   if (!SCREENS[S.screen]) S.screen = "vcp";
+  const qi = new URLSearchParams(location.search).get("ind");
+  if (qi != null) { S.ind = qi; S.page = 1; history.replaceState(null, "", location.pathname + (location.search.replace(/[?&]ind=[^&]*/, "").replace(/^&/, "?")) + "#screens"); }
   if (dash) {
     for (const r of dash.results || []) if (!ANN.res[r.sym] || ANN.res[r.sym].filed < r.filed) ANN.res[r.sym] = r;
     for (const o of dash.orders || []) if (!ANN.ord[o.sym] || ANN.ord[o.sym].date < o.date) ANN.ord[o.sym] = o;
