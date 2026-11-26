@@ -102,6 +102,29 @@ async function loadData() {
   PAGES = new Set(DATA.pages || []);
   const sel = $("#season");
   sel.innerHTML = Object.keys(DATA.seasons).map(k => `<option>${k}</option>`).join("");
+  try { await MM.live(); } catch (e) {}
+  if (liveSeason()) MM.liveShown();
+  MM.onLive(() => { if (liveSeason() && typeof draw === "function") draw(); });
+}
+// live NSE price (assets/mm.js, every 2 min in market hours) on top of the evening close:
+// price, market cap and "since results" all move by the same live/close ratio
+function liveSeason() {
+  const L = MM._liveNow && MM._liveNow(); if (!L || !DATA) return false;
+  const day = L.t.slice(0, 10), hm = L.t.slice(11, 16); let used = false;
+  for (const S of Object.values(DATA.seasons)) {
+    if (day <= S.asof) continue;
+    for (const r of S.rows) {
+      if (r._p0 === undefined) { r._p0 = r.price; r._m0 = r.mcap; r._v0 = r.move; }
+      const x = L.s[r.sym]; if (!x || !r._p0) continue;
+      const k = x[0] / r._p0;
+      r.price = x[0];
+      if (r._m0 != null) r.mcap = r._m0 * k;
+      if (r._v0 != null) r.move = ((1 + r._v0 / 100) * k - 1) * 100;
+      used = true;
+    }
+    S.live = (MM.liveOpen && MM.liveOpen(L) ? "live " : "") + hm + ", " + fmtDay(day);
+  }
+  return used;
 }
 
 const st = {cap: "All", colour: "move", q: ""};
@@ -115,7 +138,7 @@ function colour(r) {
 }
 function draw() {
   const S = DATA.seasons[$("#season").value];
-  $("#asof").textContent = fmtDay(S.asof); MM.updated && MM.updated(S.asof);
+  $("#asof").textContent = S.live || fmtDay(S.asof); MM.updated && MM.updated(S.asof);
   let rows = S.rows.filter(r => (st.cap === "All" || capOf(r.mcap) === st.cap) &&
     (!st.q || (r.sym + " " + r.name).toLowerCase().includes(st.q)));
   const mv = rows.filter(r => r.move != null);
