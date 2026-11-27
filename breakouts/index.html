@@ -168,11 +168,12 @@ td a{text-decoration:none;font-weight:800}
 .modal .x{position:absolute;right:12px;top:10px;border:0;background:var(--soft);border-radius:999px;width:30px;height:30px;cursor:pointer;font-weight:800}
 footer{color:var(--muted);font-size:12px;padding:6px 0 30px}
 header:not(.mmh) .bar{display:none}
-.tab .tc{font-size:11.5px;font-weight:700;opacity:.65;margin-left:3px}
 .kind{display:inline-flex;gap:2px;background:var(--soft);border-radius:10px;padding:3px}
 .kind button{border:0;background:none;border-radius:8px;padding:7px 14px;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;color:var(--muted)}
 .kind button:hover{color:var(--ink)}
 .kind button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08),0 0 0 1px var(--line)}
+.tb{display:flex;align-items:center;gap:12px;margin-top:22px}
+.tab .tc{display:inline-block;min-width:18px;padding:1px 6px;border-radius:999px;background:var(--acc-soft);color:var(--acc);font-size:11.5px;font-weight:700;margin-left:6px;opacity:1}
 .gk{display:inline-flex;gap:14px;margin-left:auto;font-size:13px}
 .gk button{border:0;background:none;padding:0;font:inherit;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer}
 .gk button.on{color:var(--acc)}
@@ -190,9 +191,12 @@ header:not(.mmh) .bar{display:none}
 <main class="wrap">
 <!-- SCREENS -->
 <section class="page" id="p-screens">
-  <div class="kind" id="kind" style="margin-top:22px"></div>
+  <div class="tb"><div class="kind" id="kind"></div><button class="fbtn" id="fbtn" type="button">Filters</button></div>
   <div class="tabs" id="tabs"></div>
   <div class="box drawer" id="drawer">
+    <div class="fgrid group-only">
+      <label>Show<select id="f-gk"></select></label>
+    </div>
     <div class="fgrid stock-only">
       <label>Watchlist<select id="f-watch"></select></label>
       <label>Industry or index<select id="f-ind"></select></label>
@@ -210,7 +214,7 @@ header:not(.mmh) .bar{display:none}
   </div>
   <div class="hero">
     <div class="hhead"><div><div class="eyebrow" id="eyebrow">Breakout Desk</div>
-      <h1 class="t">Spot the market's next leaders.</h1>
+      <h1 class="t" id="ht">Spot the market's next leaders.</h1>
       <p class="lead" id="lead">Loading…</p></div>
       <a class="mlight" id="lightbox" href="../market/"></a></div>
     <div class="stages" id="stages"></div>
@@ -250,6 +254,10 @@ const SCREENS = {
   ipo: {t: "IPO base", rules: [["Recently listed", "under 50 weeks on the market."], ["First real base", "3+ weeks, ≤ 35% deep, within 20% of the top."],
     ["Holding its 50-day", "above its 50-day average."]]}
 };
+const PLAIN = {vcp: "price swings get smaller and quieter under a ceiling, then it breaks through.",
+  bluesky: "resting just under its all-time high, with no old sellers above it.",
+  multiyear: "back near a ceiling it hasn't crossed in over a year.",
+  ipo: "a recent listing building its first base."};
 const COMMON = [["Easy to trade", "₹1 cr+ traded a day."], ["Breakout", "price crosses the pivot. Entry = pivot (or the open on a gap)."],
   ["Exit", "8% stop-loss, or a close below the 50-day average."]];
 const STAGES = {forming: ["Forming", "tight range under its lid"], fresh: ["Fresh breakouts", "cleared it in the last 5 days"],
@@ -545,11 +553,11 @@ function renderScreens() {
   const vis = visible();
   $("lightbox").innerHTML = lightLine(D.market.light);
   if (GROUPS() && S.screen === "ipo") S.screen = "vcp";
-  $("kind").innerHTML = [["stocks", "Stocks"], ["groups", "Indices & industries"]].map(([k, t]) => `<button data-k="${k}" class="${S.kind === k ? "on" : ""}">${t}</button>`).join("")
+  $("kind").innerHTML = [["stocks", "Stocks"], ["groups", "Sectors & indices"]].map(([k, t]) => `<button data-k="${k}" class="${S.kind === k ? "on" : ""}">${t}</button>`).join("")
 ;
-  $("tabs").innerHTML = Object.entries(SCREENS).filter(([k]) => !(GROUPS() && k === "ipo")).map(([k, v]) => `<button class="tab ${k === S.screen ? "on" : ""}" data-s="${k}">${v.t}${GROUPS() ? ` <small class="tc">${nLive(visScr(k))}</small>` : ""}</button>`).join("")
-    + (GROUPS() ? `<span class="gk" id="gk">${[["", "All"], ["idx", "Indices"], ["ind", "Industries"]].map(([v, t]) => `<button data-gk="${v}" class="${S.gk === v ? "on" : ""}">${t}</button>`).join("")}</span>` : "")
-    + `<button class="fbtn" id="fbtn">Filters${nFilters() ? `<b>${nFilters()}</b>` : ""}</button>`;
+  $("tabs").innerHTML = Object.entries(SCREENS).filter(([k]) => !(GROUPS() && k === "ipo")).map(([k, v]) => `<button class="tab ${k === S.screen ? "on" : ""}" data-s="${k}">${v.t}${GROUPS() && nLive(visScr(k)) ? ` <span class="tc">${nLive(visScr(k))}</span>` : ""}</button>`).join("");
+  $("fbtn").innerHTML = `Filters${nFilters() ? `<b>${nFilters()}</b>` : ""}`;
+  opts("f-gk", [["", "Sectors and indices"], ["idx", "Indices only"], ["ind", "Sectors only"]], S.gk);
   $("stages").innerHTML = Object.entries(STAGES).map(([k, [t, s]]) => `<button class="stage ${k === S.stage ? "on" : ""}" data-s="${k}"><span class="nm">${t}</span><b class="n">${vis.filter(r => r.stage === k).length}</b><small>${s}</small></button>`).join("");
   $("eyebrow").textContent = `${SCREENS[S.screen].t} screen · ${fmtD(D.date)}`;
   const key = SORTS[S.sort][1], rows = vis.filter(r => r.stage === S.stage).sort((a, b) => (key(a) ?? 0) - (key(b) ?? 0) || a.sym.localeCompare(b.sym));
@@ -561,7 +569,9 @@ function renderScreens() {
   document.querySelectorAll("#view button").forEach(b => b.classList.toggle("on", b.dataset.v === S.view));
   for (const k of FKEYS) $("f-" + k).classList.toggle("on", !!S[k]);
   document.querySelectorAll(".stock-only").forEach(e => e.style.display = GROUPS() ? "none" : "");
-  $("lead").textContent = GROUPS() ? "Every NSE index and industry from Sector strength, run through the same rules as a line of its stocks (equal weight, today's members)." : LEAD;
+  document.querySelectorAll(".group-only").forEach(e => e.style.display = GROUPS() ? "" : "none");
+  $("ht").textContent = GROUPS() ? "Which sectors are breaking out?" : "Spot the market's next leaders.";
+  $("lead").innerHTML = `<b>${SCREENS[S.screen].t}:</b> ${PLAIN[S.screen]} ` + (GROUPS() ? "Each sector or index is read as one chart: the average move of its stocks." : LEAD);
   feed(vis); how();
 }
 function feed(vis) {
@@ -715,8 +725,9 @@ function wire() {
   $("clear").onclick = () => { for (const k of FKEYS) S[k] = ""; S.dials = {...FDEF.dials}; buildControls(); render(); };
   $("stages").onclick = e => { const b = e.target.closest(".stage"); if (b) { S.stage = b.dataset.s; S.page = 1; render(); } };
   $("view").onclick = e => { const b = e.target.closest("button"); if (b) { S.view = b.dataset.v; render(); } };
-  $("tabs").onclick = e => { if (e.target.closest("#fbtn")) { $("drawer").classList.toggle("open"); return; }
-    const g = e.target.closest("[data-gk]"); if (g) { S.gk = g.dataset.gk; S.page = 1; render(); return; }
+  $("fbtn").onclick = () => $("drawer").classList.toggle("open");
+  $("f-gk").onchange = e => { S.gk = e.target.value; S.page = 1; render(); };
+  $("tabs").onclick = e => {
     const b = e.target.closest(".tab"); if (b) { S.screen = b.dataset.s; S.page = 1; feedAll = false; render(); } };
   $("tr-tabs").onclick = e => { const b = e.target.closest("[data-tr]"); if (b) { S.trs = b.dataset.tr; renderTrack(); save(); } };
   $("search").oninput = suggest;
