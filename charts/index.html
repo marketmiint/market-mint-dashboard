@@ -143,7 +143,8 @@ body.popped #po{display:none}
 .cwrap .clg .ev>span,.cwrap .clg .boinfo{pointer-events:auto}
 .cbot{height:30px}
 /* hide / show tabs on the chart edges */
-.hdl{position:absolute;z-index:25;border:1px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer;opacity:0;transition:opacity .15s;display:flex;align-items:center;justify-content:center;font-size:10px;line-height:1;padding:0}
+.hdl{display:none!important}
+.hdlx{position:absolute;z-index:25;border:1px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer;opacity:0;transition:opacity .15s;display:flex;align-items:center;justify-content:center;font-size:10px;line-height:1;padding:0}
 .cwrap:hover .hdl,.hdl:focus{opacity:.9}.hdl:hover{opacity:1!important;color:var(--ink);background:var(--soft)}
 @media (hover:none){.hdl{opacity:.65}}
 .hdl-t{top:0;left:50%;transform:translateX(-50%);width:52px;height:14px;border-top:0;border-radius:0 0 8px 8px}
@@ -1084,7 +1085,7 @@ body.popped #po{display:none}
     ["Move and zoom", [["← · →", "Move 1 candle"], ["Ctrl + ← · →", "Move further"], ["Ctrl + ↑ · ↓", "Zoom in / out"], ["Mouse wheel", "Zoom"], ["Alt + R", "Reset the view"], ["Alt + L · P · I", "Log · percent · upside-down scale"]]],
     ["Drawing", [["Alt + T", "Trend line"], ["Alt + H", "Horizontal line"], ["Alt + V", "Vertical line"], ["Alt + C", "Cross line"], ["Alt + F", "Fibonacci retracement"], ["Alt + Shift + R", "Rectangle"], ["Shift + click", "Measure % move"], ["Esc", "Cancel the drawing"]]],
     ["Edit drawings", [["Click a drawing", "Colour, thickness, lock, delete"], ["Del · Backspace", "Delete the selected drawing"], ["Ctrl + Z · Ctrl + Y", "Undo · redo"], ["Ctrl + C · Ctrl + V", "Copy · paste (also onto another stock)"], ["Ctrl + D", "Clone the selected drawing"], ["Ctrl + Alt + H", "Hide all drawings"], ["Right-click a drawing", "Delete it"]]],
-    ["Other", [["Alt + Enter", "Hide / show all bars (biggest chart)"], ["Alt + S", "Save a picture of the chart"], ["?", "This list"]]],
+    ["Other", [["Double-click chart · Alt + Enter", "Hide / show all bars (biggest chart)"], ["Alt + S", "Save a picture of the chart"], ["?", "This list"]]],
   ];
   function openHelp() {
     $("#hlpb").innerHTML = `<h3>Keyboard shortcuts</h3><p>Same keys as Fyers and TradingView charts. On a Mac, Alt is ⌥ Option and Ctrl also works as ⌘. Click the chart once if a key does nothing.</p><div class="cols">`
@@ -1177,7 +1178,16 @@ body.popped #po{display:none}
   function applyHide() { ["t", "l", "r", "b"].forEach(k => { $("#cp").classList.toggle("h-" + k, !!P.hide[k]); const b = document.querySelector(`.hdl[data-h="${k}"]`); if (b) b.textContent = HARR[k][P.hide[k] ? 1 : 0]; });
     setTimeout(() => chart.resize(), 0); }
   document.querySelectorAll(".hdl").forEach(b => b.addEventListener("click", e => { e.stopPropagation(); const k = b.dataset.h; P.hide[k] = !P.hide[k]; save(); applyHide(); }));
-  function toggleAllBars() { const any = ["t", "l", "r", "b"].some(k => !P.hide[k]); ["t", "l", "r", "b"].forEach(k => P.hide[k] = any); save(); applyHide(); hint(any ? "Bars hidden: Alt+Enter brings them back" : "Bars shown"); }
+  function toggleAllBars() { const any = ["t", "l", "r", "b"].some(k => !P.hide[k]); ["t", "l", "r", "b"].forEach(k => P.hide[k] = any); save(); applyHide(); hint(any ? "Bars hidden · double-click the chart to bring them back" : "Bars shown"); }
+  // double-click / double-tap on the chart = hide or show all bars (not while drawing, not on a drawing, not after a drag)
+  let tapT = 0, tapX = 0, tapY = 0, downX = 0, downY = 0;
+  $("#kc").addEventListener("pointerdown", e => { downX = e.clientX; downY = e.clientY; }, true);
+  $("#kc").addEventListener("pointerup", e => {
+    if (e.button > 0 || DRAWING || tool || Math.abs(e.clientX - downX) > 8 || Math.abs(e.clientY - downY) > 8) { tapT = 0; return; }
+    const now = Date.now();
+    if (now - tapT < 350 && Math.abs(e.clientX - tapX) < 30 && Math.abs(e.clientY - tapY) < 30) { tapT = 0; setTimeout(() => { if (!SEL) toggleAllBars(); }, 0); }
+    else { tapT = now; tapX = e.clientX; tapY = e.clientY; }
+  }, true);
   document.addEventListener("keydown", e => { if (e.altKey && e.key === "Enter" && !e.ctrlKey && !e.metaKey) { e.preventDefault(); toggleAllBars(); } });
   if (!document.body.classList.contains("popped")) $(".brandmini").removeAttribute("target");
   applyHide();
