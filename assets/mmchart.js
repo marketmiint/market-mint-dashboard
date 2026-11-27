@@ -265,11 +265,27 @@
         + (st.lv ? (opt.marks || []).filter(m => m.kind !== "up" && snap(dayNum(m.date)) === x.t)
           .map(m => ` · <b style="color:${m.kind === "order" ? "#1f6fd1" : m.kind === "split" ? "#7c3aed" : "#c98a0c"}">${esc(m.text || m.kind)}</b>`).join("") : ""); };
     // base boxes (drawn over the chart, follow zoom and scroll)
+    // Breakout Desk sends bases cut to its ~150-day window: a base that began earlier starts at the window's first day while
+    // its low comes from the whole base. Rebuild from our full history: start = the peak that began the base, bottom = the
+    // lowest candle inside the box.
+    const all = D.w.concat(D.d);
+    const fixB = (opt.bases || []).map(b => {
+      let a = dayNum(b.from); const z = dayNum(b.to);
+      const inside = from => all.filter(x => x.t >= from && x.t <= z);
+      let lo = Math.min(...inside(a).map(x => x.l ?? x.c));
+      if (b.low != null && isFinite(lo) && lo > b.low * 1.02) {           // the real low is earlier: walk back to the base's starting peak
+        let j = all.findIndex(x => x.t >= a); if (j < 0) j = all.length - 1;
+        const stop = all.findIndex(x => x.t >= a - 3 * 365);
+        while (j > Math.max(0, stop) && (all[j].h ?? all[j].c) < b.pivot * 0.97) j--;
+        a = Math.min(a, all[j].t); lo = Math.min(...inside(a).map(x => x.l ?? x.c));
+      }
+      return Object.assign({}, b, { from: dayStr(a), low: isFinite(lo) ? lo : b.low });
+    });
     const boxes = () => {
       const ov = q(".ov"); if (!ov || !v.chart) return;
-      if (!st.lv || !(opt.bases || []).length) { ov.innerHTML = ""; return; }
+      if (!st.lv || !fixB.length) { ov.innerHTML = ""; return; }
       const ts = chart.timeScale(), w = box.clientWidth - (chart.priceScale("right").width() || 0);
-      ov.innerHTML = opt.bases.map(b => {
+      ov.innerHTML = fixB.map(b => {
         const a = snap(dayNum(b.from)), z = snap(dayNum(b.to)); if (a == null || z == null) return "";
         let x1 = ts.timeToCoordinate(dayStr(a)), x2 = ts.timeToCoordinate(dayStr(z));
         const y1 = cs.priceToCoordinate(b.pivot), y2 = cs.priceToCoordinate(b.low);

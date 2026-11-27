@@ -50,8 +50,8 @@ select.bt{padding-right:6px}
 .clg b{color:var(--ink);font-weight:600}.clg .up{color:var(--up,#0f8f55)}.clg .down{color:var(--down,#d0342c)}
 .clg .ev{margin-left:8px}
 .clg .ev>span{display:inline-flex;align-items:center;margin:0 6px 0 0;padding:2px 7px;border-radius:6px;background:var(--card);border:1px solid var(--line);color:var(--ink);font-weight:600;cursor:pointer}
-.msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px;z-index:6;background:var(--card);text-align:center;padding:20px}
-.msg[hidden]{display:none}
+#msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px;z-index:6;background:var(--card);text-align:center;padding:20px}
+#msg[hidden]{display:none}
 .hint{position:absolute;left:50%;bottom:44px;transform:translateX(-50%);background:#111827;color:#fff;padding:7px 12px;border-radius:9px;font-size:12.5px;z-index:7;pointer-events:none;opacity:0;transition:opacity .2s;white-space:nowrap}
 .hint.on{opacity:.92}
 /* side panel: events */
@@ -129,6 +129,12 @@ select.bt{padding-right:6px}
 .hlp h4{margin:10px 0 4px;font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;break-after:avoid}
 .hlp .r{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid var(--line);font-size:13px;break-inside:avoid}
 .hlp kbd{font:inherit;font-size:11.5px;font-weight:700;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 5px;background:var(--soft);white-space:nowrap}
+.bocat{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:14px;font:inherit;font-size:12px;font-weight:700;background:#e8f1ea;color:#2f7a40;border:1px solid #cfe5d4;cursor:pointer;white-space:nowrap;max-width:420px;overflow:hidden;text-overflow:ellipsis}
+.bocat[hidden]{display:none}
+.bocat .sw2{font-size:10.5px;font-weight:700;padding:0 6px;border-radius:8px;background:#fff;color:#2f7a40;border:1px solid #cfe5d4}
+.bocat.off .sw2{color:var(--muted);border-color:var(--line)}
+.wbo{font-style:normal;font-size:10px;font-weight:700;color:#2f7a40;background:#e8f1ea;border-radius:6px;padding:0 5px;margin-left:5px;vertical-align:1px}
+@media (max-width:700px){.bocat{max-width:92vw}}
 .boinfo .bx{border:0;background:none;color:inherit;font:inherit;font-weight:800;cursor:pointer;padding:0 0 0 6px;opacity:.7}.boinfo .bx:hover{opacity:1}
 .boinfo{margin-left:10px;padding:1px 8px;border-radius:10px;background:#e8f1ea;color:#2f7a40;font-weight:700;font-size:11.5px}
 body.full header.mmh,body.full nav.mmb,body.full .mmsheet,body.full footer.mmf{display:none!important}
@@ -223,7 +229,7 @@ body.popped #po{display:none}
     <a class="brandmini" href="../" target="_blank" rel="noopener" title="Market Mint website"><img src="../logo.png" alt=""><span class="hide-sm">MARKET MINT</span></a>
     <label class="fs"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input id="q" type="search" placeholder="Change stock…" autocomplete="off" aria-label="Pick a stock to chart"></label>
-    <div class="sym"><div class="nm" id="nm">–</div><div class="px" id="px"></div><button class="bt wst" id="wst" title="Add to watchlist (Alt+W)">☆</button></div>
+    <div class="sym"><div class="nm" id="nm">–</div><div class="px" id="px"></div><button class="bt wst" id="wst" title="Add to watchlist (Alt+W)">☆</button><button class="bocat" id="boc" hidden></button></div>
     <span class="seg" id="tf" aria-label="Candle size"><button data-p="d" title="Daily candles">D</button><button data-p="w" title="Weekly candles">W</button><button data-p="m" title="Monthly candles">M</button></span>
     <select class="bt" id="ty" aria-label="Chart type" title="Chart type">
       <option value="candle_solid">Candles</option><option value="candle_stroke">Hollow candles</option><option value="heikin">Heikin Ashi</option>
@@ -793,27 +799,58 @@ body.popped #po{display:none}
   let BOD, BOTXT = "";
   function boLoad() {
     if (BOD !== undefined) return; BOD = null;
-    fetch("../breakouts/data.json", { cache: "no-cache" }).then(r => r.ok ? r.json() : null).then(j => { BOD = j || false; drawBO(); legend(); }).catch(() => { BOD = false; });
+    fetch("../breakouts/data.json", { cache: "no-cache" }).then(r => r.ok ? r.json() : null).then(j => { BOD = j || false;
+      if (BOD) for (const r of BOD.rows || []) if (BO_RANK[r.stage] != null && (BOS[r.sym] == null || BO_RANK[r.stage] < BO_RANK[BOS[r.sym]])) BOS[r.sym] = r.stage;
+      drawBO(); legend(); wlDraw(); }).catch(() => { BOD = false; });
   }
+  const BO_RANK = { fresh: 0, climbing: 1, forming: 2 }, BO_NM = { vcp: "VCP", bluesky: "Blue sky", multiyear: "Multi-year", ipo: "IPO base" };
+  const BO_ST = { fresh: "Fresh breakout", climbing: "Climbing", forming: "Forming base" };
+  let BOS = {};                                    // symbol -> best stage, for the watchlist tags
+  function boInfo(sym) {
+    if (!BOD) return null;
+    const rows = (BOD.rows || []).filter(r => r.sym === sym && BO_RANK[r.stage] != null); if (!rows.length) return null;
+    const r = rows.slice().sort((a, b) => BO_RANK[a.stage] - BO_RANK[b.stage])[0];
+    const screens = [...new Set(rows.filter(x => x.stage === r.stage).map(x => BO_NM[x.screen] || x.screen))].join(" + ");
+    const lvl = r.stage === "forming" ? `pivot ₹${num(r.pivot)}` : `from ₹${num(r.entry)}`;
+    return { r, text: `${screens} · ${BO_ST[r.stage]} ${lvl}` };
+  }
+  function boBadge() {
+    const b = $("#boc"), inf = SYM && boInfo(SYM);
+    if (!inf) { b.hidden = true; return; }
+    b.hidden = false; b.classList.toggle("off", !P.bo);
+    b.innerHTML = `Breakout Desk · ${esc(inf.text)} <span class="sw2">${P.bo ? "levels on" : "levels off"}</span>`;
+    b.title = (P.bo ? "Click to hide" : "Click to show") + " the pivot, breakout, stop and base boxes on the chart. The badge always stays.";
+  }
+  $("#boc").onclick = () => setBO(!P.bo);
   function drawBO() {
     chart.removeOverlay({ groupId: "bo" }); BOTXT = "";
-    if (!P.bo || !SYM || !BARS.length) return;
-    if (BOD === undefined || BOD === null) { boLoad(); return; }
-    if (!BOD) return;
-    const rows = (BOD.rows || []).filter(r => r.sym === SYM); if (!rows.length) return;
-    const rank = { fresh: 0, climbing: 1, forming: 2 }, r = rows.slice().sort((a, b) => (rank[a.stage] ?? 9) - (rank[b.stage] ?? 9))[0];
-    const NM = { vcp: "VCP", bluesky: "Blue sky", multiyear: "Multi-year", ipo: "IPO base" }, sn = NM[r.screen] || r.screen;
+    if (!SYM || !BARS.length) { boBadge(); return; }
+    if (BOD === undefined || BOD === null) { boLoad(); boBadge(); return; }
+    boBadge();
+    const inf = boInfo(SYM); if (!inf || !P.bo) return;
+    const r = inf.r;
     const lastT = BARS[BARS.length - 1].timestamp;
     const lv = (price, t, c) => { if (price != null) chart.createOverlay({ name: "mmLevel", groupId: "bo", lock: true, points: [{ timestamp: lastT, value: price }], extendData: { t, c } }); };
-    if (r.stage === "forming") { lv(r.pivot, "Pivot", "#3b8a4c"); BOTXT = `Breakout Desk: ${sn} · forming · pivot ₹${num(r.pivot)}`; }
-    else if (r.stage === "fresh" || r.stage === "climbing") { lv(r.entry, "Breakout", "#111827"); lv(r.stop, "8% stop", DN);
-      BOTXT = `Breakout Desk: ${sn} · ${r.stage === "fresh" ? "fresh breakout" : "climbing"} from ₹${num(r.entry)}`; }
-    else return;
+    if (r.stage === "forming") lv(r.pivot, "Pivot", "#3b8a4c");
+    else { lv(r.entry, "Breakout", "#111827"); lv(r.stop, "8% stop", DN); }
     const k = (BOD.charts || {})[SYM], i0 = k && BOD.dates ? BOD.dates.indexOf(k.d0) : -1;
-    if (i0 >= 0) for (const b of k.bases || []) {
-      const a = BOD.dates[i0 + b.s], z = BOD.dates[i0 + Math.min(b.e, (k.n || 1) - 1)]; if (!a || !z) continue;
+    // Breakout Desk keeps only ~150 days per stock, so a base that began earlier is cut at that window's first day while its
+    // low comes from the whole base. Rebuild each box from our own full history: start = the peak that began the base
+    // (the current base: its length in weeks), bottom = the lowest candle inside the box, top = the base's pivot.
+    const dd = D ? D.w.concat(D.d) : [], ddT = dd.map(x => x.t * DAY);
+    const idxOn = t => { let lo = 0, hi = ddT.length - 1; while (lo < hi) { const m = (lo + hi + 1) >> 1; if (ddT[m] <= t) lo = m; else hi = m - 1; } return lo; };
+    if (i0 >= 0 && dd.length) for (const b of k.bases || []) {
+      const a = BOD.dates[i0 + b.s], z = BOD.dates[i0 + Math.min(b.e, (k.n || 1) - 1)]; if (!a || !z || !b.pivot) continue;
+      let aT = Date.parse(a + "T00:00:00Z"); const zT = Date.parse(z + "T00:00:00Z");
+      if (b.s === 0) {
+        if (b.n === r.bnum && r.base_weeks) aT = Math.min(aT, zT - Math.round(r.base_weeks * 7) * DAY);
+        else { let j = idxOn(aT); const stop = Math.max(0, idxOn(aT - 3 * 365 * DAY));
+          while (j > stop && (dd[j].h ?? dd[j].c) < b.pivot * 0.97) j--; aT = Math.min(aT, ddT[j]); }
+      }
+      let lo = Infinity; for (let j = idxOn(aT); j < dd.length && ddT[j] <= zT; j++) lo = Math.min(lo, dd[j].l ?? dd[j].c);
+      if (!isFinite(lo) || lo >= b.pivot) continue;
       chart.createOverlay({ name: "mmBase", groupId: "bo", lock: true, extendData: { n: b.n, on: b.n === r.bnum },
-        points: [{ timestamp: snapTs(Date.parse(a + "T00:00:00Z")), value: b.pivot }, { timestamp: snapTs(Date.parse(z + "T00:00:00Z")), value: b.low }] });
+        points: [{ timestamp: snapTs(aT), value: b.pivot }, { timestamp: snapTs(zT), value: lo }] });
     }
   }
 
@@ -873,7 +910,7 @@ body.popped #po{display:none}
 
   // ---------- toolbar
   // Breakout Desk levels on / off (bottom-bar button, × on the green label, Indicators menu)
-  function setBO(on) { P.bo = on ? 1 : 0; save(); drawBO(); legend(); segOn(); hint(on ? "Breakout Desk levels shown" : "Breakout Desk levels hidden · the Breakouts button below brings them back"); }
+  function setBO(on) { P.bo = on ? 1 : 0; save(); drawBO(); legend(); segOn(); hint(on ? "Breakout Desk levels shown on the chart" : "Breakout Desk levels hidden (the badge stays)en · the Breakouts button below brings them back"); }
   $("#bob").onclick = () => setBO(!P.bo);
   $("#clg").addEventListener("click", e => { if (e.target.closest("[data-bohide]")) { e.stopPropagation(); setBO(false); } }, true);
   const segOn = () => { $("#bob") && $("#bob").classList.toggle("on", !!P.bo); document.querySelectorAll("#tf button").forEach(b => { const on = b.dataset.p === PER; b.classList.toggle("on", on);
@@ -973,7 +1010,7 @@ body.popped #po{display:none}
     const l = wlCur(), syms = wlShown();
     $("#wsel").innerHTML = W.lists.map(x => `<option value="${esc(x.id)}" ${x.id === l.id ? "selected" : ""}>${esc(x.name)} (${wlSyms(x).length})</option>`).join("");
     $("#wlist").innerHTML = syms.length ? syms.map(s => { const r = BY[s] || {}, x = pxOf(s);
-      return `<div class="wrow ${s === SYM ? "on" : ""}" data-s="${esc(s)}" draggable="${W.sort ? "false" : "true"}"><span><b>${esc(s)}</b><small>${esc(r.n || "")}</small></span>
+      return `<div class="wrow ${s === SYM ? "on" : ""}" data-s="${esc(s)}" draggable="${W.sort ? "false" : "true"}"><span><b>${esc(s)}</b>${BOS[s] ? `<em class="wbo" title="On Breakout Desk">${BO_ST[BOS[s]]}</em>` : ""}<small>${esc(r.n || "")}</small></span>
         <span class="p">${x.p != null ? num(x.p) : "–"}</span><span class="c ${MM.cls(x.c)}">${x.c != null ? sgn(x.c, 2) : ""}</span>
         <button class="rm" data-rm="${esc(s)}" title="Remove from this list" aria-label="Remove ${esc(s)}">×</button></div>`; }).join("")
       : `<div class="wempty">“${esc(l.name)}” is empty.<br>Add stocks with the box above, the <b>+</b> button, or press <b>Alt+W</b> on any chart.</div>`;
@@ -1146,7 +1183,7 @@ body.popped #po{display:none}
   function reload() { chart.resetData(); setTimeout(afterData, 0); }
   async function go(sym, push = true) {
     sym = String(sym || "").toUpperCase().trim(); if (!sym) return;
-    SYM = sym; D = null; EV = null; EVL = []; EVB = {}; selNone(); DRAWING = null;
+    SYM = sym; D = null; EV = null; EVL = []; EVB = {}; selNone(); DRAWING = null; $("#boc").hidden = true;
     UNDO = []; REDO = []; try { SNAP = localStorage.getItem(DKEY(sym)) || "[]"; } catch (e) { SNAP = "[]"; }
     if (push) history.replaceState(null, "", "?" + encodeURIComponent(sym) + (tfCode() !== "d" ? "&tf=" + tfCode() : "") + FULLQ);
     wlDraw(); $("#q").value = sym;
@@ -1191,6 +1228,7 @@ body.popped #po{display:none}
   document.addEventListener("keydown", e => { if (e.altKey && e.key === "Enter" && !e.ctrlKey && !e.metaKey) { e.preventDefault(); toggleAllBars(); } });
   if (!document.body.classList.contains("popped")) $(".brandmini").removeAttribute("target");
   applyHide();
+  boLoad();
 
   // ---------- start
   applyInd(); setLog();
