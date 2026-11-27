@@ -138,7 +138,7 @@
     el.className = "mmc"; el.hidden = true;
     el.innerHTML = `<div class="mmv" role="dialog" aria-modal="true" aria-label="Price chart">
       <div class="hd"><div class="nm"></div><div class="px"></div>
-        <a class="xp ck" href="#" title="Open in the Charts page: drawing tools, indicators, all events">Open in Charts ↗</a><button class="x fs" title="Full screen" aria-label="Full screen" style="font-size:16px">⤢</button><button class="x cl" aria-label="Close">×</button></div>
+        <a class="xp ck" href="#" target="_blank" rel="noopener" title="Open in the Charts page: drawing tools, indicators, all events">Open in Charts ↗</a><button class="x fs" title="Full screen" aria-label="Full screen" style="font-size:16px">⤢</button><button class="x cl" aria-label="Close">×</button></div>
       ${TB.replace("XP", "")}
       <div class="ft">Daily candles for about 2 years, weekly before that. Today's candle follows the live price (a few minutes behind). For learning and research, not advice.</div></div>`;
     document.body.appendChild(el);
@@ -161,7 +161,7 @@
     if (q(".nm")) q(".nm").innerHTML = `${esc(opt.name || opt.sym)}<small>${esc(opt.sym)}${opt.ex && opt.ex !== "NSE" ? " · " + esc(opt.ex) : " · NSE"}</small>`;
     if (q(".px")) q(".px").innerHTML = "";
     q(".lg").innerHTML = ""; q(".ov").innerHTML = "";
-    if (q(".ck")) q(".ck").href = ROOT + "charts/?" + encodeURIComponent(opt.sym);
+    if (q(".ck")) q(".ck").href = ROOT + "charts/?" + encodeURIComponent(opt.sym) + "&full=1";
     q(".msg").hidden = false; q(".msg").textContent = "Loading chart…";
     if (v.chart) { v.chart.remove(); v.chart = null; }
     let LW, D;
@@ -196,7 +196,7 @@
   // inline chart inside a page element (stock pages). opt as for open(); the ⤢ button opens the same chart in the popup.
   async function mount(el, opt) {
     style();
-    el.innerHTML = `<div class="mmv inl">${TB.replace("XP", `<a class="xp" href="${ROOT}charts/?${encodeURIComponent(opt.sym)}" title="Drawing tools, indicators, every order, result, split and bonus">Open in Charts ↗</a>`)}</div>`;
+    el.innerHTML = `<div class="mmv inl">${TB.replace("XP", `<a class="xp" href="${ROOT}charts/?${encodeURIComponent(opt.sym)}&full=1" target="_blank" rel="noopener" title="Drawing tools, indicators, every order, result, split and bonus">Open in Charts ↗</a>`)}</div>`;
     const v = { root: el.querySelector(".mmv"), modal: false, chart: null, st: prefs() };
     views.push(v);
     return start(v, opt);

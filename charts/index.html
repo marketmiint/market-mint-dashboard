@@ -86,6 +86,13 @@ select.bt{padding-right:6px}
 .ipop .it.act{background:#f2f8f3}
 .ipop .q{width:100%;padding:7px 9px;border:1.5px solid var(--line);border-radius:8px;font:inherit;margin-bottom:4px;background:var(--card);color:var(--ink)}
 .cp:fullscreen{height:100vh}
+body.full header.mmh,body.full nav.mmb,body.full .mmsheet,body.full footer.mmf{display:none!important}
+body.full{padding:0!important;margin:0}
+body.full .cp{height:100vh!important;min-height:0;border-bottom:0}
+.brandmini{display:none;align-items:center;gap:6px;text-decoration:none;color:var(--ink);font-weight:800;font-size:12.5px;letter-spacing:.04em;margin-right:4px}
+.brandmini img{width:24px;height:24px;border-radius:6px}
+body.full .brandmini{display:inline-flex}
+body.full #po{display:none}
 .cp{position:relative}
 /* side panel tabs */
 .stabs{display:flex;align-items:center;gap:4px;padding:8px 10px;border-bottom:1px solid var(--line)}
@@ -138,11 +145,13 @@ select.bt{padding-right:6px}
 </style>
 </head>
 <body data-root="../" class="cpg">
+<script>if (/[?&]full=1\b/.test(location.search)) document.body.classList.add("full");</script>
 <script src="../assets/mm.js"></script>
 <script src="../assets/mmchart.js"></script>
 <script src="../assets/klc.js"></script>
 <main class="cp" id="cp">
   <div class="ctop">
+    <a class="brandmini" href="../" target="_blank" rel="noopener" title="Market Mint website"><img src="../logo.png" alt=""><span class="hide-sm">MARKET MINT</span></a>
     <label class="fs"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input id="q" type="search" placeholder="Change stock…" autocomplete="off" aria-label="Pick a stock to chart"></label>
     <div class="sym"><div class="nm" id="nm">–</div><div class="px" id="px"></div><button class="bt wst" id="wst" title="Add to watchlist (Alt+W)">☆</button></div>
@@ -157,6 +166,7 @@ select.bt{padding-right:6px}
       <button class="bt" id="wb" title="Watchlists"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg><span class="hide-sm">Watchlist</span></button>
       <button class="bt" id="eb" title="Order wins, results, splits, bonus, dividends"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Events</button>
       <button class="bt hide-sm" id="sn" title="Save a picture of the chart"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
+      <button class="bt" id="po" title="Open this chart in its own big window"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4h6v6M20 4l-8 8"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg><span class="hide-sm">Pop out</span></button>
       <button class="bt" id="fz" title="Full screen"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
     </div>
   </div>
@@ -384,6 +394,7 @@ select.bt{padding-right:6px}
   // ---------- data: our chart files (daily ~2 years, weekly back to listing) + live price
   let SYM = "", NAME = "", ROW = null, D = null, EV = null, PER = P.tf, SPAN = Math.max(1, +P.sp || 1), BARS = [];
   const UNIT = { d: "day", w: "week", m: "month" };
+  const FULL = document.body.classList.contains("full"), FULLQ = FULL ? "&full=1" : "";
   const tfName = (p, n) => n > 1 ? (p === "m" && n % 12 === 0 ? (n / 12 === 1 ? "Yearly" : n / 12 + "-year") : n + "-" + UNIT[p]) : { d: "Daily", w: "Weekly", m: "Monthly" }[p];
   const tfCode = () => (SPAN > 1 ? SPAN : "") + PER;
   const period = () => ({ type: PER === "d" ? "day" : PER === "w" ? "week" : "month", span: SPAN });
@@ -565,7 +576,7 @@ select.bt{padding-right:6px}
   function setPer(p, n = 1) {
     if (p === "d" && D && !D.d.length) p = "w";
     PER = p; SPAN = n; P.tf = p; P.sp = n; save();
-    if (SYM) history.replaceState(null, "", "?" + encodeURIComponent(SYM) + (tfCode() !== "d" ? "&tf=" + tfCode() : ""));
+    if (SYM) history.replaceState(null, "", "?" + encodeURIComponent(SYM) + (tfCode() !== "d" ? "&tf=" + tfCode() : "") + FULLQ);
     chart.setPeriod(period());
     afterData(); segOn(); zoomDefault();
   }
@@ -595,6 +606,12 @@ select.bt{padding-right:6px}
   document.querySelector(".stabs").addEventListener("click", e => { const b = e.target.closest("[data-tab]"); if (b) openSide(b.dataset.tab); });
   $("#sx").onclick = closeSide;
   $("#sn").onclick = () => { const u = chart.getConvertPictureUrl(true, "png", CARD); const a = document.createElement("a"); a.href = u; a.download = `${SYM}-${PER}-chart.png`; a.click(); };
+  // pop out: the same chart in its own window, filling the whole screen (no site header). Each click = a new window.
+  $("#po").onclick = () => {
+    const u = location.pathname + "?" + encodeURIComponent(SYM) + (tfCode() !== "d" ? "&tf=" + tfCode() : "") + "&full=1";
+    const w = window.open(u, "mmc" + Date.now(), `popup=yes,width=${screen.availWidth},height=${screen.availHeight},left=0,top=0`);
+    if (!w) location.href = u;                      // pop-ups blocked: open the full view here
+  };
   $("#fz").onclick = () => { document.fullscreenElement ? document.exitFullscreen() : $("#cp").requestFullscreen && $("#cp").requestFullscreen().catch(() => {}); };
   document.addEventListener("fullscreenchange", () => setTimeout(() => chart.resize(), 50));
   MM.attachSearch($("#q"), r => go(r.s));
@@ -741,7 +758,7 @@ select.bt{padding-right:6px}
   async function go(sym, push = true) {
     sym = String(sym || "").toUpperCase().trim(); if (!sym) return;
     SYM = sym; D = null; EV = null; EVL = []; EVB = {};
-    if (push) history.replaceState(null, "", "?" + encodeURIComponent(sym) + (tfCode() !== "d" ? "&tf=" + tfCode() : ""));
+    if (push) history.replaceState(null, "", "?" + encodeURIComponent(sym) + (tfCode() !== "d" ? "&tf=" + tfCode() : "") + FULLQ);
     wlDraw();
     $("#msg").hidden = false; $("#msg").textContent = "Loading chart…";
     const [idx, d, ev] = await Promise.all([MM.index().catch(() => null), MMChart.load(sym).catch(() => null),
