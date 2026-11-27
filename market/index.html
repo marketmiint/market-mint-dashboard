@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>Market & indices | Market Mint</title>
-<meta name="description" content="Market health, 40 NSE indices with their breakout stage and member stocks, and your own custom index.">
+<meta name="description" content="Market health, over 90 NSE indices (broad, sector, theme and strategy) with their breakout stage and member stocks, and your own custom index.">
 <link rel="icon" href="../logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -77,16 +77,18 @@ td input[type=checkbox]{width:16px;height:16px;accent-color:var(--mint-d)}
 <script src="../assets/mm.js"></script>
 <main class="wrap">
   <h1 class="pt">Market &amp; Indices</h1>
-  <p class="lead">How healthy the market is (the safety light, breadth and a year of history), 40 NSE indices with their breakout stage, and your own custom index from any stocks.</p>
+  <p class="lead">How healthy the market is (the safety light, breadth and a year of history), over 90 NSE indices (broad, sector, theme and strategy) with their breakout stage, and your own custom index from any stocks.</p>
 
   <section class="panel" id="top"><div class="empty">Loading…</div></section>
 
   <h2 class="sec" id="indices"><span>Indices</span>
-    <span class="seg2" id="grp"><button data-g="Broad" class="on">Broad</button><button data-g="Sector">Sector</button><button data-g="Theme">Theme</button><button data-g="Strategy">Strategy</button><button data-g="Mine">My indices</button></span></h2>
+    <span class="seg2" id="grp"><button data-g="All">All</button><button data-g="Broad" class="on">Broad</button><button data-g="Sector">Sector</button><button data-g="Theme">Theme</button><button data-g="Strategy">Strategy</button><button data-g="Mine">My indices</button></span></h2>
   <div class="fbar" style="padding:0 0 12px">
     <input type="search" id="iq" placeholder="Find an index">
     <select id="ist" aria-label="Stage"><option value="">Any stage</option><option value="fresh">Fresh breakout</option><option value="climbing">Climbing</option><option value="forming">Forming</option><option value="played">Played out</option><option value="below">Below base</option></select>
-    <select id="isort" aria-label="Sort"><option value="">Default order</option><option value="1D">Best today</option><option value="1M">Best 1 month</option><option value="1Y">Best 1 year</option><option value="-1Y">Worst 1 year</option></select>
+    <select id="isort" aria-label="Sort"><option value="">Default order</option><option value="1D">Best today</option><option value="1M">Best 1 month</option><option value="1Y">Best 1 year</option><option value="1W">Best 1 week</option><option value="3M">Best 3 months</option><option value="6M">Best 6 months</option><option value="-1M">Worst 1 month</option><option value="-6M">Worst 6 months</option><option value="-1Y">Worst 1 year</option><option value="n">Most stocks</option></select>
+    <select id="irs" aria-label="Strength"><option value="">Any strength</option><option value="b1M">Beating Nifty 500 (1 month)</option><option value="b3M">Beating Nifty 500 (3 months)</option><option value="b6M">Beating Nifty 500 (6 months)</option><option value="b1Y">Beating Nifty 500 (1 year)</option><option value="l6M">Lagging Nifty 500 (6 months)</option><option value="u1M">Up in the last month</option><option value="d1M">Down in the last month</option></select>
+    <select id="isz" aria-label="Size"><option value="">Any size</option><option value="s">Up to 20 stocks</option><option value="m">21 to 50 stocks</option><option value="l">Over 50 stocks</option></select>
   </div>
   <div class="igrid" id="grid"></div>
 
@@ -215,11 +217,19 @@ td input[type=checkbox]{width:16px;height:16px;accent-color:var(--mint-d)}
     if (state.g === "Mine") {
       document.getElementById("grid").innerHTML = '<div class="empty">Loading your indices…</div>';
       list = await Promise.all(loadMine().map(buildCustom));
-    } else list = ix.indices.filter(x => x.group === state.g);
+    } else list = state.g === "All" ? ix.indices.slice() : ix.indices.filter(x => x.group === state.g);
     const iq = document.getElementById("iq").value.trim().toLowerCase(), ist = document.getElementById("ist").value, iso = document.getElementById("isort").value;
     if (iq) list = (state.g === "Mine" ? list : ix.indices).filter(x => x.name.toLowerCase().includes(iq));   // search looks in every group
     if (ist) list = list.filter(x => stageOfIdx(x) === ist);
-    if (iso) {      // "1Y" = best first, "-1Y" = worst first; blanks always last
+    const irs = document.getElementById("irs").value, isz = document.getElementById("isz").value;
+    if (irs) {      // b = beats Nifty 500 over the period, l = lags it, u/d = up/down
+      const k = irs.slice(1), mk = ((ix.indices.find(x => x.id === "nifty500") || {}).r || {})[k];
+      list = list.filter(x => { const v = (x.r || {})[k]; if (v == null) return false;
+        return irs[0] === "b" ? mk != null && v > mk : irs[0] === "l" ? mk != null && v < mk : irs[0] === "u" ? v > 0 : v < 0; });
+    }
+    if (isz) list = list.filter(x => isz === "s" ? x.n <= 20 : isz === "m" ? x.n > 20 && x.n <= 50 : x.n > 50);
+    if (iso === "n") list = list.slice().sort((a, b) => b.n - a.n);
+    else if (iso) {      // "1Y" = best first, "-1Y" = worst first; blanks always last
       const k = iso.replace("-", ""), asc = iso[0] === "-";
       list = list.slice().sort((a, b) => { const x = a.r[k], y = b.r[k]; if (x == null) return 1; if (y == null) return -1; return asc ? x - y : y - x; });
     }
@@ -339,7 +349,7 @@ td input[type=checkbox]{width:16px;height:16px;accent-color:var(--mint-d)}
   document.getElementById("indh").onclick = e => { const th = e.target.closest("th[data-k]"); if (!th) return; const k = th.dataset.k; ist2.dir = ist2.k === k ? -ist2.dir : (k === "name" ? 1 : -1); ist2.k = k; drawInd(); };
   ["nq", "nf"].forEach(id => document.getElementById(id).addEventListener("input", drawInd));
   drawInd();
-  ["iq", "ist", "isort"].forEach(id => document.getElementById(id).addEventListener("input", () => drawGrid()));
+  ["iq", "ist", "isort", "irs", "isz"].forEach(id => document.getElementById(id).addEventListener("input", () => drawGrid()));
 
   // start
   const want = new URLSearchParams(location.search).get("i");
