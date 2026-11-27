@@ -177,7 +177,16 @@ async function instInit() {
       all: pts.length > 1 ? comb(L) - comb(pts[0]) : null, upShare: pairs ? up / pairs * 100 : null,
       from: Q[pts[0]], latest: Q[L], fresh: L >= Q.length - 2};   // filed the latest or the quarter before (filings take ~3 weeks)
   });
-  const secs = [...new Set(IROWS.map(r => r.sector))].sort();
+  // Same sector names as the rest of the site (NSE sectors from Earnings); Yahoo-only industries go to the NSE
+  // sector most of that industry's companies have, else "Other".
+  const sj = await fetch("../data/season.json", {cache: "no-cache"}).then(r => r.ok ? r.json() : null).catch(() => null);
+  const nseOf = {};
+  if (sj) for (const sea of Object.values(sj.seasons || {})) for (const r of sea.rows) if (r.sector && !nseOf[r.sym]) nseOf[r.sym] = r.sector;
+  const NSE = new Set(Object.values(nseOf)), vote = {};
+  for (const r of IROWS) { const n = nseOf[r.sym]; if (n && r.sector && !NSE.has(r.sector)) { (vote[r.sector] = vote[r.sector] || {})[n] = (vote[r.sector][n] || 0) + 1; } }
+  const yMap = Object.fromEntries(Object.entries(vote).map(([y, c]) => [y, Object.entries(c).sort((a, b) => b[1] - a[1])[0][0]]));
+  for (const r of IROWS) r.sector = nseOf[r.sym] || (NSE.has(r.sector) ? r.sector : yMap[r.sector]) || "Other";
+  const secs = [...new Set(IROWS.map(r => r.sector))].sort((a, b) => (a === "Other") - (b === "Other") || a.localeCompare(b));
   $("#iSec").innerHTML = `<option value="">All sectors</option>` + secs.map(s => `<option>${esc(s)}</option>`).join("");
   ["#iWho", "#iMin", "#iCap", "#iSec"].forEach(s => $(s).addEventListener("change", () => { iq.shown = 60; idraw(); }));
   $("#iQ").addEventListener("input", () => { iq.shown = 60; idraw(); });
