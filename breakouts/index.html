@@ -390,7 +390,7 @@ function svgChart(r) {
   for (let p = Math.ceil(lo / step) * step; p <= hi; p += step)
     s += `<line x1="${L}" x2="${W - R}" y1="${Y(p)}" y2="${Y(p)}" stroke="var(--line)" stroke-width=".7"/><text x="${W - R + 6}" y="${Y(p) + 4}" font-size="10.5" fill="var(--muted)">${fp(p)}</text>`;
   for (const b of k.bases || []) {
-    const x1 = L + b.s * cw, x2 = L + (b.e + (b.forming ? 1 : 0)) * cw, y1 = Math.max(T - 6, Y(b.pivot)), y2 = Math.min(T + PH, Y(b.low)), me = b.n === r.bnum;
+    const x1 = L + b.s * cw, x2 = L + (b.e + (b.forming ? 1 : 0)) * cw, y1 = Math.max(T - 6, Y(b.pivot)), lw = Math.min(...k.l.slice(b.s, b.e + 1).filter(v => v != null)), y2 = Math.min(T + PH, Y(isFinite(lw) ? lw : b.low)), me = b.n === r.bnum;
     const col = b.forming ? "var(--muted)" : b.running || (b.result ?? 0) >= 0 ? "var(--up)" : "var(--down)";
     s += `<rect x="${x1}" y="${y1}" width="${Math.max(2, x2 - x1)}" height="${Math.max(2, y2 - y1)}" rx="3" fill="${col}" fill-opacity="${me ? .1 : .05}" stroke="${col}" stroke-opacity="${me ? .9 : .45}" stroke-dasharray="4 3" stroke-width="${me ? 1.4 : 1}"/>`;
     s += `<text x="${x1 + 3}" y="${y2 + 13 > T + PH ? y1 - 5 : y2 + 13}" font-size="10.5" font-weight="700" fill="${col}">B${b.n}</text>`;
