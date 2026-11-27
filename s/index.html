@@ -144,7 +144,7 @@ section{scroll-margin-top:170px}
             <div id="mmchart"></div>
             <div class="chart" id="chart" hidden></div>
             <div class="rets">${Object.entries(px.r || {}).map(([a, v]) => `<span>${a}<b class="${cls(v)}">${pct(v)}</b></span>`).join("")}
-              <span class="muted" style="background:none" id="mklg"><b style="color:#1f6fd1;margin:0">●</b> order win &nbsp;<b style="color:#c98a0c;margin:0">●</b> result</span></div></div>
+              <span class="muted" style="background:none" id="mklg"><b style="color:#1f6fd1;margin:0">●</b> order win &nbsp;<b style="color:#c98a0c;margin:0">●</b> result &nbsp;<b style="color:#7c3aed;margin:0">●</b> split / bonus</span></div></div>
           <div class="panel"><h2>Key numbers <small>trailing 12 months</small></h2>
             <div class="keys">
               ${[["Market cap", crs(c.mcap)], ["P/E", peT(k.pe)], ["P/B", x(k.pb)], ["EV/EBITDA", x(k.ev_ebitda)],
@@ -325,7 +325,7 @@ section{scroll-margin-top:170px}
       <div class="qchart">${bars(qs, "sales", "Sales per quarter")}${bars(qs, "pat", "Net profit per quarter")}</div>
       <div class="tscroll qtable"><table><thead><tr><th>Quarter</th>${cols.map(c => `<th${hid(c)}>${qlabel(c.q.q)}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div>
       ${qs.length > 12 ? `<button class="more" id="qmore">Show all ${qs.length} quarters</button>` : ""}
-      <div class="note">From the company's NSE results filings. Consolidated figures where the company files them, else standalone. For banks, sales = interest earned and operating profit = profit before provisions. For NBFCs and other lenders, operating profit is after interest cost.</div>`;
+      <div class="note">${h.src === "yahoo" ? "From Yahoo Finance: this company has no NSE results filings (BSE-only or newly listed), so only the latest quarters are shown and operating profit is after depreciation. " : "From the company's NSE results filings. Consolidated figures where the company files them, else standalone. For banks, sales = interest earned and operating profit = profit before provisions. For NBFCs, other lenders and insurers, operating profit = profit before tax and other income (after interest cost)."}</div>`;
   }
 
   function yearly(h, annual) {
