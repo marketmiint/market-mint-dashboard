@@ -148,7 +148,7 @@ dialog::backdrop{background:rgba(5,15,11,.6)}
 <div class="ctl">
   <select id="season" aria-label="Quarter"></select>
   <select id="cap" aria-label="Market cap"><option value="">All caps</option><option>Large</option><option>Mid</option><option>Small</option><option>Micro</option></select>
-  <select id="grade" aria-label="Grade"><option value="">All grades</option><option>Excellent</option><option>Great</option><option>Good</option><option>OK</option><option>Weak</option></select>
+  <select id="grade" aria-label="Grade"><option value="">All grades</option><option>Strong growth</option><option>Good growth</option><option>Growing</option><option>Flat</option><option>Falling</option><option>Loss</option></select>
   <select id="sector" aria-label="Sector"><option value="">All sectors</option></select>
   <input id="q" type="search" placeholder="Find a company">
 </div>
@@ -163,7 +163,7 @@ const pc = (v, d=1) => v == null ? "–" : v > 999 ? ">+999%" : v < -999 ? "<−
 const cls = v => v == null ? "" : v > 0 ? "up" : v < 0 ? "down" : "";
 const crs = v => v == null ? "–" : v >= 100000 ? "₹" + (v/100000).toFixed(2) + " L Cr" : "₹" + Math.round(v).toLocaleString("en-IN") + " Cr";
 const capOf = m => m >= 100000 ? "Large" : m >= 30000 ? "Mid" : m >= 5000 ? "Small" : "Micro";
-const GR = {Excellent:["💎","#085c6e"],Great:["🚀","#0a8f5a"],Good:["✅","#5cbf8a"],OK:["🟡","#d9a521"],Weak:["🔻","#c43434"]};
+const GR = {"Strong growth":["💎","#085c6e"],"Good growth":["🚀","#0a8f5a"],"Growing":["✅","#5cbf8a"],"Flat":["🟡","#d9a521"],"Falling":["🔻","#c43434"],"Loss":["🔴","#8c1c1c"]};
 const fmtDay = iso => new Date(iso + "T12:00:00+05:30").toLocaleDateString("en-IN",{day:"numeric",month:"short"});
 let DATA = null, PAGES = new Set();
 const page = sym => MM.stockUrl(sym);
@@ -369,7 +369,7 @@ function ipop(r) {
 }
 
 const COLS = [["name","Company"],["day","Results"],["rating","Grade"],["sales_yoy","Sales YoY"],["op_yoy","Op profit YoY"],["pat_yoy","Profit YoY"],["sales_qoq","Sales QoQ"],["pat_qoq","Profit QoQ"],["day1","Results day"],["move","Since results"],["sales_3y","Sales 3Y/yr"],["pat_3y","Profit 3Y/yr"],["sales_5y","Sales 5Y/yr"],["mcap","M-cap"]];
-const RANK = {Excellent:5,Great:4,Good:3,OK:2,Weak:1};
+const RANK = {"Strong growth":6,"Good growth":5,"Growing":4,"Flat":3,"Falling":2,"Loss":1};
 const st = {sort: "day", dir: -1, shown: 60};
 function rowsNow() {
   const S = DATA.seasons[$("#season").value], q = $("#q").value.trim().toLowerCase();

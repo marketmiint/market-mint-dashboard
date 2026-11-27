@@ -76,7 +76,7 @@ const pc = (v, d=1) => v == null ? "–" : v > 999 ? ">+999%" : v < -999 ? "<−
 const cls = v => v == null ? "" : v > 0 ? "up" : v < 0 ? "down" : "";
 const crs = v => v == null ? "–" : v >= 100000 ? "₹" + (v/100000).toFixed(2) + " L Cr" : "₹" + Math.round(v).toLocaleString("en-IN") + " Cr";
 const capOf = m => m >= 100000 ? "Large" : m >= 30000 ? "Mid" : m >= 5000 ? "Small" : "Micro";
-const GR = {Excellent:["💎","#085c6e"],Great:["🚀","#0a8f5a"],Good:["✅","#5cbf8a"],OK:["🟡","#d9a521"],Weak:["🔻","#c43434"]};
+const GR = {"Strong growth":["💎","#085c6e"],"Good growth":["🚀","#0a8f5a"],"Growing":["✅","#5cbf8a"],"Flat":["🟡","#d9a521"],"Falling":["🔻","#c43434"],"Loss":["🔴","#8c1c1c"]};
 const fmtDay = iso => new Date(iso + "T12:00:00+05:30").toLocaleDateString("en-IN",{day:"numeric",month:"short"});
 let DATA = null, PAGES = new Set();
 const page = sym => MM.stockUrl(sym);
