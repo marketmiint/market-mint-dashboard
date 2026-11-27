@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Market & indices | Market Mint</title>
+<title>Market | Market Mint</title>
 <meta name="description" content="Market health, over 90 NSE indices (broad, sector, theme and strategy) with their breakout stage and member stocks, and your own custom index.">
 <link rel="icon" href="../logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -71,13 +71,18 @@ td input[type=checkbox]{width:16px;height:16px;accent-color:var(--mint-d)}
 .legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
 .bt{padding:0 18px 14px}.bt table td,.bt table th{text-align:right}.bt table td:first-child,.bt table th:first-child{text-align:left}
 .bt h4{margin:14px 0 8px;font-size:15px}
+.more a{display:flex;gap:4px 14px;align-items:center;flex-wrap:wrap;padding:16px 18px;color:inherit;text-decoration:none}
+.more a .muted{font-size:13.5px;flex:1 1 260px}
+.more a .go{color:var(--mint-d);font-weight:700;white-space:nowrap}
+.more a:hover .go{text-decoration:underline}
+.rets .rsl{margin-left:auto;align-self:center;font-size:13.5px;font-weight:600;color:var(--mint-d);white-space:nowrap}
 </style>
 </head>
 <body data-root="../">
 <script src="../assets/mm.js"></script>
 <main class="wrap">
-  <h1 class="pt">Market &amp; Indices</h1>
-  <p class="lead">How healthy the market is (the safety light, breadth and a year of history), over 90 NSE indices (broad, sector, theme and strategy) with their breakout stage, and your own custom index from any stocks.</p>
+  <h1 class="pt">Market</h1>
+  <p class="lead">Is it a good time to buy? The safety light, market breadth and a year of history, every NSE index with its breakout stage, and your own custom index. To see which industries and indices are leading, open <a href="../strength/">Sector strength ›</a></p>
 
   <section class="panel" id="top"><div class="empty">Loading…</div></section>
 
@@ -94,10 +99,7 @@ td input[type=checkbox]{width:16px;height:16px;accent-color:var(--mint-d)}
 
   <section class="panel" id="detail" hidden></section>
 
-  <h2 class="sec" id="industries"><span>Industries</span><small class="muted" style="font-size:13px;font-weight:500">tap a column to sort · tap a name to see its breakout setups</small></h2>
-  <section class="panel"><div class="fbar"><input type="search" id="nq" placeholder="Find an industry">
-    <select id="nf" aria-label="Show"><option value="">All industries</option><option value="bo">With fresh or climbing breakouts</option><option value="up">Up in the last month</option><option value="dn">Down in the last month</option></select></div>
-    <div class="tscroll"><table><thead id="indh"><tr><th data-k="name">Industry</th><th data-k="rs">RS ▼</th><th data-k="r1m">1 mo</th><th data-k="r3m">3 mo</th><th data-k="above50">Above 50d</th><th>Trend</th></tr></thead><tbody id="ind"></tbody></table></div></section>
+  <section class="panel more"><a href="../strength/"><b>Which industries are leading?</b><span class="muted">Every industry ranked by RS Score, with its stocks, breakout setups and % above the 50-day average</span><span class="go">Sector strength ›</span></a></section>
 </main>
 
 <div class="dlg" id="dlg" hidden><div class="box">
@@ -271,7 +273,7 @@ td input[type=checkbox]{width:16px;height:16px;accent-color:var(--mint-d)}
     el.innerHTML = `<div class="dh"><h3>${esc(x.name)} ${stagePill(offSt || s.stage)}</h3>
         <div class="lv">${o ? Number(o.close).toLocaleString("en-IN", { maximumFractionDigits: 2 }) + ` <span class="${cls(o.chg)}" style="font-size:15px">${pct(o.chg, 2)}</span><small>Official level · ${fmtDate(ix.day)}</small>`
           : `${x.line[x.line.length - 1].toFixed(2)}<small>Equal-weight line, 100 a year ago</small>`}</div></div>
-      <div class="rets">${Object.entries(x.r).map(([k, v]) => `<span>${k}<b class="${cls(v)}">${pct(v)}</b></span>`).join("")}</div>
+      <div class="rets">${Object.entries(x.r).map(([k, v]) => `<span>${k}<b class="${cls(v)}">${pct(v)}</b></span>`).join("")}${x.mine ? "" : `<a class="rsl" href="../strength/?t=idx&k=${encodeURIComponent(x.id)}">See its RS Score ›</a>`}</div>
       <div class="crow"><b style="font-size:14px">Equal-weight line of its ${x.n} stocks</b>
         <span class="seg2" id="rng">${["1M", "3M", "6M", "1Y"].map(r => `<button data-r="${r}" class="${r === dt.range ? "on" : ""}">${r}</button>`).join("")}</span></div>
       <div class="chart">${lineChart(pts, { base: s.pivot && dt.range !== "1M" ? s.pivot : null, id: "ixg",
@@ -333,22 +335,6 @@ td input[type=checkbox]{width:16px;height:16px;accent-color:var(--mint-d)}
   };
   document.getElementById("cdel").onclick = () => { saveMine(loadMine().filter(c => c.id !== cur.id)); close(); document.getElementById("detail").hidden = true; state.sel = null; state.g = "Mine"; drawGrid(); };
 
-  // ---------------- industries
-  const ist2 = { k: "rs", dir: -1 };
-  function drawInd() {
-    const nq = document.getElementById("nq").value.trim().toLowerCase(), nf = document.getElementById("nf").value;
-    const rs = (bo.industries || []).filter(x => (!nq || x.name.toLowerCase().includes(nq)) &&
-      (!nf || (nf === "bo" ? (x.fresh || x.climbing) : nf === "up" ? x.r1m > 0 : x.r1m < 0)))
-      .sort((a, c) => ist2.k === "name" ? a.name.localeCompare(c.name) * ist2.dir : ((a[ist2.k] ?? -1e9) - (c[ist2.k] ?? -1e9)) * ist2.dir);   // dir -1 = high to low
-    document.querySelectorAll("#indh th[data-k]").forEach(th => th.textContent = th.textContent.replace(/ [▲▼]$/, "") + (th.dataset.k === ist2.k ? (ist2.dir < 0 ? " ▼" : " ▲") : ""));
-    document.getElementById("ind").innerHTML = rs.map(x => `<tr>
-    <td><a href="../breakouts/?ind=${encodeURIComponent(x.name)}#screens" title="See this industry's setups in Breakout Desk" style="font-weight:600;color:inherit">${esc(x.name)}</a><small>${x.n} stocks${x.fresh || x.climbing ? ` · ${x.fresh || 0} fresh, ${x.climbing || 0} climbing` : ""}</small></td>
-    <td><span class="rsb" style="display:inline-block;height:6px;border-radius:3px;background:var(--mint-d);vertical-align:middle;margin-right:6px;width:${Math.round(x.rs / 2)}px"></span>${Math.round(x.rs)}</td><td class="${cls(x.r1m)}">${pct(x.r1m * 100)}</td><td class="${cls(x.r3m)}">${pct(x.r3m * 100)}</td>
-    <td>${Math.round(x.above50 * 100)}%</td><td>${spark(x.spark, 90, 26)}</td></tr>`).join("") || '<tr><td colspan="6" class="empty">No industries match.</td></tr>';
-  }
-  document.getElementById("indh").onclick = e => { const th = e.target.closest("th[data-k]"); if (!th) return; const k = th.dataset.k; ist2.dir = ist2.k === k ? -ist2.dir : (k === "name" ? 1 : -1); ist2.k = k; drawInd(); };
-  ["nq", "nf"].forEach(id => document.getElementById(id).addEventListener("input", drawInd));
-  drawInd();
   ["iq", "ist", "isort", "irs", "isz"].forEach(id => document.getElementById(id).addEventListener("input", () => drawGrid()));
 
   // start
