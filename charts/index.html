@@ -22,7 +22,8 @@ body.cpg{overflow-x:hidden}
 .ctop .sym .nm a{color:inherit;text-decoration:none}
 .ctop .px{font-variant-numeric:tabular-nums;white-space:nowrap}.ctop .px b{font-size:16px}.ctop .px small{display:block;font-size:11.5px;color:var(--muted)}
 .ctop .fs{position:relative}
-.ctop .fs input{width:150px;padding:7px 10px 7px 30px;border:1.5px solid var(--line);border-radius:9px;font:inherit;background:var(--card);color:var(--ink)}
+.ctop .fs input{width:150px;padding:7px 10px 7px 30px;border:1.5px solid var(--line);border-radius:9px;font:inherit;font-weight:700;letter-spacing:.01em;background:var(--card);color:var(--ink)}
+.ctop .fs input:focus{font-weight:500;outline:0;border-color:#3b8a4c}
 .ctop .fs svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--muted)}
 .ctop .fs .sugg{min-width:320px}
 .sep{width:1px;height:22px;background:var(--line);margin:0 2px}
@@ -639,7 +640,12 @@ body.full #po{display:none}
   };
   $("#fz").onclick = () => { document.fullscreenElement ? document.exitFullscreen() : $("#cp").requestFullscreen && $("#cp").requestFullscreen().catch(() => {}); };
   document.addEventListener("fullscreenchange", () => setTimeout(() => chart.resize(), 50));
-  MM.attachSearch($("#q"), r => go(r.s));
+  MM.attachSearch($("#q"), r => { go(r.s); setTimeout(() => { $("#q").value = r.s; $("#q").blur(); }, 0); });
+  // the box shows the stock on the chart; click = select it all, so typing replaces it; leaving it empty puts it back
+  let qClick = false;
+  $("#q").addEventListener("focus", () => { $("#q").select(); qClick = true; });
+  $("#q").addEventListener("mouseup", e => { if (qClick) { e.preventDefault(); qClick = false; } });   // keep the selection after the click
+  $("#q").addEventListener("blur", () => setTimeout(() => { if (document.activeElement !== $("#q")) $("#q").value = SYM; }, 200));
 
   // opening zoom: about a year of daily candles, 3 years of weekly, 10 years of monthly (less on phones)
   function zoomDefault() {
@@ -784,11 +790,12 @@ body.full #po{display:none}
     sym = String(sym || "").toUpperCase().trim(); if (!sym) return;
     SYM = sym; D = null; EV = null; EVL = []; EVB = {};
     if (push) history.replaceState(null, "", "?" + encodeURIComponent(sym) + (tfCode() !== "d" ? "&tf=" + tfCode() : "") + FULLQ);
-    wlDraw();
+    wlDraw(); $("#q").value = sym;
     $("#msg").hidden = false; $("#msg").textContent = "Loading chart…";
     const [idx, d, ev] = await Promise.all([MM.index().catch(() => null), MMChart.load(sym).catch(() => null),
       null, MM.live ? MM.live().catch(() => null) : null]);
     if (SYM !== sym) return;
+    if (document.activeElement !== $("#q")) $("#q").value = sym;
     ROW = idx && idx.list ? idx.list.find(r => r.s === sym) : null;
     NAME = ROW ? ROW.n : sym;
     document.title = `${NAME} chart | Market Mint`;
