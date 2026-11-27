@@ -53,7 +53,7 @@ td .co b{font-size:14px}
 .pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
 .st-fresh{background:#e3f6ea;color:#0f7a45}.st-climbing{background:#e6f0fd;color:#1f5fbf}.st-forming{background:#fdf3e1;color:#9a6408}
 .st-played{background:#eef0f3;color:#5b6470}.st-below{background:#fbe9e8;color:#b3352d}
-.rt-Excellent{background:#0f8f55;color:#fff}.rt-Great{background:#e3f6ea;color:#0f7a45}.rt-Good{background:#e6f0fd;color:#1f5fbf}.rt-OK,.rt-Average{background:#eef0f3;color:#5b6470}.rt-Weak,.rt-Poor{background:#fbe9e8;color:#b3352d}
+.pill[class*=rt-]{min-width:82px;justify-content:center;box-sizing:border-box}.rt-Excellent{background:#c9ecd7;color:#0a6638}.rt-Great{background:#e3f6ea;color:#0f7a45}.rt-Good{background:#e6f0fd;color:#1f5fbf}.rt-OK,.rt-Average{background:#eef0f3;color:#5b6470}.rt-Weak,.rt-Poor{background:#fbe9e8;color:#b3352d}
 .seg2{display:inline-flex;background:var(--soft);border-radius:10px;padding:3px;gap:2px;flex-wrap:wrap}
 .seg2 button,.seg2 a{border:0;background:transparent;padding:6px 12px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;color:var(--muted);text-decoration:none;white-space:nowrap}
 .seg2 .on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(15,23,42,.1)}
