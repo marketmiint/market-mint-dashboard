@@ -85,7 +85,7 @@ function popup(r) {
   const g = GR[r.rating];
   $("#dlgB").innerHTML = `<h3>${esc(r.name)}</h3><div style="color:var(--muted);font-size:13px;margin-bottom:8px">NSE: ${esc(r.sym)}${r.sector ? " · " + esc(r.sector) : ""} · ${capOf(r.mcap)} cap</div>
     ${row("Results day", fmtDay(r.day))}
-    ${row("Grade", g ? g[0] + " " + r.rating + (r.graded_by === "card" ? "" : " <small style='color:var(--muted)'>(from Yahoo numbers)</small>") : null)}
+    ${row("Grade", g ? g[0] + " " + r.rating + "" : null)}
     ${row("Stock since results", r.move != null ? `<span class="${cls(r.move)}">${pc(r.move)}</span>` : null)}
     ${row("Results-day move", r.day1 != null ? `<span class="${cls(r.day1)}">${pc(r.day1)}</span>` : null)}
     ${row("Sales", r.sales != null ? crs(r.sales) + ` <span class="${cls(r.sales_yoy)}">${r.sales_yoy != null ? pc(r.sales_yoy) + " YoY" : ""}</span>` : null)}
