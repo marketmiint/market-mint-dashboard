@@ -38,8 +38,8 @@
   const cache = {};
   async function load(sym) {
     if (cache[sym]) return cache[sym];
-    const [h, r] = await Promise.all([getJ(DATA() + "charts/c/" + encodeURIComponent(sym) + ".json"),
-      getJ(DATA() + "breakouts/all/r_" + encodeURIComponent(sym[0]) + ".json")]);
+    const [h, r, ev] = await Promise.all([getJ(DATA() + "charts/c/" + encodeURIComponent(sym) + ".json"),
+      getJ(DATA() + "breakouts/all/r_" + encodeURIComponent(sym[0]) + ".json"), getJ(DATA() + "events/" + encodeURIComponent(sym) + ".json")]);
     const rows = o => o ? o.t.map((t, i) => ({ t, o: o.o[i], h: o.h[i], l: o.l[i], c: o.c[i], v: o.v[i] || 0 })).filter(x => x.c != null) : [];
     let d = h ? rows(h.d) : [];
     const w = h ? rows(h.w) : [];
@@ -48,7 +48,7 @@
     d = d.concat(rec.filter(x => x.t > lastT));
     if (!d.length && !w.length || !h && d.length < 60) return null;     // too little history: pages keep their simple chart
     for (const x of d) { if (x.o == null) x.o = x.c; if (x.h == null) x.h = Math.max(x.o, x.c); if (x.l == null) x.l = Math.min(x.o, x.c); }
-    return (cache[sym] = { d, w });
+    return (cache[sym] = { d, w, ev });
   }
   const wkKey = t => Math.floor((t + 3) / 7);              // Monday-start weeks (day 0 = Thursday 1 Jan 1970)
   function weekly(D) {
@@ -97,6 +97,7 @@
 .mmv .seg button.on{background:var(--card,#fff);color:var(--ink,#111827);box-shadow:0 1px 2px rgba(0,0,0,.08)}
 .mmv .tg{border:1px solid var(--line,#e8eaef);display:inline-flex;align-items:center;gap:6px}.mmv .tg i{width:12px;height:3px;border-radius:2px;display:inline-block}
 .mmv .tg.off{opacity:.45}
+.mmv a.xp{text-decoration:none;font-size:13px}.mmv .hd .xp{margin-left:0}
 .mmv .xp{margin-left:auto;border:1px solid var(--line,#e8eaef);background:var(--card,#fff);color:var(--ink,#111827);padding:5px 11px;border-radius:8px;font:inherit;font-weight:700;cursor:pointer}
 .mmv .lg{padding:6px 16px;font-size:12.5px;color:var(--muted,#6b7280);font-variant-numeric:tabular-nums;min-height:18px}
 .mmv .lg b{color:var(--ink,#111827);font-weight:600}
@@ -137,7 +138,7 @@
     el.className = "mmc"; el.hidden = true;
     el.innerHTML = `<div class="mmv" role="dialog" aria-modal="true" aria-label="Price chart">
       <div class="hd"><div class="nm"></div><div class="px"></div>
-        <button class="x fs" title="Full screen" aria-label="Full screen" style="font-size:16px">⤢</button><button class="x cl" aria-label="Close">×</button></div>
+        <a class="xp ck" href="#" title="Open in the Charts page: drawing tools, indicators, all events">Open in Charts ↗</a><button class="x fs" title="Full screen" aria-label="Full screen" style="font-size:16px">⤢</button><button class="x cl" aria-label="Close">×</button></div>
       ${TB.replace("XP", "")}
       <div class="ft">Daily candles for about 2 years, weekly before that. Today's candle follows the live price (a few minutes behind). For learning and research, not advice.</div></div>`;
     document.body.appendChild(el);
@@ -160,6 +161,7 @@
     if (q(".nm")) q(".nm").innerHTML = `${esc(opt.name || opt.sym)}<small>${esc(opt.sym)}${opt.ex && opt.ex !== "NSE" ? " · " + esc(opt.ex) : " · NSE"}</small>`;
     if (q(".px")) q(".px").innerHTML = "";
     q(".lg").innerHTML = ""; q(".ov").innerHTML = "";
+    if (q(".ck")) q(".ck").href = ROOT + "charts/?" + encodeURIComponent(opt.sym);
     q(".msg").hidden = false; q(".msg").textContent = "Loading chart…";
     if (v.chart) { v.chart.remove(); v.chart = null; }
     let LW, D;
@@ -168,9 +170,21 @@
     if (v.opt !== opt || (v.modal && !v.isOpen())) return false;
     if (!D) { q(".msg").textContent = "No price history for this stock yet."; return false; }
     q(".msg").hidden = true;
-    draw(LW, D, opt, v);
+    draw(LW, D, Object.assign({}, opt, { marks: withEvents(opt.marks || [], D.ev) }), v);
     hookLive();
     return true;
+  }
+
+  // every order win, result, split and bonus since 2005 (site/events.py), added to the page's own marks
+  function withEvents(marks, ev) {
+    if (!ev) return marks;
+    const have = new Set(marks.map(m => m.kind + String(m.date).slice(0, 10)));
+    const out = marks.slice(), add = (date, kind, text) => { if (!have.has(kind + date)) { have.add(kind + date); out.push({ date, kind, text }); } };
+    const crs = v => v >= 1000 ? "₹" + Math.round(v).toLocaleString("en-IN") + " Cr" : "₹" + v + " Cr";
+    for (const o of ev.o || []) add(o.d, "order", "Order" + (o.v ? " " + crs(o.v) : ""));
+    for (const r of ev.r || []) add(r.d, "result", "Result" + (r.s != null ? " · sales " + (r.s > 0 ? "+" : "") + Math.round(r.s) + "%" : "") + (r.n != null ? " · profit " + (r.n > 0 ? "+" : "") + Math.round(r.n) + "%" : r.loss ? " · loss" : ""));
+    for (const a of ev.a || []) if (a.k === "split" || a.k === "bonus") add(a.d, "split", a.tx);
+    return out;
   }
 
   async function open(opt) {
@@ -182,10 +196,9 @@
   // inline chart inside a page element (stock pages). opt as for open(); the ⤢ button opens the same chart in the popup.
   async function mount(el, opt) {
     style();
-    el.innerHTML = `<div class="mmv inl">${TB.replace("XP", `<button class="xp" type="button" title="Open a bigger chart">Full chart ⤢</button>`)}</div>`;
+    el.innerHTML = `<div class="mmv inl">${TB.replace("XP", `<a class="xp" href="${ROOT}charts/?${encodeURIComponent(opt.sym)}" title="Drawing tools, indicators, every order, result, split and bonus">Open in Charts ↗</a>`)}</div>`;
     const v = { root: el.querySelector(".mmv"), modal: false, chart: null, st: prefs() };
     views.push(v);
-    v.root.querySelector(".xp").onclick = () => open(Object.assign({}, opt, { range: v.st.r }));
     return start(v, opt);
   }
 
@@ -230,7 +243,7 @@
       }
       const mk = st.lv ? (opt.marks || []).map(m => { const t = snap(dayNum(m.date)); return t == null ? null : {
         time: dayStr(t), position: m.kind === "up" ? "belowBar" : "aboveBar", shape: m.kind === "up" ? "arrowUp" : "circle",
-        color: m.kind === "up" ? up : m.kind === "order" ? "#1f6fd1" : "#c98a0c", text: m.kind === "up" ? m.text || "" : "", size: m.kind === "up" ? 1 : 0.6 }; }).filter(Boolean)
+        color: m.kind === "up" ? up : m.kind === "order" ? "#1f6fd1" : m.kind === "split" ? "#7c3aed" : "#c98a0c", text: m.kind === "up" ? m.text || "" : "", size: m.kind === "up" ? 1 : 0.6 }; }).filter(Boolean)
         .sort((a, b) => a.time.localeCompare(b.time)) : [];
       if (markers) markers.setMarkers(mk); else markers = LW.createSeriesMarkers(cs, mk);
       head(L);
@@ -250,7 +263,7 @@
       q(".lg").innerHTML = `${fmtD(x.t)}${st.i === "w" ? " (week)" : ""} · O <b>${inr(x.o)}</b> H <b>${inr(x.h)}</b> L <b>${inr(x.l)}</b> C <b>${inr(x.c)}</b>
         <span style="color:${x.c >= x.o ? up : dn}">${x.o ? ((x.c / x.o - 1) * 100).toFixed(2) + "%" : ""}</span> · Vol <b>${x.live ? "–" : vol(x.v)}</b>`
         + (st.lv ? (opt.marks || []).filter(m => m.kind !== "up" && snap(dayNum(m.date)) === x.t)
-          .map(m => ` · <b style="color:${m.kind === "order" ? "#1f6fd1" : "#c98a0c"}">${esc(m.text || m.kind)}</b>`).join("") : ""); };
+          .map(m => ` · <b style="color:${m.kind === "order" ? "#1f6fd1" : m.kind === "split" ? "#7c3aed" : "#c98a0c"}">${esc(m.text || m.kind)}</b>`).join("") : ""); };
     // base boxes (drawn over the chart, follow zoom and scroll)
     const boxes = () => {
       const ov = q(".ov"); if (!ov || !v.chart) return;
