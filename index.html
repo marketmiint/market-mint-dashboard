@@ -13,7 +13,18 @@
 <link rel="stylesheet" href="assets/mm.css">
 <style>
 .lay{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(0,1fr);gap:16px;margin-top:18px;align-items:start}
-@media (max-width:960px){.lay{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:960px){
+  .lay{display:flex;flex-direction:column;gap:0}.lay>div{display:contents}.lay>div>section{width:100%;min-width:0;box-sizing:border-box}
+  #findp{order:1}#moodp{order:2}#wlp{order:3}#movp{order:4}#bigp{order:5}#resp{order:6}#calp{order:7}#ordp{order:8}#idxp{order:9}
+}
+.big{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:12px 14px 14px}
+@media (max-width:640px){.big{grid-template-columns:minmax(0,1fr)}}
+.big a{display:flex;flex-direction:column;gap:6px;border:1px solid var(--line);border-radius:12px;padding:12px;text-decoration:none;min-width:0}
+.big a:hover{border-color:var(--mint-d);background:var(--acc-soft)}
+.big .t{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;min-width:0}
+.big .t span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.big .pr{font-size:24px;font-weight:800;letter-spacing:-.02em;color:var(--up);line-height:1.1}.big .pr small{display:block;font-size:12px;font-weight:500;color:var(--muted);letter-spacing:0;margin-top:2px}
+.big .s{font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .find{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 18px;margin-bottom:16px}
 .find h1{font-size:22px;margin:0 0 4px;letter-spacing:-.02em}
 .find p{margin:0 0 14px;color:var(--muted);font-size:14px}
@@ -59,15 +70,13 @@
 <main class="wrap">
 <div class="lay">
   <div>
-    <section class="find">
+    <section class="find" id="findp">
       <h1>Scan any NSE stock</h1>
-      <p>Price, results since 2019, key numbers, shareholding, order wins and breakout stage for about 2,800 companies.</p>
-      <label><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input id="q" type="search" placeholder="Type a company or symbol, e.g. HAL" autocomplete="off" aria-label="Search stocks"></label>
+      <p>Price, results since 2019, key numbers, shareholding, order wins and breakout stage for about 2,800 companies. Use the search at the top, or start here:</p>
       <div class="try" id="try">Popular:</div>
     </section>
 
-    <section class="panel">
+    <section class="panel" id="movp">
       <h2><span>Top movers</span>
         <span class="ctl"><select id="uni" aria-label="Universe"></select>
           <select id="hcap" aria-label="Size"><option value="">All sizes</option><option>Large</option><option>Mid</option><option>Small</option><option>Micro</option></select>
@@ -76,20 +85,21 @@
       <div class="pager"><span id="pg"></span><span><button id="pv" aria-label="Previous">‹</button> <button id="nx" aria-label="Next">›</button></span></div>
     </section>
 
-    <section class="panel">
+    <section class="panel" id="bigp" hidden>
+      <h2><span>Big order wins this week</span><small class="muted" style="font-weight:500">by size vs yearly revenue</small></h2>
+      <div class="big" id="big"></div>
+    </section>
+
+    <section class="panel" id="idxp">
       <h2><span>Indices</span><span class="ctl"><span class="seg2" id="ig"><button data-g="Broad" class="on">Broad</button><button data-g="Sector">Sector</button><button data-g="Theme">Theme</button></span><a href="market/#indices">All 40 →</a></span></h2>
       <div class="idxrow idxhead"><span>Index</span><span class="r">1D</span><span class="r">1Y</span><span class="r hm">Stage</span></div>
       <div id="idx"></div>
     </section>
 
-    <section class="panel">
-      <h2><span>Latest order wins</span><a href="orders/">All orders →</a></h2>
-      <div class="rowlist" id="ord"></div>
-    </section>
   </div>
 
   <div>
-    <section class="panel">
+    <section class="panel" id="calp">
       <h2><span>Results calendar</span><a href="earnings/?v=upcoming">Calendar →</a></h2>
       <a class="ev" href="earnings/?v=upcoming"><span><small>📅 Results lined up</small><b id="nup">–<span>results</span></b><p id="ndone"></p></span><span class="stack" id="upl"></span></a>
     </section>
@@ -104,9 +114,14 @@
       <div class="mood" id="mood"></div>
     </section>
 
-    <section class="panel">
+    <section class="panel" id="resp">
       <h2><span>Latest results</span><a href="earnings/">All results →</a></h2>
       <div class="rowlist" id="res"></div>
+    </section>
+
+    <section class="panel" id="ordp">
+      <h2><span>Latest order wins</span><a href="orders/">All orders →</a></h2>
+      <div class="rowlist" id="ord"></div>
     </section>
 
   </div>
@@ -116,7 +131,6 @@
 <script>
 (async () => {
   const { esc, inr, crs, pct, cls, stockUrl, fmtDate, fmtShort, TABS, svg, logo, co, stagePill } = MM;
-  MM.attachSearch(document.getElementById("q"));
   const empty = '<div class="empty">Nothing yet.</div>';
   const chg = v => `<span class="${cls(v)}"><span class="tri">${v > 0 ? "▲" : v < 0 ? "▼" : ""}</span>${v == null ? "–" : Math.abs(v).toFixed(2) + "%"}</span>`;
 
@@ -204,13 +218,30 @@
     document.getElementById("nup").innerHTML = `${up.length}<span>results</span>`;
     document.getElementById("ndone").textContent = `${cur.rows.length.toLocaleString("en-IN")} declared in ${cur.label || "this season"}`;
     document.getElementById("upl").innerHTML = up.slice(0, 3).map(u => logo(u.s, u.n, u.lg)).join("");
-    document.getElementById("res").innerHTML = cur.rows.slice(0, 6).map(r => `<a href="${stockUrl(r.s)}">${co(r.s, r.n, r.lg, r.sales != null ? `Sales ${pct(r.sy)} · Profit ${pct(r.py)}` : fmtShort(r.d), false)}
+    document.getElementById("res").innerHTML = cur.rows.filter(r => r.sy != null || r.py != null).slice(0, 6).map(r => `<a href="${stockUrl(r.s)}">${co(r.s, r.n, r.lg, [r.sy != null ? `Sales ${pct(r.sy)}` : "", r.py != null ? `Profit ${pct(r.py)}` : ""].filter(Boolean).join(" · "), false)}
       <span class="rt">${r.rt ? `<span class="pill rt-${esc(r.rt)}">${esc(r.rt)}</span>` : ""}<span class="muted" style="display:block;font-weight:500;margin-top:3px">${fmtShort(r.d)}</span></span></a>`).join("") || empty;
   }
   // ---- orders
+  // who the order is from: named customer, else what the work is, else "Customer not named"
+  const shortTxt = (t, n) => { t = String(t || "").replace(/\s+/g, " ").trim(); return t.length > n ? t.slice(0, n - 1).replace(/[\s,;.-]+\S*$/, "") + "…" : t; };
+  const who = o => {
+    const c = String(o.cl || "").trim();
+    if (c && !/withheld|confidential|non-?disclosure|not disclosed|undisclosed/i.test(c)) return shortTxt(c, 60);
+    if (o.w) return shortTxt(o.w, 60);
+    return /withheld|confidential|non-?disclosure|not disclosed|undisclosed/i.test(c) ? "Customer not named" : "";
+  };
   if (od) {
-    document.getElementById("ord").innerHTML = od.orders.slice(0, 6).map(o => `<a href="${stockUrl(o.s)}">${co(o.s, o.n, o.lg, esc(o.cl || o.sec || ""), false)}
-      <span class="rt"><b>${crs(o.v)}</b><span class="muted">${o.pr != null ? o.pr + "% of revenue" : fmtShort(o.d)}</span></span></a>`).join("") || empty;
+    document.getElementById("ord").innerHTML = od.orders.slice(0, 6).map(o => `<a href="${stockUrl(o.s)}">${co(o.s, o.n, o.lg, esc(who(o)), false)}
+      <span class="rt"><b>${crs(o.v)}</b><span class="muted">${[fmtShort(o.d), o.pr != null ? o.pr + "% of rev." : ""].filter(Boolean).join(" · ")}</span></span></a>`).join("") || empty;
+    const wk = new Date(Date.now() - 7 * 864e5).toISOString().slice(0, 10), seen = new Set();
+    const big = od.orders.filter(o => (o.d || "") >= wk && o.pr != null && o.pr >= 5).sort((a, b) => b.pr - a.pr)
+      .filter(o => !seen.has(o.s) && seen.add(o.s)).slice(0, 3);
+    if (big.length) {
+      document.getElementById("bigp").hidden = false;
+      document.getElementById("big").innerHTML = big.map(o => `<a href="${stockUrl(o.s)}"><span class="t">${logo(o.s, o.n, o.lg, "sm")}<span>${esc(o.n || o.s)}</span></span>
+        <span class="pr">${o.pr >= 10 ? Math.round(o.pr) : o.pr.toFixed(1)}%<small>of yearly revenue</small></span>
+        <span class="s">${crs(o.v)} · ${fmtShort(o.d)}${who(o) ? " · " + esc(who(o)) : ""}</span></a>`).join("");
+    }
   }
   // ---- watchlist (★ on stock pages and the Breakout Desk)
   let wl = [];
