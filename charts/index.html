@@ -129,6 +129,7 @@ select.bt{padding-right:6px}
 .hlp h4{margin:10px 0 4px;font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;break-after:avoid}
 .hlp .r{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid var(--line);font-size:13px;break-inside:avoid}
 .hlp kbd{font:inherit;font-size:11.5px;font-weight:700;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 5px;background:var(--soft);white-space:nowrap}
+.boinfo .bx{border:0;background:none;color:inherit;font:inherit;font-weight:800;cursor:pointer;padding:0 0 0 6px;opacity:.7}.boinfo .bx:hover{opacity:1}
 .boinfo{margin-left:10px;padding:1px 8px;border-radius:10px;background:#e8f1ea;color:#2f7a40;font-weight:700;font-size:11.5px}
 body.full header.mmh,body.full nav.mmb,body.full .mmsheet,body.full footer.mmf{display:none!important}
 body.full{padding:0!important;margin:0}
@@ -241,7 +242,8 @@ body.popped #po{display:none}
       <button class="hdl hdl-r" data-h="r" title="Hide / show the watchlist and events strip"></button><button class="hdl hdl-b" data-h="b" title="Hide / show the bottom bar"></button>
       <div class="kbox"><div id="kc"></div><div class="dbar" id="dbar" hidden></div><div class="msg" id="msg">Loading chart…</div><div class="hint" id="hint"></div></div>
       <div class="cbot"><span class="seg" id="rg" aria-label="Range"><button data-r="3M">3M</button><button data-r="6M">6M</button><button data-r="1Y">1Y</button><button data-r="3Y">3Y</button><button data-r="5Y">5Y</button><button data-r="All">All</button></span>
-        <span class="gap"></span><button class="bb" id="gd" title="Go to a date (Alt+G)">Go to date</button><span class="sep2"></span>
+        <span class="gap"></span><button class="bb" id="bob" title="Show / hide Breakout Desk levels (pivot, breakout, stop, base boxes)">Breakouts</button><span class="sep2"></span>
+        <button class="bb" id="gd" title="Go to a date (Alt+G)">Go to date</button><span class="sep2"></span>
         <button class="bb" id="pc" title="Percent scale (Alt+P)">%</button><button class="bb" id="lg" title="Log scale: equal % moves look equal (Alt+L)">log</button><button class="bb" id="iv" title="Upside-down scale (Alt+I)">inv</button><button class="bb" id="rsb" title="Reset the view (Alt+R)">reset</button><span class="sep2"></span><a class="notadv" href="../about/" target="_blank" rel="noopener" title="Market Mint is not SEBI-registered. For learning and research only.">Not advice</a></div></div>
     <aside class="cside" id="side" aria-label="Watchlists and events"><div class="rsz" id="rsz" title="Drag to make the panel wider or narrower"></div>
       <section id="pwl">
@@ -682,7 +684,7 @@ body.popped #po{display:none}
     const evs = (EVB[i] || []);
     $("#clg").innerHTML = `${fmtD(k.timestamp)}${SPAN > 1 ? ` (${tfName(PER, SPAN).toLowerCase()} candle)` : PER === "w" ? " (week)" : PER === "m" ? " (month)" : ""} · O <b>${num(k.open)}</b> H <b>${num(k.high)}</b> L <b>${num(k.low)}</b> C <b>${num(c)}</b>
       <span class="${MM.cls(ch)}">${ch == null ? "" : sgn(ch, 2)}</span> · Vol <b>${vol(k.volume)}</b>`
-      + (BOTXT ? `<span class="boinfo" title="From Breakout Desk">${BOTXT}</span>` : "")
+      + (BOTXT ? `<span class="boinfo" title="From Breakout Desk">${BOTXT}<button class="bx" data-bohide="1" title="Hide Breakout Desk levels">×</button></span>` : "")
       + (evs.length ? `<span class="ev">${evs.slice(0, 4).map(e => `<span data-ts="${e.ts}" style="border-color:${EK[e.k].color}"><span class="dot" style="background:${EK[e.k].color};width:13px;height:13px;font-size:8px;margin:0 4px 0 0;padding:0;border:0">${e.k === "s" ? (e.kind === "bonus" ? "B" : "S") : EK[e.k].letter}</span>${esc(e.title)}${e.k === "r" && e.tx ? " · " + esc(e.tx) : ""}</span>`).join("")}${evs.length > 4 ? ` +${evs.length - 4} more` : ""}</span>` : "");
   }
   $("#clg").onclick = e => { const s = e.target.closest("[data-ts]"); if (!s) return; openSide("ev"); const r = document.querySelector(`.erow[data-ts="${s.dataset.ts}"]`);
@@ -858,7 +860,7 @@ body.popped #po{display:none}
     p.style.left = Math.max(6, Math.min(r.left - base.left, base.width - p.offsetWidth - 6)) + "px"; p.style.top = (r.bottom - base.top + 6) + "px"; };
   $("#ipop").onclick = e => { e.stopPropagation();
     const a = e.target.closest("[data-add]"), rm = e.target.closest("[data-rm]");
-    if (e.target.closest("[data-bo]")) { P.bo = P.bo ? 0 : 1; save(); drawBO(); legend(); drawIPop($("#ipop .q").value); return; }
+    if (e.target.closest("[data-bo]")) { P.bo = P.bo ? 0 : 1; save(); drawBO(); legend(); segOn(); drawIPop($("#ipop .q").value); return; }
     if (a) { const c = CAT.find(x => x[0] === a.dataset.add); P.ind.push({ n: c[0], p: c[3].slice(), main: c[2] }); }
     else if (rm) P.ind = P.ind.filter(it => it.n !== rm.dataset.rm);
     else return;
@@ -869,7 +871,11 @@ body.popped #po{display:none}
   document.addEventListener("click", e => { if (!e.target.closest("#ipop")) $("#ipop").hidden = true; });
 
   // ---------- toolbar
-  const segOn = () => { document.querySelectorAll("#tf button").forEach(b => { const on = b.dataset.p === PER; b.classList.toggle("on", on);
+  // Breakout Desk levels on / off (bottom-bar button, × on the green label, Indicators menu)
+  function setBO(on) { P.bo = on ? 1 : 0; save(); drawBO(); legend(); segOn(); hint(on ? "Breakout Desk levels shown" : "Breakout Desk levels hidden · the Breakouts button below brings them back"); }
+  $("#bob").onclick = () => setBO(!P.bo);
+  $("#clg").addEventListener("click", e => { if (e.target.closest("[data-bohide]")) { e.stopPropagation(); setBO(false); } }, true);
+  const segOn = () => { $("#bob") && $("#bob").classList.toggle("on", !!P.bo); document.querySelectorAll("#tf button").forEach(b => { const on = b.dataset.p === PER; b.classList.toggle("on", on);
       b.textContent = on && SPAN > 1 ? SPAN + b.dataset.p.toUpperCase() : b.dataset.p.toUpperCase(); });
     $("#lg").classList.toggle("on", !!P.log); $("#pc").classList.toggle("on", !!P.pct); $("#iv").classList.toggle("on", !!P.inv); $("#eb").classList.toggle("on", !$("#side").hidden && P.tab === "ev"); $("#wb").classList.toggle("on", !$("#side").hidden && P.tab === "wl"); $("#ty").value = P.ty; };
   function setPer(p, n = 1) {
