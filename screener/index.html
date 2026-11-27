@@ -58,22 +58,91 @@ dialog::backdrop{background:rgba(5,15,11,.6)}
 <body data-root="../">
 <script src="../assets/mm.js"></script>
 <main class="wrap"><div id="vInst" hidden>
-<div class="top"><div><h1 class="pt">FII + DII buying</h1><p class="lead" style="margin:0">Stocks where foreign and Indian institutions keep adding, quarter after quarter</p></div></div><div style="height:14px"></div>
-<div class="sum" id="iSum"></div>
-<div class="ctl">
-  <select id="iWho" aria-label="Who is buying">
-    <option value="both">Both FII and DII rising</option><option value="comb">FII + DII combined rising</option>
-    <option value="fii">FII rising</option><option value="dii">DII rising</option></select>
-  <select id="iMin" aria-label="Quarters in a row">
-    <option value="1">1+ quarter in a row</option><option value="2">2+ quarters in a row</option><option value="3">3+ quarters in a row</option>
-    <option value="4" selected>4+ quarters in a row</option><option value="6">6+ quarters in a row</option>
-    <option value="8">8+ quarters in a row</option><option value="12">12+ quarters in a row</option></select>
-  <select id="iCap" aria-label="Market cap"><option value="">All caps</option><option>Large</option><option>Mid</option><option>Small</option><option>Micro</option></select>
+<style>
+#vInst .ihead{margin:4px 0 14px}
+#vInst .ihead h1{margin:0 0 4px;font-size:26px;letter-spacing:-.01em}
+#vInst .ihead p{margin:0;color:var(--muted);font-size:15px;max-width:720px}
+#vInst .explain{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 0 14px}
+#vInst .explain div{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:13.5px;color:var(--muted);line-height:1.45}
+#vInst .explain b{display:flex;align-items:center;gap:7px;color:var(--ink);font-size:14.5px;margin-bottom:3px}
+#vInst .dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
+#vInst .big{background:var(--acc-soft);border-radius:14px;padding:12px 16px;margin:0 0 16px;font-size:15px;line-height:1.5}
+#vInst .big b{font-variant-numeric:tabular-nums}
+#vInst .lbl{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:0 0 8px}
+#vInst .lists{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin:0 0 16px}
+#vInst .lists button{font:inherit;text-align:left;background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;color:var(--ink)}
+#vInst .lists button:hover{border-color:var(--mint-d)}
+#vInst .lists button.on{border-color:var(--mint-d);background:var(--acc-soft)}
+#vInst .lists button b{display:flex;justify-content:space-between;gap:8px;font-size:14px}
+#vInst .lists button b span{color:var(--mint-d);font-variant-numeric:tabular-nums}
+#vInst .lists button.sell b span{color:var(--down)}
+#vInst .lists button small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px;line-height:1.35}
+#vInst .ctl2{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 10px}
+#vInst .ctl2 select,#vInst .ctl2 input{font:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink)}
+#vInst .ctl2 input{flex:1 1 180px}
+#vInst .sz{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+#vInst .sz button{font:inherit;font-size:13px;font-weight:600;border:0;background:var(--card);color:var(--muted);padding:8px 11px;cursor:pointer}
+#vInst .sz button.on{background:var(--soft);color:var(--ink)}
+#vInst .showing{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+#vInst .showing b{color:var(--ink)}
+#iT{width:100%;border-collapse:collapse}
+#iT th{font-size:12px;color:var(--muted);font-weight:600;text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--card)}
+#iT th:first-child,#iT td:first-child{text-align:left}
+#iT td{padding:11px 12px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums;vertical-align:middle}
+#iT tbody tr{cursor:pointer}#iT tbody tr:hover td{background:var(--soft)}
+#iT td a{font-weight:700;text-decoration:none;color:var(--ink)}
+#iT td.co{display:table-cell;white-space:normal;min-width:180px;max-width:260px}
+#vInst .iscroll{overflow-x:auto}
+#iT .sub{font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap}
+#iT .pill{display:inline-block;padding:3px 9px;border-radius:999px;font-weight:700;font-size:13.5px}
+#iT .pill.up{background:var(--acc-soft)}#iT .pill.down{background:rgba(208,52,44,.09)}
+#iT .pill.flat{color:var(--muted);background:var(--soft)}
+#iT .strk{font-weight:600;white-space:nowrap}
+#vInst .foot{font-size:12.5px;color:var(--muted);margin:10px 0 0;line-height:1.5}
+#vInst .say{font-size:14.5px;line-height:1.55;margin:4px 0 10px}
+#vInst .say p{margin:0 0 6px}
+@media (max-width:720px){
+  #vInst .explain{grid-template-columns:1fr}
+  #vInst .lists{display:flex;overflow-x:auto;padding-bottom:4px}
+  #vInst .lists button{flex:0 0 200px}
+  #iT thead{display:none}
+  #iT,#iT tbody{display:block}
+  #iT tr{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px 10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+  #iT td{display:block;padding:0;border:0;text-align:left}
+  #iT td.co{grid-column:1/-1;display:block;max-width:none}
+  #iT td.tr{display:none}
+  #iT tr{padding:11px 14px;gap:6px 10px}
+  #vInst .ihead h1{font-size:22px}
+  #vInst .ihead p{font-size:14px}
+  #vInst .explain{gap:6px}
+  #vInst .explain div{padding:9px 12px;font-size:13px}
+  #vInst .explain b{font-size:14px;margin-bottom:1px}
+  #iT td[data-l]::before{content:attr(data-l);display:block;font-size:11px;color:var(--muted);font-weight:600;margin-bottom:2px}
+  #iT tbody tr:hover td{background:transparent}
+}
+</style>
+<div class="ihead"><h1>Who's buying? Big investors' stocks</h1>
+<p>See which companies foreign investors and Indian funds are buying more of. Every company reports who owns its shares every 3 months, and this page tracks that.</p></div>
+<div class="explain">
+  <div><b><i class="dot" style="background:var(--teal)"></i>FII · Foreign investors</b>Big funds from outside India that buy Indian shares.</div>
+  <div><b><i class="dot" style="background:var(--amber)"></i>DII · Indian funds</b>Mutual funds, LIC and other insurers, banks and pension funds in India.</div>
+  <div><b><i class="dot" style="background:var(--mint-d)"></i>Why it matters</b>When these big investors keep raising their stake, it shows growing confidence. It is not a buy signal on its own.</div>
+</div>
+<div class="big" id="iBig">Loading…</div>
+<div class="lbl">Pick a list</div>
+<div class="lists" id="iLists"></div>
+<div class="ctl2">
+  <span class="sz" id="iCap"><button data-c="" class="on">All sizes</button><button data-c="Large">Large</button><button data-c="Mid">Mid</button><button data-c="Small">Small</button><button data-c="Micro">Micro</button></span>
   <select id="iSec" aria-label="Sector"><option value="">All sectors</option></select>
+  <select id="iSort" aria-label="Sort by">
+    <option value="last">Sort: biggest change in 3 months</option><option value="y1">Sort: biggest change in 1 year</option>
+    <option value="run">Sort: longest buying streak</option><option value="fii">Sort: most owned by foreign investors</option>
+    <option value="dii">Sort: most owned by Indian funds</option><option value="mcap">Sort: biggest companies</option></select>
   <input id="iQ" type="search" placeholder="Find a company">
 </div>
-<p class="note2">FII = foreign institutions (FPIs). DII = Indian institutions (mutual funds, insurers, banks, pension funds). Numbers are % of all shares, from each company's quarterly shareholding filing on NSE (NSE keeps about the last 5 years; see Quarters covered). "In a row" stops at the first quarter that did not rise, or at a missing filing. Changes are in percentage points. Educational only - not a buy/sell recommendation.</p>
-<div class="panel"><div class="tbl"><table id="iT"></table></div><button class="more" id="iMore" hidden>Show more</button></div>
+<p class="showing" id="iShow"></p>
+<div class="panel"><div class="iscroll"><table id="iT"></table></div><button class="more" id="iMore" hidden>Show more</button></div>
+<p class="foot">How to read the numbers: "8.9%" means that group owns 8.9% of all the company's shares. "+0.3%" means they now own 0.3% more of the company than before. "Buying streak" counts the quarters in a row (3 months each) that their stake went up. Source: each company's shareholding filing on NSE (about the last 5 years). Companies that have not filed for the last two quarters are left out. Tap any company for its full history. For learning only. Not a buy or sell recommendation.</p>
 </div>
 <div id="vRes" hidden><div class="top"><div><h1 class="pt">Earnings</h1><p class="lead" style="margin:0">Every company that reported this quarter · tap a column to sort</p></div><span class="seg2" aria-label="Earnings views"><a href="../earnings/" class="">Results</a><a href="../screener/" class="on">Full table</a><a href="../heatmap/" class="">Heatmap</a><a href="../earnings/?v=upcoming" class="">Upcoming</a></span></div><div style="height:14px"></div>
 <div class="ctl">
@@ -145,20 +214,33 @@ function liveSeason() {
   return used;
 }
 
-const iq = {sort: "run", dir: -1, shown: 60};
 let INST = null, IROWS = [];
 const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const qLab = iso => MON[+iso.slice(5, 7) - 1] + " " + iso.slice(0, 4);
-const pp = v => v == null ? "–" : (v > 0 ? "+" : "") + v.toFixed(2);
+const qSpan = iso => { const m = +iso.slice(5, 7); return MON[(m + 9) % 12] + "–" + MON[m - 1] + " " + iso.slice(0, 4); };
+const pp = v => v == null ? "–" : (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(2) + "%";
+const ILISTS = [
+  {k: "buy",    t: "Bought more last quarter",   d: "Foreign + Indian investors together raised their stake in the last 3 months", f: r => r.last > 0, who: "comb", sort: "last"},
+  {k: "big",    t: "Big jump last quarter",      d: "Their stake rose by 1% of the company or more in 3 months", f: r => r.last >= 1, who: "comb", sort: "last"},
+  {k: "streak", t: "Buying again and again",     d: "Stake went up 3 quarters or more in a row", f: r => r.runs.comb >= 3, who: "comb", sort: "run"},
+  {k: "both",   t: "Foreign and Indian both buying", d: "Both groups raised their stake last quarter", f: r => r.runs.both >= 1, who: "both", sort: "last"},
+  {k: "fii",    t: "Foreign investors buying",   d: "FII stake up 2 quarters or more in a row", f: r => r.runs.fii >= 2, who: "fii", sort: "run"},
+  {k: "dii",    t: "Indian funds buying",        d: "DII stake up 2 quarters or more in a row", f: r => r.runs.dii >= 2, who: "dii", sort: "run"},
+  {k: "year",   t: "Higher than a year ago",     d: "Their combined stake is up over the last 12 months", f: r => r.y1 > 0, who: "comb", sort: "y1"},
+  {k: "sell",   t: "Big investors selling",      d: "Together they cut their stake last quarter", f: r => r.last < 0, who: "comb", sort: "last", up: true},
+  {k: "all",    t: "All companies",              d: "Every company with recent data", f: r => true, who: "comb", sort: "mcap"}];
+const ist = {list: "buy", cap: "", sort: "last", up: false, shown: 50};
+const curList = () => ILISTS.find(l => l.k === ist.list) || ILISTS[0];
 async function instInit() {
   if (INST) return;
-  $("#iT").innerHTML = `<tr><td class="empty">Loading shareholding history…</td></tr>`;
+  $("#iT").innerHTML = `<tbody><tr><td class="empty">Loading shareholding history…</td></tr></tbody>`;
   try {
     const r = await fetch(MM.DATA + "scan/inst.json?t=" + Date.now(), {cache: "no-store"});
     if (!r.ok) throw new Error(r.status);
     INST = await r.json();
   } catch (e) {
-    $("#iT").innerHTML = `<tr><td class="empty">The shareholding history is still being collected. Please check back tomorrow.</td></tr>`;
+    $("#iT").innerHTML = `<tbody><tr><td class="empty">The shareholding history is still being collected. Please check back tomorrow.</td></tr></tbody>`;
+    $("#iBig").hidden = true;
     return;
   }
   const C = Object.fromEntries(INST.cols.map((k, i) => [k, i])), Q = INST.q;
@@ -168,15 +250,14 @@ async function instInit() {
     const L = pts[pts.length - 1];
     const comb = i => f[i] + d[i];
     const run = test => { let n = 0; for (let k = pts.length - 1; k > 0; k--) { const a = pts[k], b = pts[k - 1]; if (a - b !== 1 || !test(f[a] - f[b], d[a] - d[b])) break; n++; } return n; };
-    const back = n => { const i = L - n; return i >= 0 && f[i] != null && d[i] != null ? comb(L) - comb(i) : null; };
-    let up = 0, pairs = 0;
-    for (let k = 1; k < pts.length; k++) if (pts[k] - pts[k - 1] === 1) { pairs++; if (comb(pts[k]) > comb(pts[k - 1])) up++; }
-    return {sym: x[C.s], name: x[C.n], sector: x[C.i] || "Other", mcap: x[C.m], price: x[C.p], r1y: x[C.c], f, d, mf, pts, L,
+    const ok = i => i >= 0 && f[i] != null && d[i] != null;
+    const back = n => ok(L - n) ? comb(L) - comb(L - n) : null;
+    return {sym: x[C.s], name: x[C.n], sector: x[C.i] || "Other", mcap: x[C.m], price: x[C.p], f, d, mf, pts, L,
       runs: {both: run((a, b) => a > 0 && b > 0), comb: run((a, b) => a + b > 0), fii: run(a => a > 0), dii: run((a, b) => b > 0)},
-      fii: f[L], dii: d[L], mfn: mf[L], last: back(1), y1: back(4), y3: back(12), y5: back(20),
-      all: pts.length > 1 ? comb(L) - comb(pts[0]) : null, upShare: pairs ? up / pairs * 100 : null,
+      fii: f[L], dii: d[L], tot: f[L] + d[L], mfn: mf[L], last: back(1), y1: back(4), y3: back(12), y5: back(20),
+      fch: ok(L - 1) ? f[L] - f[L - 1] : null, dch: ok(L - 1) ? d[L] - d[L - 1] : null,
       from: Q[pts[0]], latest: Q[L], fresh: L >= Q.length - 2};   // filed the latest or the quarter before (filings take ~3 weeks)
-  });
+  }).filter(r => r.fresh);
   // Same sector names as the rest of the site (NSE sectors from Earnings); Yahoo-only industries go to the NSE
   // sector most of that industry's companies have, else "Other".
   const sj = await fetch("../data/season.json", {cache: "no-cache"}).then(r => r.ok ? r.json() : null).catch(() => null);
@@ -188,70 +269,101 @@ async function instInit() {
   for (const r of IROWS) r.sector = nseOf[r.sym] || (NSE.has(r.sector) ? r.sector : yMap[r.sector]) || "Other";
   const secs = [...new Set(IROWS.map(r => r.sector))].sort((a, b) => (a === "Other") - (b === "Other") || a.localeCompare(b));
   $("#iSec").innerHTML = `<option value="">All sectors</option>` + secs.map(s => `<option>${esc(s)}</option>`).join("");
-  ["#iWho", "#iMin", "#iCap", "#iSec"].forEach(s => $(s).addEventListener("change", () => { iq.shown = 60; idraw(); }));
-  $("#iQ").addEventListener("input", () => { iq.shown = 60; idraw(); });
-  $("#iMore").addEventListener("click", () => { iq.shown += 60; idraw(); });
+  const u = new URLSearchParams(location.search);
+  if (ILISTS.some(l => l.k === u.get("l"))) ist.list = u.get("l");
+  ist.sort = curList().sort; ist.up = !!curList().up;
+  // the big picture for the newest quarter most companies have filed
+  const lq = Q[Q.length - 1], now = IROWS.filter(r => r.last != null);   // same companies as the lists below
+  const nb = now.filter(r => r.last > 0).length, ns = now.filter(r => r.last < 0).length;
+  $("#iBig").innerHTML = `In the latest quarter (<b>${qSpan(lq)}</b>), big investors raised their stake in <b class="up">${nb.toLocaleString("en-IN")}</b> companies and cut it in <b class="down">${ns.toLocaleString("en-IN")}</b> (out of ${now.length.toLocaleString("en-IN")}).`;
+  $("#iLists").addEventListener("click", e => {
+    const b = e.target.closest("button[data-l]"); if (!b) return;
+    ist.list = b.dataset.l; const L = curList(); ist.sort = L.sort; ist.up = !!L.up; ist.shown = 50;
+    const p = new URLSearchParams(location.search); p.set("l", ist.list); history.replaceState(null, "", "?" + p.toString());
+    idraw();
+  });
+  $("#iCap").addEventListener("click", e => {
+    const b = e.target.closest("button[data-c]"); if (!b) return;
+    ist.cap = b.dataset.c; $("#iCap").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); ist.shown = 50; idraw();
+  });
+  $("#iSort").addEventListener("change", e => { ist.sort = e.target.value; ist.up = ist.list === "sell" && (ist.sort === "last" || ist.sort === "y1"); ist.shown = 50; idraw(); });
+  $("#iSec").addEventListener("change", () => { ist.shown = 50; idraw(); });
+  $("#iQ").addEventListener("input", () => { ist.shown = 50; idraw(); });
+  $("#iMore").addEventListener("click", () => { ist.shown += 50; idraw(); });
   $("#iT").addEventListener("click", e => {
-    const th = e.target.closest("th[data-k]");
-    if (th) { const k = th.dataset.k; iq.dir = iq.sort === k ? -iq.dir : (k === "name" ? 1 : -1); iq.sort = k; idraw(); return; }
     if (e.target.closest("a")) return;
     const tr = e.target.closest("tr[data-s]");
     if (tr) ipop(IROWS.find(r => r.sym === tr.dataset.s));
   });
   idraw();
+  const on = $("#iLists button.on"); if (on) $("#iLists").scrollLeft = on.offsetLeft - $("#iLists").offsetLeft - 8;   // phones: show the chosen list
 }
 function spark(r) {
   const v = r.pts.slice(-20).map(i => r.f[i] + r.d[i]);
   if (v.length < 2) return "";
-  const lo = Math.min(...v), hi = Math.max(...v), w = 90, h = 26, X = i => i / (v.length - 1) * w, Y = y => h - 2 - (hi > lo ? (y - lo) / (hi - lo) : .5) * (h - 4);
-  const col = v[v.length - 1] >= v[0] ? "var(--up,#16a34a)" : "var(--down,#dc2626)";
-  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><polyline fill="none" stroke="${col}" stroke-width="1.6" points="${v.map((y, i) => X(i).toFixed(1) + "," + Y(y).toFixed(1)).join(" ")}"/></svg>`;
+  const lo = Math.min(...v), hi = Math.max(...v), w = 96, h = 28, X = i => i / (v.length - 1) * w, Y = y => h - 3 - (hi > lo ? (y - lo) / (hi - lo) : .5) * (h - 6);
+  const col = v[v.length - 1] >= v[0] ? "var(--up)" : "var(--down)";
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><polyline fill="none" stroke="${col}" stroke-width="1.8" stroke-linejoin="round" points="${v.map((y, i) => X(i).toFixed(1) + "," + Y(y).toFixed(1)).join(" ")}"/></svg>`;
 }
-const ICOLS = [["name", "Company"], ["run", "In a row"], ["fii", "FII %"], ["dii", "DII %"], ["last", "Last qtr"], ["y1", "1 yr"], ["y3", "3 yr"], ["y5", "5 yr"], ["all", "Since start"], ["upShare", "Rising qtrs"], ["spark", "FII + DII trend"], ["from", "Data from"], ["mcap", "M-cap"]];
+const pill = v => v == null ? `<span class="pill flat">–</span>` : `<span class="pill ${v > 0 ? "up" : v < 0 ? "down" : "flat"}">${pp(v)}</span>`;
+const small = v => v == null || Math.abs(v) < 0.005 ? "no change" : `<span class="${cls(v)}">${v > 0 ? "▲" : "▼"} ${Math.abs(v).toFixed(2)}</span> in 3 mo`;
+function inList(r, L) {
+  const q = $("#iQ").value.trim().toLowerCase(), sec = $("#iSec").value;
+  return L.f(r) && (!ist.cap || capOf(r.mcap) === ist.cap) && (!sec || r.sector === sec) && (!q || (r.sym + " " + r.name).toLowerCase().includes(q));
+}
 function irows() {
-  const who = $("#iWho").value, min = +$("#iMin").value, cap = $("#iCap").value, sec = $("#iSec").value, q = $("#iQ").value.trim().toLowerCase();
-  const rs = IROWS.filter(r => r.fresh && r.runs[who] >= min && (!cap || capOf(r.mcap) === cap) && (!sec || r.sector === sec) &&
-    (!q || (r.sym + " " + r.name).toLowerCase().includes(q)));
-  const key = r => iq.sort === "run" ? r.runs[who] * 1000 + (r.y1 ?? -99) : iq.sort === "name" ? r.name.toLowerCase() : r[iq.sort];
-  return rs.sort((a, b) => { const x = key(a), y = key(b); if (x == null) return 1; if (y == null) return -1; return (x > y ? 1 : x < y ? -1 : 0) * iq.dir; });
+  const L = curList(), who = L.who;
+  const rs = IROWS.filter(r => inList(r, L));
+  const key = r => ist.sort === "run" ? r.runs[who] * 1000 + (r.last ?? -99) : r[ist.sort];
+  const dir = ist.up ? 1 : -1;
+  return rs.sort((a, b) => { const x = key(a), y = key(b); if (x == null) return 1; if (y == null) return -1; return (x > y ? 1 : x < y ? -1 : 0) * dir; });
 }
 function idraw() {
-  const who = $("#iWho").value, rs = irows(), Q = INST.q;
-  const fresh = IROWS.filter(r => r.fresh);
-  $("#iSum").innerHTML = `<div><span>Companies</span><b>${fresh.length.toLocaleString("en-IN")}</b></div>
-    <div><span>Quarters covered</span><b>${qLab(Q[0])} – ${qLab(Q[Q.length - 1])}</b></div>
-    <div><span>Match your filter</span><b>${rs.length.toLocaleString("en-IN")}</b></div>
-    <div><span>Heavy buying last qtr</span><b>${fresh.filter(r => r.runs.both >= 1 && r.last > 1.5).length}</b></div>`;
-  const c = v => `<td class="${cls(v)}">${pp(v)}</td>`;
-  $("#iT").innerHTML = "<tr>" + ICOLS.map(([k, t]) => k === "spark" ? `<th>${t}</th>` : `<th data-k="${k}" class="${iq.sort === k ? "on" : ""}">${t}${iq.sort === k ? (iq.dir > 0 ? " ▲" : " ▼") : ""}</th>`).join("") + "</tr>" +
-    rs.slice(0, iq.shown).map(r => `<tr data-s="${esc(r.sym)}"><td><a href="${MM.stockUrl(r.sym)}">${esc(r.name)}</a><small>${esc(r.sym)}</small></td>
-      <td><b>${r.runs[who]}</b> qtr${r.runs[who] === 1 ? "" : "s"}${r.runs.both >= 1 && r.last > 1.5 ? ` <small title="FII + DII up more than 1.5 points last quarter">heavy</small>` : ""}</td>
-      <td>${r.fii.toFixed(2)}</td><td>${r.dii.toFixed(2)}</td>${c(r.last)}${c(r.y1)}${c(r.y3)}${c(r.y5)}${c(r.all)}
-      <td>${r.upShare == null ? "–" : Math.round(r.upShare) + "%"}</td><td>${spark(r)}</td><td>${qLab(r.from)}</td><td>${crs(r.mcap)}</td></tr>`).join("") +
-    (rs.length ? "" : `<tr><td colspan="${ICOLS.length}" class="empty">No companies match. Try fewer quarters in a row.</td></tr>`);
-  $("#iMore").hidden = rs.length <= iq.shown;
-  $("#iMore").textContent = `Show more (${rs.length - iq.shown} left)`;
+  const L = curList(), who = L.who, rs = irows();
+  $("#iLists").innerHTML = ILISTS.map(l => `<button data-l="${l.k}" class="${l.k === ist.list ? "on" : ""}${l.k === "sell" ? " sell" : ""}"><b>${l.t}<span>${IROWS.filter(r => inList(r, l)).length.toLocaleString("en-IN")}</span></b><small>${l.d}</small></button>`).join("");
+  $("#iSort").value = ist.sort;
+  const sortTxt = $("#iSort").selectedOptions[0].textContent.replace("Sort: ", "");
+  $("#iShow").innerHTML = `<b>${rs.length.toLocaleString("en-IN")}</b> ${rs.length === 1 ? "company" : "companies"} · ${esc(L.t.toLowerCase())} · sorted by ${esc(sortTxt)}${ist.up && (ist.sort === "last" || ist.sort === "y1") ? " (biggest cut first)" : ""}`;
+  const strkName = {comb: "Buying streak", both: "Both-buying streak", fii: "Foreign buying streak", dii: "Indian buying streak"}[who];
+  const strk = n => n ? `${n} quarter${n === 1 ? "" : "s"}` : `<span class="muted">–</span>`;
+  $("#iT").innerHTML = `<thead><tr><th>Company</th><th>Foreign investors (FII)</th><th>Indian funds (DII)</th><th>Change in 3 months</th><th>Change in 1 year</th><th>${strkName}</th><th>Last 5 years</th></tr></thead><tbody>` +
+    rs.slice(0, ist.shown).map(r => `<tr data-s="${esc(r.sym)}">
+      <td class="co"><a href="${MM.stockUrl(r.sym)}">${esc(r.name)}</a><div class="sub">${esc(r.sym)} · ${esc(r.sector)} · ${capOf(r.mcap)}</div></td>
+      <td data-l="Foreign (FII)"><b>${r.fii.toFixed(2)}%</b><div class="sub">${small(r.fch)}</div></td>
+      <td data-l="Indian (DII)"><b>${r.dii.toFixed(2)}%</b><div class="sub">${small(r.dch)}</div></td>
+      <td data-l="Change, 3 months">${pill(r.last)}</td>
+      <td data-l="Change, 1 year">${pill(r.y1)}</td>
+      <td data-l="${strkName}" class="strk">${strk(r.runs[who])}</td>
+      <td data-l="Last 5 years (FII + DII)" class="tr">${spark(r)}</td></tr>`).join("") +
+    (rs.length ? "" : `<tr><td colspan="7" class="empty">No companies in this list with these filters. Try "All sizes" or "All sectors".</td></tr>`) + "</tbody>";
+  $("#iMore").hidden = rs.length <= ist.shown;
+  $("#iMore").textContent = `Show more (${(rs.length - ist.shown).toLocaleString("en-IN")} left)`;
 }
 function ichart(r) {
   const Q = INST.q, P = r.pts, w = 440, h = 180, padL = 30, padB = 18;
   const vals = P.flatMap(i => [r.f[i], r.d[i]]), lo = Math.floor(Math.min(...vals)), hi = Math.ceil(Math.max(...vals)) || 1;
   const X = k => padL + k / Math.max(P.length - 1, 1) * (w - padL - 6), Y = v => 6 + (hi - v) / Math.max(hi - lo, 1) * (h - padB - 12);
-  const line = (arr, col) => `<polyline fill="none" stroke="${col}" stroke-width="2" points="${P.map((i, k) => X(k).toFixed(1) + "," + Y(arr[i]).toFixed(1)).join(" ")}"/>`;
+  const line = (arr, col) => `<polyline fill="none" stroke="${col}" stroke-width="2.2" stroke-linejoin="round" points="${P.map((i, k) => X(k).toFixed(1) + "," + Y(arr[i]).toFixed(1)).join(" ")}"/>`;
   const yt = [lo, (lo + hi) / 2, hi].map(v => `<text x="${padL - 4}" y="${Y(v) + 4}" font-size="10" text-anchor="end" fill="var(--muted)">${v.toFixed(0)}%</text><line x1="${padL}" x2="${w - 6}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/>`).join("");
   const xt = [0, Math.floor((P.length - 1) / 2), P.length - 1].map(k => `<text x="${X(k)}" y="${h - 3}" font-size="10" text-anchor="${k === 0 ? "start" : k === P.length - 1 ? "end" : "middle"}" fill="var(--muted)">${qLab(Q[P[k]])}</text>`).join("");
-  return `<svg viewBox="0 0 ${w} ${h}" width="100%" role="img" aria-label="FII and DII holding over time">${yt}${xt}${line(r.f, "var(--teal,#0e7490)")}${line(r.d, "var(--amber,#d97706)")}</svg>
-    <div style="display:flex;gap:14px;font-size:12px;color:var(--muted);margin:2px 0 8px"><span><b style="color:var(--teal,#0e7490)">━</b> FII %</span><span><b style="color:var(--amber,#d97706)">━</b> DII %</span></div>`;
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" role="img" aria-label="Foreign and Indian institutions' stake over time">${yt}${xt}${line(r.f, "var(--teal)")}${line(r.d, "var(--amber)")}</svg>
+    <div style="display:flex;gap:14px;font-size:12.5px;color:var(--muted);margin:2px 0 8px"><span><b style="color:var(--teal)">━</b> Foreign investors (FII)</span><span><b style="color:var(--amber)">━</b> Indian funds (DII)</span></div>`;
 }
 function ipop(r) {
   const Q = INST.q, last = r.pts.slice(-12).reverse();
   const rows = last.map((i, k) => { const j = last[k + 1]; const ch = j != null && i - j === 1 ? (r.f[i] + r.d[i]) - (r.f[j] + r.d[j]) : null;
-    return `<tr><td>${qLab(Q[i])}</td><td>${r.f[i].toFixed(2)}</td><td>${r.d[i].toFixed(2)}</td><td>${r.mf[i] == null ? "–" : r.mf[i].toFixed(2)}</td><td class="${cls(ch)}">${pp(ch)}</td></tr>`; }).join("");
-  $("#dlgB").innerHTML = `<h3>${esc(r.name)}</h3><div style="color:var(--muted);font-size:13px;margin-bottom:8px">NSE: ${esc(r.sym)} · ${esc(r.sector)}${r.mcap ? " · " + capOf(r.mcap) + " cap" : ""} · ${r.pts.length} quarters since ${qLab(r.from)}</div>
+    return `<tr><td>${qLab(Q[i])}</td><td>${r.f[i].toFixed(2)}%</td><td>${r.d[i].toFixed(2)}%</td><td>${r.mf[i] == null ? "–" : r.mf[i].toFixed(2) + "%"}</td><td class="${cls(ch)}">${pp(ch)}</td></tr>`; }).join("");
+  const trend = v => v == null ? "" : v > 0 ? `<span class="up">up ${Math.abs(v).toFixed(2)}%</span>` : v < 0 ? `<span class="down">down ${Math.abs(v).toFixed(2)}%</span>` : "unchanged";
+  const s = r.runs.comb;
+  $("#dlgB").innerHTML = `<h3>${esc(r.name)}</h3><div style="color:var(--muted);font-size:13px;margin-bottom:8px">NSE: ${esc(r.sym)} · ${esc(r.sector)}${r.mcap ? " · " + capOf(r.mcap) + " company" : ""}</div>
+    <div class="say">
+      <p><b style="color:var(--teal)">Foreign investors</b> own <b>${r.fii.toFixed(2)}%</b> of this company${r.fch != null ? ` (${trend(r.fch)} in 3 months)` : ""}.</p>
+      <p><b style="color:var(--amber)">Indian funds</b> own <b>${r.dii.toFixed(2)}%</b>${r.dch != null ? ` (${trend(r.dch)} in 3 months)` : ""}.${r.mfn != null ? ` Mutual funds alone own ${r.mfn.toFixed(2)}%.` : ""}</p>
+      <p>Together they own <b>${r.tot.toFixed(2)}%</b>${r.y1 != null ? `: ${trend(r.y1)} in 1 year` : ""}${r.y3 != null ? `, ${trend(r.y3)} in 3 years` : ""}.${s >= 2 ? ` They have raised their stake <b>${s} quarters in a row</b>.` : ""}</p>
+    </div>
     ${ichart(r)}
-    <div class="mrow"><span>Both FII and DII rising</span><span>${r.runs.both} quarter${r.runs.both === 1 ? "" : "s"} in a row</span></div>
-    <div class="mrow"><span>FII + DII change: 1 yr / 3 yr / 5 yr</span><span><span class="${cls(r.y1)}">${pp(r.y1)}</span> / <span class="${cls(r.y3)}">${pp(r.y3)}</span> / <span class="${cls(r.y5)}">${pp(r.y5)}</span> pts</span></div>
-    <div class="mrow"><span>Mutual funds now</span><span>${r.mfn == null ? "–" : r.mfn.toFixed(2) + "%"}</span></div>
-    <div class="tbl" style="max-height:220px;overflow:auto;margin-top:8px"><table><tr><th>Quarter</th><th>FII %</th><th>DII %</th><th>MF %</th><th>FII+DII chg</th></tr>${rows}</table></div>
+    <div class="tbl" style="max-height:220px;overflow:auto;margin-top:8px"><table><tr><th>Quarter</th><th>Foreign</th><th>Indian</th><th>Mutual funds</th><th>Change (F+I)</th></tr>${rows}</table></div>
+    <div style="font-size:12px;color:var(--muted);margin-top:6px">Data from ${qLab(r.from)} to ${qLab(r.latest)}, from NSE shareholding filings.</div>
     <div class="mact"><a class="btn p" href="${MM.stockUrl(r.sym)}">Company page</a><button class="btn" onclick="document.getElementById('dlg').close()">Close</button></div>`;
   $("#dlg").showModal();
 }
@@ -297,7 +409,7 @@ let resReady = false;
 // screener/ = Earnings "Full table"; screener/?v=inst = the "FII + DII buying" tab (only reached from the top tabs, no switch here)
 function showView(v) {
   $("#vRes").hidden = v !== "results"; $("#vInst").hidden = v !== "inst";
-  document.title = v === "inst" ? "FII + DII buying screener: institutions adding every quarter | Market Mint" : "Results screener: sort every quarterly result | Market Mint";
+  document.title = v === "inst" ? "Who's buying? FII + DII stake changes in every NSE stock | Market Mint" : "Results screener: sort every quarterly result | Market Mint";
   if (v === "inst") instInit();
   else if (!resReady) { resReady = true; loadData().then(() => { fillSectors(); draw(); }); }
 }
