@@ -435,7 +435,7 @@ body.popped #po{display:none}
   const SUP = new Set(K.getSupportedOverlays());
   $("#tools").innerHTML = TOOLS.map(t => t === "-" ? "<hr>" : (t[0] && t[0][0] !== "@" && !SUP.has(t[0])) ? "" :
     `<button data-t="${t[0]}" title="${t[1]}" aria-label="${t[1]}">${ic(t[2])}</button>`).join("");
-  let tool = "", magnet = false, hidden = false, lockAll = false, SEL = null, DRAWING = null, CLIP = null;
+  let tool = "", magnet = false, hidden = false, lockAll = false, SEL = null, DSEL = null, inBar = false, DRAWING = null, CLIP = null;
   const hint = (t, ms = 2400) => { const h = $("#hint"); h.textContent = t; h.classList.add("on"); clearTimeout(hint.t); hint.t = setTimeout(() => h.classList.remove("on"), ms); };
   const toolBtns = () => document.querySelectorAll("#tools button").forEach(b => {
     const t = b.dataset.t; b.classList.toggle("on", t === "@magnet" ? magnet : t === "@hide" ? hidden : t === "@lock" ? lockAll : t === tool && (t !== "" || true)); });
@@ -451,8 +451,9 @@ body.popped #po{display:none}
   };
   function overlayEvents() {
     return { onDrawEnd: ev => { tool = ""; DRAWING = null; toolBtns(); if (ev.overlay.name === "simpleAnnotation") askNote(ev.overlay, true); else saveDraw(); return false; },
-      onSelected: ev => { SEL = ev.overlay.id; showDbar(); return false; },
-      onDeselected: ev => { if (SEL === ev.overlay.id) selNone(); return false; },
+      onSelected: ev => { SEL = DSEL = ev.overlay.id; showDbar(); return false; },
+      // a real click on the edit bar first sends "pointer down", which the chart treats as clicking away: keep the bar briefly
+      onDeselected: ev => { if (SEL === ev.overlay.id) { SEL = null; setTimeout(() => { if (!SEL && !inBar) selNone(); }, 300); } return false; },
       onPressedMoveEnd: () => { saveDraw(); return false; }, onRemoved: ev => { if (SEL === ev.overlay.id) selNone(); setTimeout(saveDraw, 0); return false; },
       onDoubleClick: ev => { if (ev.overlay.name === "simpleAnnotation") askNote(ev.overlay); return false; },
       onRightClick: ev => { chart.removeOverlay({ id: ev.overlay.id }); return true; } };
@@ -514,12 +515,12 @@ body.popped #po{display:none}
     chart.removeOverlay({ groupId: "draw" }); loadDraw(); }
   function undo() { if (!UNDO.length) { hint("Nothing to undo"); return; } REDO.push(SNAP); restoreSnap(UNDO.pop()); hint("Undone (Ctrl+Y to redo)"); }
   function redo() { if (!REDO.length) { hint("Nothing to redo"); return; } UNDO.push(SNAP); restoreSnap(REDO.pop()); hint("Redone"); }
-  const selO = () => SEL && chart.getOverlays({ id: SEL })[0];
+  const selO = () => { const id = SEL || DSEL; return id ? chart.getOverlays({ id })[0] : null; };
   function copySel() { const o = selO(); if (!o) return; CLIP = ser(o); CLIP.from = SYM; hint("Drawing copied · Ctrl+V to paste (also on another stock)"); }
   function paste() { if (!CLIP) return; const d = JSON.parse(JSON.stringify(CLIP)); if (d.from === SYM) d.p = d.p.map(([t, v]) => [shiftTs(t, 5), v]); delete d.from; d.l = undefined; mkDraw(d); saveDraw(); hint("Pasted"); }
   function cloneSel() { const o = selO(); if (!o) return; const d = ser(o); d.p = d.p.map(([t, v]) => [shiftTs(t, 5), v]); d.l = undefined; mkDraw(d); saveDraw(); hint("Cloned"); }
   // the small bar that edits the clicked drawing
-  function selNone() { SEL = null; $("#dbar").hidden = true; }
+  function selNone() { SEL = DSEL = null; inBar = false; $("#dbar").hidden = true; }
   function showDbar() {
     const o = selO(); if (!o) { selNone(); return; }
     const [c, w, d] = stOf(o) || [o.name === "mmAVWAP" ? "#7c3aed" : "#2563eb", 1, 0], measure = o.name === "mmMeasure";
@@ -532,16 +533,16 @@ body.popped #po{display:none}
       + `<button class="b" data-a="del" title="Delete (Del)" style="color:${DN}">Delete</button>`;
     $("#dbar").hidden = false;
   }
-  $("#dbar").addEventListener("mousedown", e => e.stopPropagation());
+  ["pointerdown", "mousedown", "touchstart"].forEach(t => $("#dbar").addEventListener(t, e => { inBar = true; e.stopPropagation(); }, true));
   $("#dbar").addEventListener("click", e => {
-    const o = selO(); if (!o) return selNone();
+    const o = selO(); inBar = false; if (!o) return selNone();
     const cur = stOf(o) || ["#2563eb", 1, 0], t = e.target.closest("[data-c],[data-w],[data-d],[data-a]"); if (!t) return;
     if (t.dataset.c || t.dataset.w || t.dataset.d) {
       const ns = [t.dataset.c || cur[0], t.dataset.w ? +t.dataset.w : cur[1], t.dataset.d ? (cur[2] ? 0 : 1) : cur[2]];
       chart.overrideOverlay({ id: o.id, styles: stl(...ns) }); P.dc = ns[0]; P.dw = ns[1]; save(); saveDraw(); showDbar(); return;
     }
     const a = t.dataset.a;
-    if (a === "del") { chart.removeOverlay({ id: o.id }); selNone(); }
+    if (a === "del") { selNone(); chart.removeOverlay({ id: o.id }); saveDraw(); hint("Drawing deleted · Ctrl+Z to undo"); }
     else if (a === "clone") cloneSel();
     else if (a === "copy") copySel();
     else if (a === "note") askNote(o);
@@ -1156,9 +1157,9 @@ body.popped #po{display:none}
     if (mod) {
       if (c === "KeyZ") { stop(); e.shiftKey ? redo() : undo(); }
       else if (c === "KeyY") { stop(); redo(); }
-      else if (c === "KeyC" && SEL) { stop(); copySel(); }
+      else if (c === "KeyC" && (SEL || DSEL)) { stop(); copySel(); }
       else if (c === "KeyV" && CLIP) { stop(); paste(); }
-      else if (c === "KeyD" && SEL) { stop(); cloneSel(); }
+      else if (c === "KeyD" && (SEL || DSEL)) { stop(); cloneSel(); }
       else if (c === "KeyG") { stop(); openDate(); }
       else if (k === "ArrowLeft" || k === "ArrowRight") { stop(); moveBars(k === "ArrowLeft" ? -1 : 1, true); }
       else if (k === "ArrowUp" || k === "ArrowDown") { stop(); zoomBy(k === "ArrowUp" ? 1.25 : 0.8); }
@@ -1166,7 +1167,7 @@ body.popped #po{display:none}
     }
     if (k === "Escape") { if (DRAWING) { chart.removeOverlay({ id: DRAWING }); DRAWING = null; hint("Drawing cancelled"); } tool = ""; toolBtns(); selNone();
       $("#ipop").hidden = true; $("#gpop").hidden = true; return; }
-    if ((k === "Delete" || k === "Backspace") && SEL) { stop(); chart.removeOverlay({ id: SEL }); selNone(); return; }
+    if ((k === "Delete" || k === "Backspace") && (SEL || DSEL)) { stop(); const id = SEL || DSEL; selNone(); chart.removeOverlay({ id }); saveDraw(); hint("Drawing deleted · Ctrl+Z to undo"); return; }
     if (k === "ArrowLeft" || k === "ArrowRight") { if (e.shiftKey) return; stop(); moveBars(k === "ArrowLeft" ? -1 : 1, false); return; }
     if (k === "ArrowDown" || k === "ArrowUp") { stop(); wlStep(k === "ArrowDown" ? 1 : -1); return; }
     if (k === " ") { stop(); wlStep(e.shiftKey ? -1 : 1); return; }
