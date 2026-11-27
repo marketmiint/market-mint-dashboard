@@ -531,7 +531,14 @@ body.full #po{display:none}
   }
   $("#clg").onclick = e => { const s = e.target.closest("[data-ts]"); if (!s) return; openSide("ev"); const r = document.querySelector(`.erow[data-ts="${s.dataset.ts}"]`);
     if (r) { document.querySelectorAll(".erow.on").forEach(x => x.classList.remove("on")); r.classList.add("on"); r.scrollIntoView({ block: "center" }); } };
-  chart.subscribeAction("onCrosshairChange", c => { const i = c && c.dataIndex != null ? c.dataIndex : -1; if (i !== hoverI) { hoverI = i; legend(); } });
+  // the library only reports the mouse x/y: turn x into the candle under the mouse (mouse off the chart = latest candle)
+  chart.subscribeAction("onCrosshairChange", c => {
+    let i = -1;
+    if (c && c.dataIndex != null) i = c.dataIndex;
+    else if (c && c.x != null && c.y != null) { const p = chart.convertFromPixel([{ x: c.x, y: c.y }], { paneId: "candle_pane" }); const q = Array.isArray(p) ? p[0] : p;
+      if (q && q.dataIndex != null) i = Math.min(BARS.length - 1, Math.max(0, q.dataIndex)); }
+    if (i !== hoverI) { hoverI = i; legend(); } });
+  $("#kc").addEventListener("mouseleave", () => { if (hoverI !== -1) { hoverI = -1; legend(); } });
 
   function head() {
     const L = D && D.d, last = L && L[L.length - 1], prev = L && L[L.length - 2]; if (!last) return;
