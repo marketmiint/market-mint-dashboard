@@ -60,8 +60,24 @@
   const LIVE_URL = "https://raw.githubusercontent.com/marketmiint/market-mint-dashboard/live/live.json";
   let liveP = null, liveD = null, liveUsed = false, pollT = null;
   const liveSubs = [], liveObjs = [];
-  const fetchLive = () => fetch(LIVE_URL + "?m=" + Math.floor(Date.now() / 60000), { cache: "no-cache" })
-    .then(r => r.ok ? r.json() : null).then(L => L && L.s && L.t ? L : null).catch(() => null);
+  // GitHub's API serves the newest file within ~1 minute (raw.githubusercontent caches it ~5 min). Each visitor
+  // may make 60 API calls an hour (unchanged answers, 304, are free), so a copy from the last minute is reused
+  // across pages and the old raw link is the fallback when the limit is hit.
+  const LIVE_API = "https://api.github.com/repos/marketmiint/market-mint-dashboard/contents/live.json?ref=live";
+  const okL = L => L && L.s && L.t ? L : null;
+  const fetchRaw = () => fetch(LIVE_URL + "?m=" + Math.floor(Date.now() / 60000), { cache: "no-cache" })
+    .then(r => r.ok ? r.json() : null).then(okL).catch(() => null);
+  async function fetchLive() {
+    try { const c = JSON.parse(sessionStorage.getItem("mm-live") || "null"); if (c && Date.now() - c.at < 55000 && okL(c.d)) return c.d; } catch (e) {}
+    let L = null;
+    try {
+      const r = await fetch(LIVE_API, { cache: "no-cache", headers: { Accept: "application/vnd.github.raw" } });
+      if (r.ok) L = okL(await r.json());
+    } catch (e) {}
+    if (!L) L = await fetchRaw();
+    if (L) try { sessionStorage.setItem("mm-live", JSON.stringify({ at: Date.now(), d: L })); } catch (e) {}
+    return L;
+  }
   function live() { if (!liveP) liveP = fetchLive().then(L => { liveD = L; return L; }); return liveP; }
   const liveAge = L => (Date.now() - Date.parse(L.t + ":00+05:30")) / 60000;          // minutes; L.t is India time
   const liveOpen = L => !!(L && L.open && liveAge(L) < 20);
@@ -90,7 +106,7 @@
     e.innerHTML = op ? `<i></i>Live prices · ${hm}` : liveD.open ? `Prices as of ${hm}, ${fmtDate(liveD.t.slice(0, 10))}` : `Closing prices · ${fmtDate(liveD.t.slice(0, 10))}`;
     e.title = "Prices from NSE, a few minutes behind. Breakout stages and charts update after the close.";
   }
-  // while the market is open, fetch again every 2 minutes and tell the page (MM.onLive(fn)) to redraw
+  // while the market is open, fetch again every minute and tell the page (MM.onLive(fn)) to redraw
   function startPoll() {
     if (pollT || !liveOpen(liveD)) return;
     pollT = setInterval(async () => {
@@ -101,7 +117,7 @@
       badge();
       liveSubs.forEach(f => { try { f(L); } catch (e) { console.error(e); } });
       if (!liveOpen(L)) { clearInterval(pollT); pollT = null; }
-    }, 120000);
+    }, 60000);
   }
   const onLive = f => liveSubs.push(f);
   // pages that patch live prices themselves (Breakout Desk) call this to show the header tag and keep polling
