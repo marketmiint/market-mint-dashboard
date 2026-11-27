@@ -86,6 +86,44 @@ select.bt{padding-right:6px}
 .ipop .it.act{background:#f2f8f3}
 .ipop .q{width:100%;padding:7px 9px;border:1.5px solid var(--line);border-radius:8px;font:inherit;margin-bottom:4px;background:var(--card);color:var(--ink)}
 .cp:fullscreen{height:100vh}
+.cp{position:relative}
+/* side panel tabs */
+.stabs{display:flex;align-items:center;gap:4px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.stabs button[data-tab]{border:0;background:none;padding:6px 11px;border-radius:8px;font:inherit;font-size:13.5px;font-weight:700;color:var(--muted);cursor:pointer}
+.stabs button[data-tab].on{background:var(--soft);color:var(--ink)}
+.stabs .x{margin-left:auto}
+.cside section{display:flex;flex-direction:column;min-height:0;flex:1}
+.cside section[hidden]{display:none}
+/* watchlists */
+.wlh{display:flex;gap:6px;padding:8px 10px 6px;align-items:center}
+.wlh select{flex:1;min-width:0;font-weight:700;padding:6px 8px}
+.wlh .bt{padding:5px 9px}
+.wladd{padding:0 10px 8px;position:relative;border-bottom:1px solid var(--line)}
+.wladd input{width:100%;padding:7px 10px;border:1.5px solid var(--line);border-radius:9px;font:inherit;font-size:13px;background:var(--card);color:var(--ink)}
+.wladd .sugg{left:10px;right:10px;min-width:0}
+.wlist{flex:1;overflow-y:auto}
+.wrow{display:grid;grid-template-columns:minmax(0,1fr) auto 62px 18px;gap:8px;align-items:center;padding:7px 8px 7px 12px;border-bottom:1px solid var(--line);cursor:pointer;font-size:13px}
+.wrow:hover{background:var(--soft)}.wrow.on{background:#e8f1ea;box-shadow:inset 3px 0 0 #3b8a4c}
+.wrow b{font-weight:700}.wrow small{display:block;color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wrow .p{text-align:right;font-variant-numeric:tabular-nums}.wrow .c{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.wrow .rm{opacity:0;border:0;background:none;cursor:pointer;color:var(--muted);font-size:16px;padding:0;line-height:1}.wrow:hover .rm{opacity:1}
+.wrow.drag{opacity:.35}.wrow.over{box-shadow:inset 0 2px 0 #2563eb}
+.wempty{padding:22px 14px;color:var(--muted);font-size:13px;line-height:1.5}
+.wmenu{width:230px;padding:6px}.wmenu button{display:block;width:100%;text-align:left;border:0;background:none;padding:8px 10px;border-radius:7px;font:inherit;font-size:13px;cursor:pointer;color:var(--ink)}
+.wmenu button:hover{background:var(--soft)}.wmenu button.on{font-weight:700}.wmenu hr{border:0;border-top:1px solid var(--line);margin:4px 0}
+.wmenu .lab{padding:6px 10px 2px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.wst{font-size:15px;padding:4px 8px!important;line-height:1}.wst.on{color:#d97706;border-color:#f3d19c}
+/* type anywhere box (stock search / candle size) */
+.kd{position:absolute;left:50%;top:64px;transform:translateX(-50%);z-index:60;width:min(480px,94%);background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 50px rgba(15,23,42,.25);overflow:hidden}
+.kd[hidden]{display:none}
+.kd input{width:100%;font:inherit;font-size:19px;font-weight:700;padding:13px 16px;border:0;border-bottom:1px solid var(--line);text-transform:uppercase;background:transparent;color:var(--ink);outline:0}
+.kd .kl{max-height:min(360px,55vh);overflow-y:auto}
+.kd .ki{display:flex;gap:12px;padding:8px 16px;cursor:pointer;align-items:center;font-size:13.5px}
+.kd .ki.on{background:var(--soft)}.kd .ki b{min-width:100px}.kd .ki span{flex:1;min-width:0;color:var(--muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.kd .ki .r{flex:none;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink)}
+.kd .kh{padding:9px 16px;font-size:12.5px;color:var(--muted);background:var(--soft)}
+.kd .kh b{color:var(--ink)}
+.kd kbd{font:inherit;font-size:11px;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 4px;background:var(--card)}
 @media (max-width:900px){.cside{position:absolute;right:0;top:0;bottom:0;z-index:20;box-shadow:-8px 0 30px rgba(0,0,0,.12);width:min(330px,88vw)}}
 @media (max-width:700px){
   .cp{height:var(--ch,calc(100vh - 120px))}
@@ -107,7 +145,7 @@ select.bt{padding-right:6px}
   <div class="ctop">
     <label class="fs"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input id="q" type="search" placeholder="Change stock…" autocomplete="off" aria-label="Pick a stock to chart"></label>
-    <div class="sym"><div class="nm" id="nm">–</div><div class="px" id="px"></div></div>
+    <div class="sym"><div class="nm" id="nm">–</div><div class="px" id="px"></div><button class="bt wst" id="wst" title="Add to watchlist (Alt+W)">☆</button></div>
     <span class="seg" id="tf" aria-label="Candle size"><button data-p="d" title="Daily candles">D</button><button data-p="w" title="Weekly candles">W</button><button data-p="m" title="Monthly candles">M</button></span>
     <span class="seg hide-sm" id="rg" aria-label="Range"><button data-r="3M">3M</button><button data-r="6M">6M</button><button data-r="1Y">1Y</button><button data-r="3Y">3Y</button><button data-r="5Y">5Y</button><button data-r="All">All</button></span>
     <select class="bt" id="ty" aria-label="Chart type" title="Chart type">
@@ -116,6 +154,7 @@ select.bt{padding-right:6px}
     <button class="bt" id="ib" title="Indicators"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l5-6 4 4 9-10"/></svg>Indicators</button>
     <button class="bt hide-sm" id="lg" title="Log scale: equal % moves look equal">Log</button>
     <div class="rt">
+      <button class="bt" id="wb" title="Watchlists"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg><span class="hide-sm">Watchlist</span></button>
       <button class="bt" id="eb" title="Order wins, results, splits, bonus, dividends"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Events</button>
       <button class="bt hide-sm" id="sn" title="Save a picture of the chart"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
       <button class="bt" id="fz" title="Full screen"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
@@ -124,14 +163,24 @@ select.bt{padding-right:6px}
   <div class="cbody">
     <div class="ctools" id="tools" aria-label="Drawing tools"></div>
     <div class="cwrap"><div class="clg" id="clg"></div><div class="kbox"><div id="kc"></div><div class="msg" id="msg">Loading chart…</div><div class="hint" id="hint"></div></div></div>
-    <aside class="cside" id="side" aria-label="Events">
-      <div class="hd"><b>Events</b><small id="ecount" style="color:var(--muted)"></small><button class="bt x" id="sx" aria-label="Close events">×</button></div>
-      <div class="chips" id="chips"></div>
-      <div class="elist" id="elist"></div>
-      <div class="cnote">From NSE filings since 2005. Tap an event to jump to it. Prices are adjusted for splits and bonuses, so old prices look lower than they were.</div>
+    <aside class="cside" id="side" aria-label="Watchlists and events">
+      <div class="stabs"><button data-tab="wl">Watchlist</button><button data-tab="ev">Events <small id="ecount" style="color:var(--muted);font-weight:500"></small></button><button class="bt x" id="sx" aria-label="Close panel">×</button></div>
+      <section id="pwl">
+        <div class="wlh"><select class="bt" id="wsel" aria-label="Pick a watchlist"></select><button class="bt" id="wadd" title="Add this stock (Alt+W)">+</button><button class="bt" id="wmb" title="Watchlist menu" aria-label="Watchlist menu">⋯</button></div>
+        <div class="wladd"><input id="wq" type="search" placeholder="Add a stock to this list…" autocomplete="off" aria-label="Add a stock to this list"></div>
+        <div class="wlist" id="wlist"></div>
+        <div class="cnote">Saved in this browser. ↑ ↓ keys move through the list. “My watchlist” is the same as the ★ on stock pages.</div>
+      </section>
+      <section id="pev" hidden>
+        <div class="chips" id="chips" style="padding-top:8px"></div>
+        <div class="elist" id="elist"></div>
+        <div class="cnote">From NSE filings since 2005. Tap an event to jump to it. Prices are adjusted for splits and bonuses, so old prices look lower than they were.</div>
+      </section>
     </aside>
   </div>
   <div class="pop ipop" id="ipop" hidden></div>
+  <div class="pop wmenu" id="wmenu" hidden></div>
+  <div class="kd" id="kd" hidden><input id="kq" aria-label="Type a stock name, or a candle size like 1D, 1W, 1M" autocomplete="off" spellcheck="false"><div class="kl" id="kl"></div><div class="kh" id="kh"></div></div>
 </main>
 <script>
 (function () {
@@ -155,7 +204,7 @@ select.bt{padding-right:6px}
 
   // ---------- saved settings (this browser only)
   const PREF = "mmk1";
-  const DEF = { tf: "d", ty: "candle_solid", log: false, side: innerWidth > 900, ev: { o: 1, r: 1, s: 1, d: 0, x: 1 },
+  const DEF = { tf: "d", sp: 1, tab: "wl", ty: "candle_solid", log: false, side: innerWidth > 900, ev: { o: 1, r: 1, s: 1, d: 0, x: 1 },
     ind: [{ n: "MA", p: [50, 200], main: 1 }, { n: "VOL", p: [20], main: 0 }] };
   let P = DEF;
   try { P = Object.assign({}, DEF, JSON.parse(localStorage.getItem(PREF) || "{}")); P.ev = Object.assign({}, DEF.ev, P.ev); } catch (e) {}
@@ -333,7 +382,11 @@ select.bt{padding-right:6px}
   window._mmk = chart;   // for debugging in the console
 
   // ---------- data: our chart files (daily ~2 years, weekly back to listing) + live price
-  let SYM = "", NAME = "", ROW = null, D = null, EV = null, PER = P.tf, BARS = [];
+  let SYM = "", NAME = "", ROW = null, D = null, EV = null, PER = P.tf, SPAN = Math.max(1, +P.sp || 1), BARS = [];
+  const UNIT = { d: "day", w: "week", m: "month" };
+  const tfName = (p, n) => n > 1 ? (p === "m" && n % 12 === 0 ? (n / 12 === 1 ? "Yearly" : n / 12 + "-year") : n + "-" + UNIT[p]) : { d: "Daily", w: "Weekly", m: "Monthly" }[p];
+  const tfCode = () => (SPAN > 1 ? SPAN : "") + PER;
+  const period = () => ({ type: PER === "d" ? "day" : PER === "w" ? "week" : "month", span: SPAN });
   const ts = t => t * DAY;                                   // our day numbers -> ms
   function makeBars(per) {
     if (!D) return [];
@@ -348,6 +401,11 @@ select.bt{padding-right:6px}
         else rows.push({ k, t: x.t, o: x.o ?? x.c, h: x.h ?? x.c, l: x.l ?? x.c, c: x.c, v: x.v || 0 }); }
     }
     let out = rows.map(x => ({ timestamp: ts(x.t), open: x.o ?? x.c, high: x.h ?? Math.max(x.o, x.c), low: x.l ?? Math.min(x.o, x.c), close: x.c, volume: x.v || 0 }));
+    if (SPAN > 1) {                       // N candles in one (2D, 2W, 3M, 12M = yearly), counted from the first candle
+      const g = []; out.forEach((k, i) => { const j = Math.floor(i / SPAN), p = g[j];
+        if (!p) g[j] = Object.assign({}, k); else { p.high = Math.max(p.high, k.high); p.low = Math.min(p.low, k.low); p.close = k.close; p.volume += k.volume; p.timestamp = k.timestamp; } });
+      out = g;
+    }
     if (P.ty === "heikin") { let po = null, pc = null;
       out = out.map(k => { const c = (k.open + k.high + k.low + k.close) / 4, o = po == null ? (k.open + k.close) / 2 : (po + pc) / 2;
         po = o; pc = c; return Object.assign({}, k, { open: o, close: c, high: Math.max(k.high, o, c), low: Math.min(k.low, o, c), real: k.close }); }); }
@@ -373,7 +431,7 @@ select.bt{padding-right:6px}
   let EVL = [];          // flat list for the panel
   function evIndex() {
     EVB = {}; const L = BARS; if (!L.length) return;
-    const at = t => { let lo = 0, hi = L.length - 1; if (t > L[hi].timestamp + (PER === "d" ? 4 : PER === "w" ? 7 : 31) * DAY) return -1;
+    const at = t => { let lo = 0, hi = L.length - 1; if (t > L[hi].timestamp + (PER === "d" ? 4 : PER === "w" ? 7 : 31) * SPAN * DAY) return -1;
       if (t < L[0].timestamp - (PER === "d" ? 5 : PER === "w" ? 7 : 31) * DAY) return -1;
       while (lo < hi) { const m = (lo + hi) >> 1; if (L[m].timestamp < t) lo = m + 1; else hi = m; } return lo; };
     for (const e of EVL) { if (!P.ev[e.k]) continue; const i = at(e.ts); e.i = i; if (i < 0) continue; (EVB[i] = EVB[i] || []).push(e); }
@@ -408,7 +466,7 @@ select.bt{padding-right:6px}
       return `<button class="chip ${P.ev[k] ? "" : "off"}" data-k="${k}"><i style="background:${T.color}">${T.letter}</i>${T.name} <small>${n}</small></button>`; }).join("");
     $("#chips").innerHTML = ch;
     const list = EVL.filter(e => P.ev[e.k]);
-    $("#ecount").textContent = list.length ? `· ${list.length}` : "";
+    $("#ecount").textContent = list.length ? list.length : "";
     let yr = "", h = "";
     for (const e of list.slice(0, 1500)) {
       const y = e.d.slice(0, 4); if (y !== yr) { yr = y; h += `<div class="eyr">${y}</div>`; }
@@ -437,11 +495,11 @@ select.bt{padding-right:6px}
     const L = BARS, i = hoverI >= 0 && hoverI < L.length ? hoverI : L.length - 1, k = L[i]; if (!k) { $("#clg").innerHTML = ""; return; }
     const prev = L[i - 1], c = k.real ?? k.close, ch = prev ? (c / (prev.real ?? prev.close) - 1) * 100 : null;
     const evs = (EVB[i] || []);
-    $("#clg").innerHTML = `${fmtD(k.timestamp)}${PER === "w" ? " (week)" : PER === "m" ? " (month)" : ""} · O <b>${num(k.open)}</b> H <b>${num(k.high)}</b> L <b>${num(k.low)}</b> C <b>${num(c)}</b>
+    $("#clg").innerHTML = `${fmtD(k.timestamp)}${SPAN > 1 ? ` (${tfName(PER, SPAN).toLowerCase()} candle)` : PER === "w" ? " (week)" : PER === "m" ? " (month)" : ""} · O <b>${num(k.open)}</b> H <b>${num(k.high)}</b> L <b>${num(k.low)}</b> C <b>${num(c)}</b>
       <span class="${MM.cls(ch)}">${ch == null ? "" : sgn(ch, 2)}</span> · Vol <b>${vol(k.volume)}</b>`
       + (evs.length ? `<span class="ev">${evs.slice(0, 4).map(e => `<span data-ts="${e.ts}" style="border-color:${EK[e.k].color}"><span class="dot" style="background:${EK[e.k].color};width:13px;height:13px;font-size:8px;margin:0 4px 0 0;padding:0;border:0">${e.k === "s" ? (e.kind === "bonus" ? "B" : "S") : EK[e.k].letter}</span>${esc(e.title)}${e.k === "r" && e.tx ? " · " + esc(e.tx) : ""}</span>`).join("")}${evs.length > 4 ? ` +${evs.length - 4} more` : ""}</span>` : "");
   }
-  $("#clg").onclick = e => { const s = e.target.closest("[data-ts]"); if (!s) return; openSide(); const r = document.querySelector(`.erow[data-ts="${s.dataset.ts}"]`);
+  $("#clg").onclick = e => { const s = e.target.closest("[data-ts]"); if (!s) return; openSide("ev"); const r = document.querySelector(`.erow[data-ts="${s.dataset.ts}"]`);
     if (r) { document.querySelectorAll(".erow.on").forEach(x => x.classList.remove("on")); r.classList.add("on"); r.scrollIntoView({ block: "center" }); } };
   chart.subscribeAction("onCrosshairChange", c => { const i = c && c.dataIndex != null ? c.dataIndex : -1; if (i !== hoverI) { hoverI = i; legend(); } });
 
@@ -501,18 +559,20 @@ select.bt{padding-right:6px}
   document.addEventListener("click", e => { if (!e.target.closest("#ipop")) $("#ipop").hidden = true; });
 
   // ---------- toolbar
-  const segOn = () => { document.querySelectorAll("#tf button").forEach(b => b.classList.toggle("on", b.dataset.p === PER));
-    $("#lg").classList.toggle("on", !!P.log); $("#eb").classList.toggle("on", !$("#side").hidden); $("#ty").value = P.ty; };
-  function setPer(p) {
+  const segOn = () => { document.querySelectorAll("#tf button").forEach(b => { const on = b.dataset.p === PER; b.classList.toggle("on", on);
+      b.textContent = on && SPAN > 1 ? SPAN + b.dataset.p.toUpperCase() : b.dataset.p.toUpperCase(); });
+    $("#lg").classList.toggle("on", !!P.log); $("#eb").classList.toggle("on", !$("#side").hidden && P.tab === "ev"); $("#wb").classList.toggle("on", !$("#side").hidden && P.tab === "wl"); $("#ty").value = P.ty; };
+  function setPer(p, n = 1) {
     if (p === "d" && D && !D.d.length) p = "w";
-    PER = p; P.tf = p; save();
-    chart.setPeriod(p === "d" ? { type: "day", span: 1 } : p === "w" ? { type: "week", span: 1 } : { type: "month", span: 1 });
+    PER = p; SPAN = n; P.tf = p; P.sp = n; save();
+    if (SYM) history.replaceState(null, "", "?" + encodeURIComponent(SYM) + (tfCode() !== "d" ? "&tf=" + tfCode() : ""));
+    chart.setPeriod(period());
     afterData(); segOn(); zoomDefault();
   }
   function afterData() {
     BARS = chart.getDataList(); evIndex(); chart.removeOverlay({ groupId: "draw" }); loadDraw(); refreshEv();
   }
-  $("#tf").onclick = e => { const b = e.target.closest("button"); if (b && b.dataset.p !== PER) setPer(b.dataset.p); };
+  $("#tf").onclick = e => { const b = e.target.closest("button"); if (b && (b.dataset.p !== PER || SPAN !== 1)) setPer(b.dataset.p); };
   $("#rg").onclick = e => { const b = e.target.closest("button"); if (!b) return; const r = b.dataset.r;
     const days = { "3M": 92, "6M": 183, "1Y": 366, "3Y": 1096, "5Y": 1827, All: 1e9 }[r];
     let need = r === "3M" || r === "6M" ? "d" : r === "1Y" ? (PER === "m" ? "w" : PER) : r === "3Y" ? (PER === "d" ? "w" : PER) : r === "5Y" ? (PER === "d" ? "w" : PER) : (PER === "d" ? "w" : PER);
@@ -526,9 +586,14 @@ select.bt{padding-right:6px}
     chart.resetData && (P.ty === "heikin" || BARS[0] && BARS[0].real != null) ? reload() : 0; };
   $("#lg").onclick = () => { P.log = !P.log; save(); setLog(); segOn(); };
   const setLog = () => { try { chart.setPaneOptions({ id: "candle_pane", axis: { name: P.log ? "logarithm" : "normal" } }); } catch (e) {} };
-  const openSide = () => { $("#side").hidden = false; P.side = true; save(); segOn(); setTimeout(() => chart.resize(), 0); };
-  $("#eb").onclick = () => { const s = $("#side"); if (s.hidden) openSide(); else { s.hidden = true; P.side = false; save(); segOn(); setTimeout(() => chart.resize(), 0); } };
-  $("#sx").onclick = () => { $("#side").hidden = true; P.side = false; save(); segOn(); setTimeout(() => chart.resize(), 0); };
+  const showTab = () => { document.querySelectorAll(".stabs [data-tab]").forEach(b => b.classList.toggle("on", b.dataset.tab === P.tab));
+    $("#pwl").hidden = P.tab !== "wl"; $("#pev").hidden = P.tab !== "ev"; };
+  const openSide = (tab = "ev") => { P.tab = tab; $("#side").hidden = false; P.side = true; save(); showTab(); segOn(); if (tab === "wl") wlDraw(); setTimeout(() => chart.resize(), 0); };
+  const closeSide = () => { $("#side").hidden = true; P.side = false; save(); segOn(); setTimeout(() => chart.resize(), 0); };
+  const sideBtn = tab => () => { if (!$("#side").hidden && P.tab === tab) closeSide(); else openSide(tab); };
+  $("#eb").onclick = sideBtn("ev"); $("#wb").onclick = sideBtn("wl");
+  document.querySelector(".stabs").addEventListener("click", e => { const b = e.target.closest("[data-tab]"); if (b) openSide(b.dataset.tab); });
+  $("#sx").onclick = closeSide;
   $("#sn").onclick = () => { const u = chart.getConvertPictureUrl(true, "png", CARD); const a = document.createElement("a"); a.href = u; a.download = `${SYM}-${PER}-chart.png`; a.click(); };
   $("#fz").onclick = () => { document.fullscreenElement ? document.exitFullscreen() : $("#cp").requestFullscreen && $("#cp").requestFullscreen().catch(() => {}); };
   document.addEventListener("fullscreenchange", () => setTimeout(() => chart.resize(), 50));
@@ -536,16 +601,148 @@ select.bt{padding-right:6px}
 
   // opening zoom: about a year of daily candles, 3 years of weekly, 10 years of monthly (less on phones)
   function zoomDefault() {
-    const ph = innerWidth < 700, want = { d: ph ? 120 : 250, w: ph ? 80 : 160, m: ph ? 60 : 120 }[PER];
+    const ph = innerWidth < 700, want = Math.max(30, Math.round({ d: ph ? 120 : 250, w: ph ? 80 : 160, m: ph ? 60 : 120 }[PER] / Math.sqrt(SPAN)));
     const w = $("#kc").clientWidth - 70; chart.setBarSpace(Math.max(2, Math.min(18, w / Math.min(want, BARS.length + 4)))); chart.scrollToRealTime();
   }
+
+  // ---------- watchlists (this browser only). List "main" = the site-wide ★ watchlist (localStorage bo_watch)
+  const WK = "mmwl", MAIN = "bo_watch";
+  let W = null; try { W = JSON.parse(localStorage.getItem(WK) || "null"); } catch (e) {}
+  if (!W || !Array.isArray(W.lists)) W = { cur: "main", sort: "", lists: [] };
+  if (!W.lists.find(l => l.id === "main")) W.lists.unshift({ id: "main", name: "My watchlist" });
+  let IDX = null, BY = {};
+  MM.index().then(d => { IDX = d; (d.list || []).forEach(r => BY[r.s] = r); wlDraw(); }).catch(() => {});
+  const wlSave = () => { try { localStorage.setItem(WK, JSON.stringify({ cur: W.cur, sort: W.sort || "", lists: W.lists.map(l => l.id === "main" ? { id: "main", name: l.name } : l) })); } catch (e) {} };
+  const wlCur = () => W.lists.find(l => l.id === W.cur) || W.lists[0];
+  const wlSyms = l => { if (l.id === "main") { try { const a = JSON.parse(localStorage.getItem(MAIN) || "[]"); return Array.isArray(a) ? a : []; } catch (e) { return []; } } return l.syms || (l.syms = []); };
+  const wlSet = (l, arr) => { arr = [...new Set(arr)]; if (l.id === "main") { try { localStorage.setItem(MAIN, JSON.stringify(arr)); } catch (e) {} } else l.syms = arr; wlSave(); };
+  const pxOf = s => { const L = MM._liveNow && MM._liveNow(); if (L && L.s && L.s[s]) return { p: L.s[s][0], c: L.s[s][1] }; const r = BY[s]; return r ? { p: r.p, c: r.c } : {}; };
+  const wlShown = () => { const s = wlSyms(wlCur()).slice();
+    if (W.sort === "name") s.sort(); else if (W.sort === "chg") s.sort((a, b) => (pxOf(b).c ?? -1e9) - (pxOf(a).c ?? -1e9));
+    else if (W.sort === "chgup") s.sort((a, b) => (pxOf(a).c ?? 1e9) - (pxOf(b).c ?? 1e9)); return s; };
+  function wlDraw() {
+    const l = wlCur(), syms = wlShown();
+    $("#wsel").innerHTML = W.lists.map(x => `<option value="${esc(x.id)}" ${x.id === l.id ? "selected" : ""}>${esc(x.name)} (${wlSyms(x).length})</option>`).join("");
+    $("#wlist").innerHTML = syms.length ? syms.map(s => { const r = BY[s] || {}, x = pxOf(s);
+      return `<div class="wrow ${s === SYM ? "on" : ""}" data-s="${esc(s)}" draggable="${W.sort ? "false" : "true"}"><span><b>${esc(s)}</b><small>${esc(r.n || "")}</small></span>
+        <span class="p">${x.p != null ? num(x.p) : "–"}</span><span class="c ${MM.cls(x.c)}">${x.c != null ? sgn(x.c, 2) : ""}</span>
+        <button class="rm" data-rm="${esc(s)}" title="Remove from this list" aria-label="Remove ${esc(s)}">×</button></div>`; }).join("")
+      : `<div class="wempty">“${esc(l.name)}” is empty.<br>Add stocks with the box above, the <b>+</b> button, or press <b>Alt+W</b> on any chart.</div>`;
+    const inL = SYM && wlSyms(l).includes(SYM);
+    $("#wst").textContent = inL ? "★" : "☆"; $("#wst").classList.toggle("on", !!inL);
+    $("#wst").title = (inL ? "Remove from " : "Add to ") + l.name + " (Alt+W)";
+  }
+  function wlToggle(s, add) {
+    if (!s) return; const l = wlCur(), a = wlSyms(l).slice(), has = a.includes(s);
+    if (add === true && has) { hint(`${s} is already in ${l.name}`); return; }
+    wlSet(l, has ? a.filter(x => x !== s) : a.concat(s)); wlDraw(); hint(has ? `Removed ${s} from ${l.name}` : `Added ${s} to ${l.name}`);
+  }
+  function wlStep(d) {
+    const a = wlShown(); if (!a.length) return; const i = a.indexOf(SYM);
+    go(a[i < 0 ? 0 : (i + d + a.length) % a.length]);
+  }
+  $("#wsel").onchange = () => { W.cur = $("#wsel").value; wlSave(); wlDraw(); };
+  $("#wadd").onclick = () => wlToggle(SYM, true);
+  $("#wst").onclick = () => wlToggle(SYM);
+  MM.attachSearch($("#wq"), r => { const l = wlCur(); if (!wlSyms(l).includes(r.s)) { wlSet(l, wlSyms(l).concat(r.s)); hint(`Added ${r.s} to ${l.name}`); } wlDraw(); });
+  $("#wlist").onclick = e => { const rm = e.target.closest("[data-rm]");
+    if (rm) { e.stopPropagation(); const l = wlCur(); wlSet(l, wlSyms(l).filter(x => x !== rm.dataset.rm)); wlDraw(); return; }
+    const r = e.target.closest(".wrow"); if (!r) return; go(r.dataset.s); if (innerWidth <= 900) closeSide(); };
+  let dragS = null;                                   // drag a row to reorder (only when the list is not sorted)
+  $("#wlist").addEventListener("dragstart", e => { const r = e.target.closest(".wrow"); if (!r) return; dragS = r.dataset.s; r.classList.add("drag"); e.dataTransfer.effectAllowed = "move"; });
+  $("#wlist").addEventListener("dragend", () => { dragS = null; document.querySelectorAll(".wrow.drag,.wrow.over").forEach(x => x.classList.remove("drag", "over")); });
+  $("#wlist").addEventListener("dragover", e => { const r = e.target.closest(".wrow"); if (!dragS || !r) return; e.preventDefault();
+    document.querySelectorAll(".wrow.over").forEach(x => x.classList.remove("over")); r.classList.add("over"); });
+  $("#wlist").addEventListener("drop", e => { const r = e.target.closest(".wrow"); if (!dragS || !r) return; e.preventDefault();
+    const l = wlCur(), a = wlSyms(l).filter(x => x !== dragS), i = a.indexOf(r.dataset.s); a.splice(i < 0 ? a.length : i, 0, dragS); wlSet(l, a); wlDraw(); });
+  // list menu: new / rename / delete / sort / paste many / copy
+  $("#wmb").onclick = e => { e.stopPropagation(); const m = $("#wmenu"); if (!m.hidden) { m.hidden = true; return; }
+    const l = wlCur(), so = W.sort || "";
+    m.innerHTML = `<button data-a="new">＋ New list</button><button data-a="ren">Rename “${esc(l.name)}”</button>${l.id !== "main" ? `<button data-a="del">Delete “${esc(l.name)}”</button>` : ""}
+      <hr><div class="lab">Sort</div>${[["", "My order (drag to move)"], ["name", "Name A–Z"], ["chg", "Today: best first"], ["chgup", "Today: worst first"]].map(([k, t]) => `<button data-s="${k}" class="${so === k ? "on" : ""}">${so === k ? "✓ " : ""}${t}</button>`).join("")}
+      <hr><button data-a="paste">Add many (paste symbols)</button><button data-a="copy">Copy symbols</button><button data-a="clear">Empty this list</button>`;
+    m.hidden = false; const r = $("#wmb").getBoundingClientRect(), base = $("#cp").getBoundingClientRect();
+    m.style.left = Math.max(6, r.right - base.left - m.offsetWidth) + "px"; m.style.top = (r.bottom - base.top + 6) + "px"; };
+  $("#wmenu").onclick = async e => { e.stopPropagation(); const b = e.target.closest("button"); if (!b) return; $("#wmenu").hidden = true;
+    const l = wlCur();
+    if (b.dataset.s != null) { W.sort = b.dataset.s; wlSave(); wlDraw(); return; }
+    const a = b.dataset.a;
+    if (a === "new") { const n = (prompt("Name for the new list:", "List " + W.lists.length) || "").trim(); if (!n) return;
+      const id = "l" + Date.now().toString(36); W.lists.push({ id, name: n.slice(0, 40), syms: [] }); W.cur = id; wlSave(); wlDraw(); hint("Created " + n); }
+    else if (a === "ren") { const n = (prompt("New name:", l.name) || "").trim(); if (n) { l.name = n.slice(0, 40); wlSave(); wlDraw(); } }
+    else if (a === "del") { if (confirm(`Delete the list “${l.name}” (${wlSyms(l).length} stocks)? This cannot be undone.`)) { W.lists = W.lists.filter(x => x !== l); W.cur = "main"; wlSave(); wlDraw(); } }
+    else if (a === "clear") { if (wlSyms(l).length && confirm(`Remove all ${wlSyms(l).length} stocks from “${l.name}”?`)) { wlSet(l, []); wlDraw(); } }
+    else if (a === "copy") { const t = wlSyms(l).join(", "); try { await navigator.clipboard.writeText(t); hint("Copied " + wlSyms(l).length + " symbols"); } catch (err) { prompt("Copy these symbols:", t); } }
+    else if (a === "paste") { const t = prompt("Paste NSE symbols, separated by commas, spaces or new lines (NSE:TCS also works):", ""); if (!t) return;
+      const got = t.toUpperCase().split(/[\s,;]+/).map(x => x.replace(/^(NSE|BSE):/, "").trim()).filter(Boolean);
+      const ok = got.filter(x => BY[x]), bad = got.filter(x => !BY[x]);
+      wlSet(l, wlSyms(l).concat(ok)); wlDraw(); hint(`Added ${ok.length}` + (bad.length ? ` · not found: ${bad.slice(0, 5).join(", ")}${bad.length > 5 ? "…" : ""}` : ""), 4000); }
+  };
+  document.addEventListener("click", e => { if (!e.target.closest("#wmenu")) $("#wmenu").hidden = true; });
+  MM.onLive && MM.onLive(() => { if (!$("#side").hidden && P.tab === "wl") wlDraw(); });
+  addEventListener("storage", e => { if (e.key === MAIN || e.key === WK) { try { const n = JSON.parse(localStorage.getItem(WK) || "null"); if (n && n.lists) { W = n; if (!W.lists.find(l => l.id === "main")) W.lists.unshift({ id: "main", name: "My watchlist" }); } } catch (er) {} wlDraw(); } });
+
+  // ---------- type anywhere (like TradingView): letters = find a stock, a number first = candle size (1D, 2W, 3M, 1Y)
+  let kItems = [], kOn = 0;
+  function findStocks(q) {
+    q = q.trim().toUpperCase(); if (!q || !IDX) return [];
+    const words = q.split(/\s+/), out = [];
+    for (const r of IDX.list) { const s = r.s, n = (r.n || "").toUpperCase(), nw = n.split(/[\s&.,()-]+/); let sc = -1;
+      if (s === q) sc = 1000; else if (s.startsWith(q)) sc = 600 - s.length; else if (n.startsWith(q)) sc = 500;
+      else if (words.every(w => s.includes(w) || nw.some(x => x.startsWith(w)))) sc = 200;
+      if (sc >= 0) out.push([sc + Math.log10((r.m || 1) + 1) * 10, r]); }
+    return out.sort((a, b) => b[0] - a[0]).slice(0, 12).map(x => x[1]);
+  }
+  function parseTf(v) {
+    const m = /^(\d{1,3})\s*([a-z]*)$/i.exec(v.trim()); if (!m) return null;
+    const n = +m[1], u = m[2].toLowerCase();
+    if (!u || /^(s|sec|secs|second|seconds|min|mins|minute|minutes|h|hr|hrs|hour|hours)$/.test(u))
+      return { err: "Minute and hour candles are not available: our free data is end-of-day, so the smallest candle is 1 day (1D)." };
+    const p = /^d(ay|ays)?$/.test(u) ? "d" : /^w(k|ks|eek|eeks)?$/.test(u) ? "w" : /^(m|mo|mon|month|months)$/.test(u) ? "m" : /^y(r|rs|ear|ears)?$/.test(u) ? "y" : null;
+    if (!p || n < 1) return null;
+    if (p === "y") return n <= 5 ? { p: "m", n: 12 * n } : { err: "Up to 5Y candles." };
+    if (n > { d: 60, w: 52, m: 60 }[p]) return { err: "That candle is too big. Try up to 60D, 52W or 60M." };
+    return { p, n };
+  }
+  function kdDraw() {
+    const v = $("#kq").value.trim();
+    if (/^\d/.test(v)) { const t = parseTf(v); kItems = []; $("#kl").innerHTML = "";
+      $("#kh").innerHTML = !t ? "Candle size: a number and <b>D</b>, <b>W</b>, <b>M</b> or <b>Y</b>. <kbd>1D</kbd> daily · <kbd>2W</kbd> two weeks · <kbd>3M</kbd> three months · <kbd>1Y</kbd> yearly"
+        : t.err ? esc(t.err) : `Press <kbd>Enter</kbd> for <b>${tfName(t.p, t.n)}</b> candles`; return; }
+    kItems = findStocks(v); kOn = Math.min(kOn, Math.max(0, kItems.length - 1));
+    $("#kl").innerHTML = kItems.map((r, i) => { const x = pxOf(r.s); return `<div class="ki ${i === kOn ? "on" : ""}" data-i="${i}"><b>${esc(r.s)}</b><span>${esc(r.n)}${r.i ? " · " + esc(r.i) : ""}</span>
+      <span class="r">${x.p != null ? num(x.p) : ""} <span class="${MM.cls(x.c)}" style="color:inherit">${x.c != null ? `<b class="${MM.cls(x.c)}" style="min-width:0;font-weight:600">${sgn(x.c, 2)}</b>` : ""}</span></span></div>`; }).join("");
+    $("#kh").innerHTML = !IDX ? "Loading the stock list…" : kItems.length ? "<kbd>↑</kbd> <kbd>↓</kbd> choose · <kbd>Enter</kbd> open · <kbd>Esc</kbd> close · type <kbd>1D</kbd> <kbd>1W</kbd> <kbd>1M</kbd> for candle size"
+      : v ? `No NSE company matches “${esc(v)}”.` : "Type a company name or NSE symbol";
+  }
+  const kdOpen = ch => { $("#kd").hidden = false; $("#kq").value = ch || ""; kOn = 0; kdDraw(); $("#kq").focus(); };
+  const kdClose = () => { $("#kd").hidden = true; $("#kq").blur(); };
+  $("#kq").addEventListener("input", () => { kOn = 0; kdDraw(); });
+  $("#kq").addEventListener("keydown", e => {
+    if (e.key === "Escape") { e.preventDefault(); kdClose(); }
+    else if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); if (!kItems.length) return; kOn = (kOn + (e.key === "ArrowDown" ? 1 : -1) + kItems.length) % kItems.length; kdDraw();
+      const on = $("#kl .ki.on"); on && on.scrollIntoView({ block: "nearest" }); }
+    else if (e.key === "Enter") { e.preventDefault(); const v = $("#kq").value.trim();
+      if (/^\d/.test(v)) { const t = parseTf(v); if (t && !t.err) { kdClose(); setPer(t.p, t.n); hint(tfName(t.p, t.n) + " candles"); } return; }
+      const r = kItems[kOn]; if (r) { kdClose(); go(r.s); } }
+  });
+  $("#kl").addEventListener("click", e => { const it = e.target.closest(".ki"); if (!it) return; const r = kItems[+it.dataset.i]; kdClose(); if (r) go(r.s); });
+  document.addEventListener("mousedown", e => { if (!$("#kd").hidden && !e.target.closest("#kd")) kdClose(); });
+  document.addEventListener("keydown", e => {
+    if (e.defaultPrevented || e.ctrlKey || e.metaKey) return;
+    if (e.target.closest && e.target.closest("input,select,textarea,[contenteditable=true]")) return;
+    if (e.altKey) { if (e.code === "KeyW") { e.preventDefault(); wlToggle(SYM); } return; }
+    if ((e.key === "ArrowDown" || e.key === "ArrowUp") && !$("#side").hidden && P.tab === "wl") { e.preventDefault(); wlStep(e.key === "ArrowDown" ? 1 : -1); return; }
+    if (e.key.length === 1 && /[a-z0-9&]/i.test(e.key)) { e.preventDefault(); kdOpen(e.key); }
+  });
 
   // ---------- load a stock
   function reload() { chart.resetData(); setTimeout(afterData, 0); }
   async function go(sym, push = true) {
     sym = String(sym || "").toUpperCase().trim(); if (!sym) return;
     SYM = sym; D = null; EV = null; EVL = []; EVB = {};
-    if (push) history.replaceState(null, "", "?" + encodeURIComponent(sym) + (PER !== "d" ? "&tf=" + PER : ""));
+    if (push) history.replaceState(null, "", "?" + encodeURIComponent(sym) + (tfCode() !== "d" ? "&tf=" + tfCode() : ""));
+    wlDraw();
     $("#msg").hidden = false; $("#msg").textContent = "Loading chart…";
     const [idx, d, ev] = await Promise.all([MM.index().catch(() => null), MMChart.load(sym).catch(() => null),
       null, MM.live ? MM.live().catch(() => null) : null]);
@@ -561,7 +758,7 @@ select.bt{padding-right:6px}
     $("#msg").hidden = true;
     if (PER === "d" && !D.d.length) PER = "w";
     chart.setSymbol({ ticker: sym, pricePrecision: 2, volumePrecision: 0 });
-    chart.setPeriod(PER === "d" ? { type: "day", span: 1 } : PER === "w" ? { type: "week", span: 1 } : { type: "month", span: 1 });
+    chart.setPeriod(period());
     setTimeout(() => { fit(); afterData(); segOn(); zoomDefault(); }, 0);
     setTimeout(fit, 400);
     MM.updated && MM.updated(new Date(D.d.length ? D.d[D.d.length - 1].t * DAY : Date.now()).toISOString().slice(0, 10));
@@ -569,10 +766,10 @@ select.bt{padding-right:6px}
 
   // ---------- start
   applyInd(); setLog();
-  $("#side").hidden = !P.side; segOn();
+  $("#side").hidden = !P.side; showTab(); segOn();
   const qs = new URLSearchParams(location.search);
   const first = [...qs.keys()].find(k => k === k.toUpperCase() && k.length > 0) || qs.get("s") || localStorage.getItem("mmk_last") || "RELIANCE";
-  if (qs.get("tf") && "dwm".includes(qs.get("tf"))) PER = qs.get("tf");
+  { const m = /^(\d{0,2})([dwm])$/i.exec(qs.get("tf") || ""); if (m) { PER = m[2].toLowerCase(); SPAN = Math.max(1, +m[1] || 1); } }
   const _go = go; go = (s, p) => { try { localStorage.setItem("mmk_last", String(s).toUpperCase()); } catch (e) {} return _go(s, p); };
   requestAnimationFrame(() => { fit(); go(first); });
 })();
