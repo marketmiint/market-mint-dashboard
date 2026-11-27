@@ -15,14 +15,14 @@
 /* Charts page: full-height app under the site header. Library: KLineChart v10 (Apache-2.0, assets/klc.js). */
 body.cpg{overflow-x:hidden}
 .cp{display:flex;flex-direction:column;height:var(--ch,calc(100vh - 110px));min-height:520px;background:var(--card,#fff);border-bottom:1px solid var(--line)}
-.ctop{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap;font-size:13px}
+.ctop{display:flex;align-items:center;gap:6px;padding:5px 10px;border-bottom:1px solid var(--line);flex-wrap:wrap;font-size:13px}
 .ctop .sym{display:flex;align-items:center;gap:10px;min-width:0;margin-right:4px}
 .ctop .sym .nm{font-weight:800;font-size:15.5px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
 .ctop .sym .nm small{display:block;font-weight:500;font-size:12px;color:var(--muted)}
 .ctop .sym .nm a{color:inherit;text-decoration:none}
 .ctop .px{font-variant-numeric:tabular-nums;white-space:nowrap}.ctop .px b{font-size:16px}.ctop .px small{display:block;font-size:11.5px;color:var(--muted)}
 .ctop .fs{position:relative}
-.ctop .fs input{width:190px;padding:7px 10px 7px 30px;border:1.5px solid var(--line);border-radius:9px;font:inherit;background:var(--card);color:var(--ink)}
+.ctop .fs input{width:150px;padding:7px 10px 7px 30px;border:1.5px solid var(--line);border-radius:9px;font:inherit;background:var(--card);color:var(--ink)}
 .ctop .fs svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--muted)}
 .ctop .fs .sugg{min-width:320px}
 .sep{width:1px;height:22px;background:var(--line);margin:0 2px}
@@ -33,7 +33,9 @@ body.cpg{overflow-x:hidden}
 .bt:hover{background:var(--soft)}.bt.on{border-color:var(--ink)}
 .bt svg{flex:none}
 select.bt{padding-right:6px}
-.ctop .rt{margin-left:auto;display:flex;gap:6px;align-items:center}
+.ctop .rt{margin-left:auto;display:flex;gap:5px;align-items:center}
+.ctop .bt{padding:4px 9px}.ctop .seg button{padding:4px 8px}
+@media (max-width:1180px){.ctop #rg{display:none}}
 .cbody{flex:1;display:flex;min-height:0;position:relative}
 .ctools{width:44px;border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;overflow-y:auto;flex:none}
 .ctools button{width:34px;height:32px;border:0;background:none;border-radius:8px;cursor:pointer;color:var(--ink);display:flex;align-items:center;justify-content:center;flex:none}
@@ -52,7 +54,16 @@ select.bt{padding-right:6px}
 .hint{position:absolute;left:50%;bottom:44px;transform:translateX(-50%);background:#111827;color:#fff;padding:7px 12px;border-radius:9px;font-size:12.5px;z-index:7;pointer-events:none;opacity:0;transition:opacity .2s;white-space:nowrap}
 .hint.on{opacity:.92}
 /* side panel: events */
-.cside{width:330px;border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0;flex:none;background:var(--card)}
+.cside{width:var(--sw,330px);border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0;flex:none;background:var(--card);position:relative;animation:slin .18s ease-out}
+@keyframes slin{from{transform:translateX(24px);opacity:.4}to{transform:none;opacity:1}}
+.rsz{position:absolute;left:-4px;top:0;bottom:0;width:8px;cursor:ew-resize;z-index:5}
+.rsz:hover,.rsz.on{background:linear-gradient(90deg,transparent 3px,#2563eb 3px,#2563eb 5px,transparent 5px)}
+.crail{width:40px;flex:none;border-left:1px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0;background:var(--card)}
+.crail button{position:relative;width:32px;height:32px;border:0;background:none;border-radius:8px;cursor:pointer;color:var(--muted);display:flex;align-items:center;justify-content:center}
+.crail button:hover{background:var(--soft);color:var(--ink)}
+.crail button.on{background:#e8f1ea;color:#2f7a40}
+.crail small{position:absolute;top:-1px;right:-3px;background:#c98a0c;color:#fff;font-size:9px;font-weight:800;border-radius:8px;padding:0 4px;line-height:14px;min-width:14px;text-align:center}
+.crail small:empty{display:none}
 .cside[hidden]{display:none}
 .cside .hd{padding:10px 12px 6px;display:flex;align-items:center;gap:8px}
 .cside .hd b{font-size:14px}.cside .hd .x{margin-left:auto}
@@ -102,7 +113,6 @@ body.full #po{display:none}
 .evh{display:flex;align-items:flex-start;gap:6px;padding:8px 10px 0 0;border-bottom:1px solid var(--line)}
 .evh .chips{flex:1;border-bottom:0;padding-left:12px}
 .evh .bt,.wlh [data-close]{padding:5px 9px;flex:none}
-#ecount{color:var(--muted);font-weight:500;font-size:12px}
 .cside section{display:flex;flex-direction:column;min-height:0;flex:1}
 .cside section[hidden]{display:none}
 /* watchlists */
@@ -135,7 +145,7 @@ body.full #po{display:none}
 .kd .kh{padding:9px 16px;font-size:12.5px;color:var(--muted);background:var(--soft)}
 .kd .kh b{color:var(--ink)}
 .kd kbd{font:inherit;font-size:11px;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 4px;background:var(--card)}
-@media (max-width:900px){.cside{position:absolute;right:0;top:0;bottom:0;z-index:20;box-shadow:-8px 0 30px rgba(0,0,0,.12);width:min(330px,88vw)}}
+@media (max-width:900px){.cside{position:absolute;right:40px;top:0;bottom:0;z-index:20;box-shadow:-8px 0 30px rgba(0,0,0,.12);width:min(330px,80vw)}.rsz{display:none}}
 @media (max-width:700px){
   .cp{height:var(--ch,calc(100vh - 120px))}
   .ctop{gap:6px;padding:6px 8px}.ctop .fs input{width:130px}.ctop .sym .nm{max-width:150px}
@@ -145,6 +155,9 @@ body.full #po{display:none}
   .ctools{width:auto;flex-direction:row;border-right:0;border-top:1px solid var(--line);padding:3px 6px;overflow-x:auto;overflow-y:hidden;justify-content:flex-start}
   .ctools hr{width:1px;height:22px;border:0;border-left:1px solid var(--line);margin:0 4px}
   .ipop{width:min(360px,94vw)}
+  .crail{position:absolute;top:34px;right:66px;z-index:21;flex-direction:row;width:auto;border:1px solid var(--line);border-radius:10px;padding:2px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+  .cside{right:0;top:0;width:88vw}
+  .cside:not([hidden]) ~ .crail{display:none}
 }
 </style>
 </head>
@@ -167,17 +180,15 @@ body.full #po{display:none}
     <button class="bt" id="ib" title="Indicators"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l5-6 4 4 9-10"/></svg>Indicators</button>
     <button class="bt hide-sm" id="lg" title="Log scale: equal % moves look equal">Log</button>
     <div class="rt">
-      <button class="bt" id="wb" title="Watchlists"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg><span class="hide-sm">Watchlist</span></button>
-      <button class="bt" id="eb" title="Order wins, results, splits, bonus, dividends"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Events <small id="ecount"></small></button>
       <button class="bt hide-sm" id="sn" title="Save a picture of the chart"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
-      <button class="bt" id="po" title="Open this chart in its own big window"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4h6v6M20 4l-8 8"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg><span class="hide-sm">Pop out</span></button>
+      <button class="bt" id="po" title="Open this chart in its own big window"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4h6v6M20 4l-8 8"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></button>
       <button class="bt" id="fz" title="Full screen"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
     </div>
   </div>
   <div class="cbody">
     <div class="ctools" id="tools" aria-label="Drawing tools"></div>
     <div class="cwrap"><div class="clg" id="clg"></div><div class="kbox"><div id="kc"></div><div class="msg" id="msg">Loading chart…</div><div class="hint" id="hint"></div></div></div>
-    <aside class="cside" id="side" aria-label="Watchlists and events">
+    <aside class="cside" id="side" aria-label="Watchlists and events"><div class="rsz" id="rsz" title="Drag to make the panel wider or narrower"></div>
       <section id="pwl">
         <div class="wlh"><select class="bt" id="wsel" aria-label="Pick a watchlist"></select><button class="bt" id="wadd" title="Add this stock (Alt+W)">+</button><button class="bt" id="wmb" title="Watchlist menu" aria-label="Watchlist menu">⋯</button><button class="bt" data-close title="Close panel" aria-label="Close panel">×</button></div>
         <div class="wladd"><input id="wq" type="search" placeholder="Add a stock to this list…" autocomplete="off" aria-label="Add a stock to this list"></div>
@@ -190,6 +201,10 @@ body.full #po{display:none}
         <div class="cnote">From NSE filings since 2005. Tap an event to jump to it. Prices are adjusted for splits and bonuses, so old prices look lower than they were.</div>
       </section>
     </aside>
+    <nav class="crail" aria-label="Side panels">
+      <button id="wb" title="Watchlists (click again to hide)" aria-label="Watchlists"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg></button>
+      <button id="eb" title="Events: order wins, results, splits, bonus, dividends (click again to hide)" aria-label="Events"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><small id="ecount"></small></button>
+    </nav>
   </div>
   <div class="pop ipop" id="ipop" hidden></div>
   <div class="pop wmenu" id="wmenu" hidden></div>
@@ -603,6 +618,14 @@ body.full #po{display:none}
   const showTab = () => { $("#pwl").hidden = P.tab !== "wl"; $("#pev").hidden = P.tab !== "ev"; };
   const openSide = (tab = "ev") => { P.tab = tab; $("#side").hidden = false; P.side = true; save(); showTab(); segOn(); if (tab === "wl") wlDraw(); setTimeout(() => chart.resize(), 0); };
   const closeSide = () => { $("#side").hidden = true; P.side = false; save(); segOn(); setTimeout(() => chart.resize(), 0); };
+  const setSW = w => { P.sw = Math.round(Math.max(220, Math.min(640, w))); $("#cp").style.setProperty("--sw", P.sw + "px"); };
+  if (P.sw) setSW(P.sw);
+  $("#rsz").addEventListener("pointerdown", e => { e.preventDefault(); const r = $("#rsz"), x0 = e.clientX, w0 = $("#side").offsetWidth; r.classList.add("on");
+    document.body.style.cursor = "ew-resize"; document.body.style.userSelect = "none";
+    const mv = ev => { setSW(w0 + (x0 - ev.clientX)); chart.resize(); };
+    const up = () => { r.classList.remove("on"); document.body.style.cursor = document.body.style.userSelect = "";
+      removeEventListener("pointermove", mv); removeEventListener("pointerup", up); save(); chart.resize(); };
+    addEventListener("pointermove", mv); addEventListener("pointerup", up); });
   const sideBtn = tab => () => { if (!$("#side").hidden && P.tab === tab) closeSide(); else openSide(tab); };
   $("#eb").onclick = sideBtn("ev"); $("#wb").onclick = sideBtn("wl");
 
@@ -785,7 +808,7 @@ body.full #po{display:none}
 
   // ---------- start
   applyInd(); setLog();
-  $("#side").hidden = !P.side; showTab(); segOn();
+  $("#side").hidden = !P.side || innerWidth <= 900; showTab(); segOn();      // phones: chart first, panel on demand
   const qs = new URLSearchParams(location.search);
   const first = [...qs.keys()].find(k => k === k.toUpperCase() && k.length > 0) || qs.get("s") || localStorage.getItem("mmk_last") || "RELIANCE";
   { const m = /^(\d{0,2})([dwm])$/i.exec(qs.get("tf") || ""); if (m) { PER = m[2].toLowerCase(); SPAN = Math.max(1, +m[1] || 1); } }
