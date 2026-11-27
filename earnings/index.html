@@ -50,7 +50,7 @@ td .co{max-width:260px}
     <div class="tscroll"><table><thead><tr><th>Company</th><th>Date</th><th>Grade</th><th>Sales ₹ Cr</th><th>Net profit ₹ Cr</th><th>OPM</th><th>Results day</th><th>Since results</th><th>Price</th><th><span class="sr" style="position:absolute;left:-9999px">Share</span></th></tr></thead>
       <tbody id="tb"><tr><td colspan="9" class="empty">Loading…</td></tr></tbody></table></div>
     <button class="more" id="more" hidden>Show more</button>
-    <div class="note">Grades come from the Market Mint results bot (Excellent, Great, Good, OK, Weak). Sales and profit are from the NSE filing, consolidated where filed; growth is against the same quarter last year (from Yahoo Finance for a few hours until the NSE numbers are in). Results day = share move on the first trading day after the result; since results = move from the day before the result to the latest close. "–" grade = not graded yet. <span data-upd></span></div>
+    <div class="note">Grades are based on growth only, never the share price: sales, operating profit and net profit against the same quarter last year (counts double) and last quarter. Strong growth, Good growth, Growing, Flat, Falling; a net loss is graded Loss. "Small base" = growth above 300% from a small number a year ago. Sales and profit are from the NSE filing, consolidated where filed; growth is against the same quarter last year (from Yahoo Finance for a few hours until the NSE numbers are in). Results day = share move on the first trading day after the result; since results = move from the day before the result to the latest close. "–" grade = not graded yet. <span data-upd></span></div>
   </section>
 
   <section class="panel" id="upP" hidden>
@@ -68,8 +68,8 @@ td .co{max-width:260px}
 <script>
 (async () => {
   const { esc, inr, crs, pct, cls, capOf, stockUrl, fmtDate, fmtShort, co } = MM;
-  const RT = ["Excellent", "Great", "Good", "OK", "Weak"];
-  const RC = { Excellent: "#0f8f55", Great: "#5cc48a", Good: "#5b8fe0", OK: "#b8bec7", Weak: "#e0645c" };
+  const RT = ["Strong growth", "Good growth", "Growing", "Flat", "Falling", "Loss"];
+  const RC = { "Strong growth": "#0f8f55", "Good growth": "#5cc48a", Growing: "#5b8fe0", Flat: "#b8bec7", Falling: "#e0645c", Loss: "#a3291f" };
   const [er, sj, dash] = await Promise.all([MM.getJSON("earnings.json"),
     fetch("../data/season.json", { cache: "no-cache" }).then(r => r.ok ? r.json() : null).catch(() => null),
     fetch("../data/dashboard.json", { cache: "no-cache" }).then(r => r.ok ? r.json() : null).catch(() => null)]);
@@ -86,7 +86,7 @@ td .co{max-width:260px}
       const rows = sea.rows.map(r => {
         const o = prev[r.sym] || {}, b = by[r.sym] || {}, k = cards[r.sym + "|" + sea.period] || {};
         return Object.assign({}, o, { s: r.sym, n: b.n || o.n || r.name, d: r.day, m: r.mcap || o.m, sec: r.sector || o.sec,
-          mv: r.move, d1: r.day1, rt: r.rating || null, sc: r.score, lg: o.lg ?? b.lg ?? 0, p: b.p ?? o.p ?? r.price, c: b.c ?? o.c,
+          mv: r.move, d1: r.day1, rt: MM.rtName(r.rating) || null, sc: r.score, lg: o.lg ?? b.lg ?? 0, p: b.p ?? o.p ?? r.price, c: b.c ?? o.c,
           sales: o.sales ?? k.sales ?? r.sales, pat: o.pat ?? k.pat ?? r.pat, opm: o.opm ?? (r.op != null && r.sales ? Math.round(r.op / r.sales * 1000) / 10 : null),
           sy: o.sy ?? k.sales_yoy ?? r.sales_yoy, py: o.py ?? k.pat_yoy ?? r.pat_yoy, url: o.url || k.url });
       }).sort((a, b) => (b.d || "").localeCompare(a.d || ""));
@@ -111,7 +111,7 @@ td .co{max-width:260px}
     const mv = rs.map(r => r.d1).filter(v => v != null);
     document.getElementById("stats").innerHTML = `
       <div class="s"><small>Results declared</small><b>${n.toLocaleString("en-IN")}</b><span>${esc(sea.label)} · to ${fmtShort(sea.asof)}</span></div>
-      <div class="s"><small>Excellent or Great</small><b>${Math.round((cnt.Excellent + cnt.Great) / graded * 100)}%</b>
+      <div class="s"><small>Strong or good growth</small><b>${Math.round((cnt["Strong growth"] + cnt["Good growth"]) / graded * 100)}%</b>
         <div class="dist">${RT.map(r => `<i title="${r}: ${cnt[r]}" style="width:${cnt[r] / graded * 100}%;background:${RC[r]}"></i>`).join("")}</div></div>
       <div class="s"><small>Median sales growth</small><b class="${cls(med(rs.map(r => r.sy)))}">${pct(med(rs.map(r => r.sy)))}</b><span>vs same quarter last year</span></div>
       <div class="s"><small>Rose on results day</small><b>${mv.length ? Math.round(mv.filter(v => v > 0).length / mv.length * 100) + "%" : "–"}</b><span>of ${mv.length.toLocaleString("en-IN")} results</span></div>`;
@@ -134,9 +134,9 @@ td .co{max-width:260px}
     const n1 = v => v == null ? "–" : Math.abs(v) >= 1000 ? Math.round(v).toLocaleString("en-IN") : Number(v).toFixed(1);
     document.getElementById("tb").innerHTML = rs.slice(0, st.shown).map(r => `<tr>
       <td>${co(r.s, r.n, r.lg, `${esc(r.s)} · ${crs(r.m)}`)}</td><td>${fmtShort(r.d)}</td>
-      <td>${r.rt ? `<span class="pill rt-${esc(r.rt)}">${esc(r.rt)}</span>` : "–"}</td>
-      <td>${n1(r.sales)}<span class="yo ${cls(r.sy)}">${r.sy == null ? "" : pct(r.sy) + " YoY"}</span></td>
-      <td>${n1(r.pat)}<span class="yo ${cls(r.py)}">${r.py == null ? "" : pct(r.py) + " YoY"}</span></td>
+      <td>${MM.rtPill(r.rt) || "–"}</td>
+      <td>${n1(r.sales)}<span class="yo ${cls(r.sy)}">${r.sy == null ? "" : pct(r.sy) + " YoY"}</span>${MM.smallBase(r.sy)}</td>
+      <td>${n1(r.pat)}<span class="yo ${cls(r.py)}">${r.py == null ? "" : pct(r.py) + " YoY"}</span>${MM.smallBase(r.py)}</td>
       <td>${r.opm == null ? "–" : r.opm.toFixed(1) + "%"}</td>
       <td class="${cls(r.d1)}">${pct(r.d1)}</td><td class="${cls(r.mv)}">${pct(r.mv)}</td><td>${inr(r.p)}<span class="yo ${cls(r.c)}">${pct(r.c, 2)} today</span></td>
       <td>${MM.shareBtn(r.url || new URL(stockUrl(r.s), location.href).href, shareText(r))}</td></tr>`).join("") || '<tr><td colspan="10" class="empty">No results match.</td></tr>';

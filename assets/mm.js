@@ -21,6 +21,11 @@
     return "₹" + (a >= 100 ? v.toFixed(0) : v.toFixed(1)) + " Cr";
   };
   const pct = (v, d = 1, sign = true) => v == null ? "–" : (sign && v > 0 ? "+" : "") + Number(v).toFixed(d) + "%";
+  // results grades (growth only, see grades.py): pill + "small base" note for growth above 300%
+  const RT_OLD = { Excellent: "Strong growth", Great: "Good growth", Good: "Growing", OK: "Flat", Weak: "Falling" };
+  const rtName = r => RT_OLD[r] || r;
+  const rtPill = r => r ? `<span class="pill rt-${String(rtName(r)).replace(/ /g, "-")}">${rtName(r)}</span>` : "";
+  const smallBase = v => v != null && v > 300 ? ' <small class="sbase">small base</small>' : "";
   const cls = v => v == null ? "" : v > 0 ? "up" : v < 0 ? "down" : "";
   const capOf = m => !m ? "" : m >= 100000 ? "Large" : m >= 30000 ? "Mid" : m >= 5000 ? "Small" : "Micro";
   const stockUrl = s => ROOT + "s/?" + encodeURIComponent(s);
@@ -340,7 +345,7 @@
     e.preventDefault(); e.stopPropagation(); share(b.dataset.shareUrl, b.dataset.shareText);
   });
 
-  window.MM = { share, shareBtn, toast, ROOT, DATA, TG, esc, inr, crs, pct, cls, capOf, stockUrl, fmtDate, fmtShort, index, getJSON, attachSearch, lineChart, spark,
+  window.MM = { rtName, rtPill, smallBase, share, shareBtn, toast, ROOT, DATA, TG, esc, inr, crs, pct, cls, capOf, stockUrl, fmtDate, fmtShort, index, getJSON, attachSearch, lineChart, spark,
                 TABS, svg, I, logo, co, STAGE, stagePill, stageOf, updated, earnViews,
                 live, applyLive, onLive, liveOpen, liveShown, _liveNow: () => liveD };
   header();

@@ -209,7 +209,7 @@
     const [label, sea] = Object.entries(sj.seasons)[0];
     const old = Object.fromEntries(((er.seasons.find(x => x.label === label) || {}).rows || []).map(r => [r.s, r]));
     er.seasons[0] = { label, rows: sea.rows.map(r => { const o = old[r.sym] || {}, b = by[r.sym] || {}, k = cards[r.sym + "|" + sea.period] || {};
-      return Object.assign({}, o, { s: r.sym, n: b.n || o.n || r.name, d: r.day, rt: r.rating || null, lg: o.lg ?? b.lg ?? 0,
+      return Object.assign({}, o, { s: r.sym, n: b.n || o.n || r.name, d: r.day, rt: MM.rtName(r.rating) || null, lg: o.lg ?? b.lg ?? 0,
         sales: o.sales ?? k.sales ?? r.sales, sy: o.sy ?? k.sales_yoy ?? r.sales_yoy, py: o.py ?? k.pat_yoy ?? r.pat_yoy }); }).sort((a, b) => (b.d || "").localeCompare(a.d || "")) };
   }
   if (er) {
@@ -218,8 +218,8 @@
     document.getElementById("nup").innerHTML = `${up.length}<span>results</span>`;
     document.getElementById("ndone").textContent = `${cur.rows.length.toLocaleString("en-IN")} declared in ${cur.label || "this season"}`;
     document.getElementById("upl").innerHTML = up.slice(0, 3).map(u => logo(u.s, u.n, u.lg)).join("");
-    document.getElementById("res").innerHTML = cur.rows.filter(r => r.sy != null || r.py != null).slice(0, 6).map(r => `<a href="${stockUrl(r.s)}">${co(r.s, r.n, r.lg, [r.sy != null ? `Sales ${pct(r.sy)}` : "", r.py != null ? `Profit ${pct(r.py)}` : ""].filter(Boolean).join(" · "), false)}
-      <span class="rt">${r.rt ? `<span class="pill rt-${esc(r.rt)}">${esc(r.rt)}</span>` : ""}<span class="muted" style="display:block;font-weight:500;margin-top:3px">${fmtShort(r.d)}</span></span></a>`).join("") || empty;
+    document.getElementById("res").innerHTML = cur.rows.filter(r => r.sy != null || r.py != null).slice(0, 6).map(r => `<a href="${stockUrl(r.s)}">${co(r.s, r.n, r.lg, [r.sy != null ? `Sales ${pct(r.sy)}${r.sy > 300 ? " (small base)" : ""}` : "", r.py != null ? `Profit ${pct(r.py)}${r.py > 300 ? " (small base)" : ""}` : ""].filter(Boolean).join(" · "), false)}
+      <span class="rt">${MM.rtPill(r.rt)}<span class="muted" style="display:block;font-weight:500;margin-top:3px">${fmtShort(r.d)}</span></span></a>`).join("") || empty;
   }
   // ---- orders
   // who the order is from: named customer, else what the work is, else "Customer not named"

@@ -184,7 +184,7 @@ section{scroll-margin-top:170px}
       const idx = iso => start ? Math.round((new Date(iso.slice(0, 10) + "T12:00:00") - start) / span) - off : -1;
       const marks = [];
       (c.orders || []).forEach(o => { const i = idx(o.date || ""); if (i >= 0 && i < pts.length) marks.push({ i, kind: "order", label: `Order ${crs(o.value_cr)} · ${fmtDate(o.date)}` }); });
-      (c.results || []).forEach(o => { const i = idx(o.filed || ""); if (i >= 0 && i < pts.length) marks.push({ i, kind: "result", label: `Result ${o.rating || ""} · ${fmtDate(o.filed)}` }); });
+      (c.results || []).forEach(o => { const i = idx(o.filed || ""); if (i >= 0 && i < pts.length) marks.push({ i, kind: "result", label: `Result ${MM.rtName(o.rating) || ""} · ${fmtDate(o.filed)}` }); });
       const lab = start ? [[0, fmtDate(new Date(start.getTime() + off * span).toISOString())], [pts.length - 1, fmtDate(px.d)]] : [];
       document.getElementById("chart").innerHTML = lineChart(pts, { marks, labels: lab }) || '<div class="empty">No price history yet.</div>';
       document.querySelectorAll("#rng button").forEach(b => b.classList.toggle("on", b.dataset.r === r));
@@ -194,7 +194,7 @@ section{scroll-margin-top:170px}
     // Stocks without a chart file (very new or illiquid) keep the simple 1-year line above.
     const bo = c.bo || {}, cmarks = [], clines = [];
     (c.orders || []).forEach(o => o.date && cmarks.push({ date: String(o.date).slice(0, 10), kind: "order", text: "Order" + (o.value_cr ? " " + crs(o.value_cr) : "") }));
-    (c.results || []).forEach(o => o.filed && cmarks.push({ date: String(o.filed).slice(0, 10), kind: "result", text: "Result" + (o.rating ? " · " + o.rating : "") }));
+    (c.results || []).forEach(o => o.filed && cmarks.push({ date: String(o.filed).slice(0, 10), kind: "result", text: "Result" + (o.rating ? " · " + MM.rtName(o.rating) : "") }));
     if (bo.pivot && bo.stage && bo.stage !== "played")
       clines.push({ price: bo.pivot, kind: "pivot", title: bo.stage === "forming" ? "Pivot" : "Breakout level" });
     const copt = { sym: c.sym, name: c.name, ex: "NSE", lines: clines, marks: cmarks, range: "1Y" };
@@ -273,10 +273,10 @@ section{scroll-margin-top:170px}
     if (!(rs && rs.length) && !next) return "";
     return `<div class="panel"><h2>Results on Market Mint</h2>
       ${next ? `<div class="pad" style="font-size:14px">Next results: <b>${fmtDate(next)}</b></div>` : ""}
-      ${(rs || []).map(r => `<div class="item"><div class="main"><b>${esc(r.rating || "Result")}</b> · ${esc(r.period ? qlabel(r.period) + " quarter" : "")}
+      ${(rs || []).map(r => `<div class="item"><div class="main"><b>${esc(MM.rtName(r.rating) || "Result")}</b> · ${esc(r.period ? qlabel(r.period) + " quarter" : "")}
         <div class="sub">${esc(r.line || "")}</div>
         <div class="meta"><span>${fmtDate(r.filed)}</span>${r.move != null ? `<span>Next day <b class="${cls(r.move)}">${pct(r.move)}</b></span>` : ""}
-        ${r.url ? MM.shareBtn(r.url, `${name || ""} results${r.rating ? ": " + r.rating : ""} | Market Mint`, "Share") : ""}</div></div></div>`).join("")}</div>`;
+        ${r.url ? MM.shareBtn(r.url, `${name || ""} results${r.rating ? ": " + MM.rtName(r.rating) : ""} | Market Mint`, "Share") : ""}</div></div></div>`).join("")}</div>`;
   }
 
   function bars(qs, key, title) {
