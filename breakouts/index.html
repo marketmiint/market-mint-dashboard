@@ -60,11 +60,13 @@ h1.t{font-size:clamp(22px,3vw,28px);letter-spacing:-.02em;margin:22px 0 4px;line
 .light b{font-size:16px;color:var(--ink)}.light .mut{font-size:14px}
 .light a{margin-left:auto;font-size:13px;font-weight:700;text-decoration:none;color:var(--muted)}
 /* screens */
-.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0;align-items:center}
-.tab{border:1px solid var(--line);cursor:pointer;padding:6px 14px;border-radius:999px;font-weight:600;background:var(--card);font-size:13.5px}
-.tab.on{border-color:var(--acc);color:var(--acc);background:var(--acc-soft)}
-.fbtn{margin-left:auto;border:0;background:var(--acc);color:#fff;border-radius:999px;padding:6px 16px;font-weight:700;cursor:pointer;font-size:13.5px}
-.fbtn b{background:#fff;color:var(--acc);border-radius:999px;font-size:12px;padding:1px 7px;margin-left:4px}
+.tabs{display:flex;gap:4px 22px;flex-wrap:wrap;margin:14px 0 18px;align-items:center;border-bottom:1px solid var(--line)}
+.tab{border:0;border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;padding:10px 0;background:none;font:inherit;font-weight:600;font-size:14px;color:var(--muted)}
+.tab:hover{color:var(--ink)}
+.tab.on{color:var(--ink);border-bottom-color:var(--acc)}
+.fbtn{margin-left:auto;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:6px 14px;font:inherit;font-weight:600;cursor:pointer;font-size:13px}
+.fbtn:hover{border-color:var(--ink)}
+.fbtn b{background:var(--acc);color:#fff;border-radius:999px;font-size:11px;padding:1px 6px;margin-left:6px}
 .drawer{display:none}.drawer.open{display:block}
 .fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
 .fgrid label{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;display:flex;flex-direction:column;gap:5px;min-width:0}
@@ -166,10 +168,15 @@ td a{text-decoration:none;font-weight:800}
 .modal .x{position:absolute;right:12px;top:10px;border:0;background:var(--soft);border-radius:999px;width:30px;height:30px;cursor:pointer;font-weight:800}
 footer{color:var(--muted);font-size:12px;padding:6px 0 30px}
 header:not(.mmh) .bar{display:none}
-.kind{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.kind button{border:1.5px solid var(--line);background:var(--card,#fff);border-radius:999px;padding:7px 14px;font:inherit;font-size:14px;font-weight:600;cursor:pointer;color:inherit}
-.kind button.on{background:var(--ink,#111);color:#fff;border-color:var(--ink,#111)}
-.kind select{height:36px;border-radius:999px;border:1.5px solid var(--line);padding:0 12px;font:inherit;font-size:14px;background:var(--card,#fff);color:inherit}
+.tab .tc{font-size:11.5px;font-weight:700;opacity:.65;margin-left:3px}
+.kind{display:inline-flex;gap:2px;background:var(--soft);border-radius:10px;padding:3px}
+.kind button{border:0;background:none;border-radius:8px;padding:7px 14px;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;color:var(--muted)}
+.kind button:hover{color:var(--ink)}
+.kind button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08),0 0 0 1px var(--line)}
+.gk{display:inline-flex;gap:14px;margin-left:auto;font-size:13px}
+.gk button{border:0;background:none;padding:0;font:inherit;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer}
+.gk button.on{color:var(--acc)}
+.gk + .fbtn{margin-left:14px}
 </style></head><body>
 <script src="../assets/mm.js"></script>
 <script src="../assets/mmchart.js"></script>
@@ -184,7 +191,7 @@ header:not(.mmh) .bar{display:none}
 <!-- SCREENS -->
 <section class="page" id="p-screens">
   <div class="kind" id="kind" style="margin-top:22px"></div>
-  <div class="tabs" id="tabs" style="margin-top:12px"></div>
+  <div class="tabs" id="tabs"></div>
   <div class="box drawer" id="drawer">
     <div class="fgrid stock-only">
       <label>Watchlist<select id="f-watch"></select></label>
@@ -341,6 +348,20 @@ function passes(r) {
 }
 const GROUPS = () => S.kind === "groups";
 const visible = () => (GROUPS() ? D.groups || [] : D.rows).filter(passes);
+const visScr = scr => { const keep = S.screen; S.screen = scr; const v = visible(); S.screen = keep; return v; };
+const LIVE_ST = ["fresh", "climbing", "forming"];
+const nLive = v => v.filter(r => LIVE_ST.includes(r.stage)).length;
+function bestSpot() {          // index view: jump to a pattern + stage that has something to show
+  const scrs = Object.keys(SCREENS).filter(k => k !== "ipo");
+  const here = visible();
+  if (here.some(r => r.stage === S.stage) && (S.stage === "played" ? !scrs.some(k => nLive(visScr(k))) : true)) return;
+  let best = null;
+  for (const k of scrs) for (const st of [...LIVE_ST, "played"]) {
+    const n = visScr(k).filter(r => r.stage === st).length;
+    if (n && (!best || (st !== "played") > (best.st !== "played") || ((st !== "played") === (best.st !== "played") && n > best.n))) best = {k, st, n};
+  }
+  if (best) { S.screen = best.k; S.stage = best.st; }
+}
 const gUrl = r => `../strength/?${r.g === "idx" ? "t=idx&" : ""}k=${encodeURIComponent(r.k)}`;
 const lvl = x => num(x, x < 100 ? 2 : 1);          // index levels: plain numbers, no ₹
 const nFilters = () => (GROUPS() ? (S.gk ? 1 : 0) : FKEYS.filter(k => S[k]).length) + DIALS.filter(d => S.dials[d[0]] !== d[5]).length;
@@ -510,13 +531,24 @@ function pager(total) {
   for (let p = Math.max(1, S.page - 2); p <= Math.min(pages, S.page + 2); p++) h += `<button data-pg="${p}" class="${p === S.page ? "on" : ""}">${p}</button>`;
   return h + `<button data-pg="${S.page + 1}" ${S.page === pages ? "disabled" : ""} aria-label="Next">›</button><select data-per aria-label="Per page">${[20, 40, 60, 100].map(n => `<option value="${n}" ${n === S.per ? "selected" : ""}>${n} a page</option>`).join("")}</select>`;
 }
+function emptyMsg() {
+  const base = `Nothing here${nFilters() ? " with these filters" : " today"}.`;
+  if (!GROUPS()) return base;
+  const tips = Object.keys(SCREENS).filter(k => k !== "ipo" && k !== S.screen).map(k => {
+    const v = visScr(k), parts = LIVE_ST.map(st => [st, v.filter(r => r.stage === st).length]).filter(x => x[1]);
+    return parts.length ? `<button class="link" data-goto="${k}:${parts[0][0]}">${SCREENS[k].t}: ${parts.map(([st, n]) => n + " " + STAGES[st][0].toLowerCase()).join(", ")} ›</button>` : "";
+  }).filter(Boolean);
+  return `No index or industry is ${STAGES[S.stage][0].toLowerCase()} in ${SCREENS[S.screen].t} today. Index lines move smoothly, so the strict VCP squeeze is rare for them.` +
+    (tips.length ? `<div style="margin-top:10px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap">${tips.join("")}</div>` : "");
+}
 function renderScreens() {
   const vis = visible();
   $("lightbox").innerHTML = lightLine(D.market.light);
   if (GROUPS() && S.screen === "ipo") S.screen = "vcp";
   $("kind").innerHTML = [["stocks", "Stocks"], ["groups", "Indices & industries"]].map(([k, t]) => `<button data-k="${k}" class="${S.kind === k ? "on" : ""}">${t}</button>`).join("")
-    + (GROUPS() ? `<select id="gk" aria-label="Show">${[["", "Indices + industries"], ["idx", "Indices only"], ["ind", "Industries only"]].map(([v, t]) => `<option value="${v}" ${S.gk === v ? "selected" : ""}>${t}</option>`).join("")}</select>` : "");
-  $("tabs").innerHTML = Object.entries(SCREENS).filter(([k]) => !(GROUPS() && k === "ipo")).map(([k, v]) => `<button class="tab ${k === S.screen ? "on" : ""}" data-s="${k}">${v.t}</button>`).join("")
+;
+  $("tabs").innerHTML = Object.entries(SCREENS).filter(([k]) => !(GROUPS() && k === "ipo")).map(([k, v]) => `<button class="tab ${k === S.screen ? "on" : ""}" data-s="${k}">${v.t}${GROUPS() ? ` <small class="tc">${nLive(visScr(k))}</small>` : ""}</button>`).join("")
+    + (GROUPS() ? `<span class="gk" id="gk">${[["", "All"], ["idx", "Indices"], ["ind", "Industries"]].map(([v, t]) => `<button data-gk="${v}" class="${S.gk === v ? "on" : ""}">${t}</button>`).join("")}</span>` : "")
     + `<button class="fbtn" id="fbtn">Filters${nFilters() ? `<b>${nFilters()}</b>` : ""}</button>`;
   $("stages").innerHTML = Object.entries(STAGES).map(([k, [t, s]]) => `<button class="stage ${k === S.stage ? "on" : ""}" data-s="${k}"><span class="nm">${t}</span><b class="n">${vis.filter(r => r.stage === k).length}</b><small>${s}</small></button>`).join("");
   $("eyebrow").textContent = `${SCREENS[S.screen].t} screen · ${fmtD(D.date)}`;
@@ -524,7 +556,7 @@ function renderScreens() {
   $("lt").innerHTML = `${STAGES[S.stage][0]} <span>· ${rows.length}</span>`;
   const pg = pager(rows.length); $("pg1").innerHTML = pg; $("pg2").innerHTML = pg;
   const page = rows.slice((S.page - 1) * S.per, S.page * S.per);
-  $("list").innerHTML = !page.length ? `<div class="box empty">Nothing here${nFilters() ? " with these filters" : " today"}.</div>` : S.view === "cards" ? `<div class="cards">${page.map(GROUPS() ? gcard : card).join("")}</div>` : (GROUPS() ? gtable : table)(page);
+  $("list").innerHTML = !page.length ? `<div class="box empty">${emptyMsg()}</div>` : S.view === "cards" ? `<div class="cards">${page.map(GROUPS() ? gcard : card).join("")}</div>` : (GROUPS() ? gtable : table)(page);
   fillLazy();
   document.querySelectorAll("#view button").forEach(b => b.classList.toggle("on", b.dataset.v === S.view));
   for (const k of FKEYS) $("f-" + k).classList.toggle("on", !!S[k]);
@@ -674,8 +706,8 @@ function buildControls() {
 }
 function wire() {
   for (const k of FKEYS) $("f-" + k).onchange = e => { S[k] = e.target.value; S.page = 1; render(); };
-  $("kind").onclick = e => { const b = e.target.closest("button[data-k]"); if (b) { S.kind = b.dataset.k; S.page = 1; feedAll = false; render(); } };
-  $("kind").onchange = e => { if (e.target.id === "gk") { S.gk = e.target.value; S.page = 1; render(); } };
+  $("kind").onclick = e => { const b = e.target.closest("button[data-k]"); if (b) { S.kind = b.dataset.k; S.page = 1; feedAll = false; if (GROUPS()) bestSpot(); render(); } };
+
   $("sort").onchange = e => { S.sort = e.target.value; render(); };
   $("cap").onchange = e => { S.cap = Math.max(10000, +e.target.value || 1000000); render(); };
   $("risk").onchange = e => { S.risk = Math.min(5, Math.max(0.25, +e.target.value || 1.5)); render(); };
@@ -684,6 +716,7 @@ function wire() {
   $("stages").onclick = e => { const b = e.target.closest(".stage"); if (b) { S.stage = b.dataset.s; S.page = 1; render(); } };
   $("view").onclick = e => { const b = e.target.closest("button"); if (b) { S.view = b.dataset.v; render(); } };
   $("tabs").onclick = e => { if (e.target.closest("#fbtn")) { $("drawer").classList.toggle("open"); return; }
+    const g = e.target.closest("[data-gk]"); if (g) { S.gk = g.dataset.gk; S.page = 1; render(); return; }
     const b = e.target.closest(".tab"); if (b) { S.screen = b.dataset.s; S.page = 1; feedAll = false; render(); } };
   $("tr-tabs").onclick = e => { const b = e.target.closest("[data-tr]"); if (b) { S.trs = b.dataset.tr; renderTrack(); save(); } };
   $("search").oninput = suggest;
@@ -702,6 +735,7 @@ function wire() {
     const op = e.target.closest("[data-open]"); if (op) { e.preventDefault(); openStock(op.dataset.open); return; }
     const pg = e.target.closest("[data-pg]"); if (pg && !pg.disabled) { S.page = +pg.dataset.pg; render(); $("lt").scrollIntoView({behavior: "smooth"}); return; }
     if (e.target.id === "more") { feedAll = !feedAll; feed(visible()); }
+    const gt = e.target.closest("[data-goto]"); if (gt) { [S.screen, S.stage] = gt.dataset.goto.split(":"); S.page = 1; render(); }
   });
   document.addEventListener("change", e => { if (e.target.matches("[data-per]")) { S.per = +e.target.value; S.page = 1; render(); } });
   addEventListener("hashchange", () => show(location.hash.slice(1)));
@@ -720,6 +754,7 @@ Promise.all([fetch("data.json?" + Date.now()).then(r => r.json()), fetch("../dat
   LEAD = `${d.liquid.toLocaleString("en-IN")} liquid NSE + BSE stocks scanned after every close.`;
   const qk = new URLSearchParams(location.search).get("kind");
   if (qk === "groups" || qk === "stocks") S.kind = qk;
+  if (GROUPS()) bestSpot();
   $("foot").textContent = `Data for ${fmtD(d.date)} · updated ${d.made} IST · B# = bases · ▲ = breakout · grey line = 50-day average · personal research, not advice.`;
   buildControls(); wire(); show(location.hash.slice(1) || S.page_);
   if (window.MM && MM.live) MM.live().then(L => {
