@@ -188,6 +188,26 @@ body.popped #po{display:none}
 .wrow .rm{opacity:0;border:0;background:none;cursor:pointer;color:var(--muted);font-size:16px;padding:0;line-height:1}.wrow:hover .rm{opacity:1}
 .wrow.drag{opacity:.35}.wrow.over{box-shadow:inset 0 2px 0 #2563eb}
 .wempty{padding:22px 14px;color:var(--muted);font-size:13px;line-height:1.5}
+.wro{padding:9px 12px;background:#f3f7ff;border-bottom:1px solid var(--line);font-size:12px;line-height:1.45;color:var(--ink)}
+.wro .bt{margin-top:7px;padding:4px 10px;font-size:12px}
+.wrow .wcp{border:0;background:none;cursor:pointer;color:#2f7a40;font-size:16px;font-weight:800;padding:0;line-height:1;opacity:.5}.wrow:hover .wcp,.wrow .wcp.in{opacity:1}
+.imback{position:fixed;inset:0;background:rgba(15,23,42,.35);z-index:59}.imback[hidden]{display:none}
+.imp{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(540px,94vw);max-height:88vh;overflow:auto;z-index:60;padding:16px 18px}
+.imp h3{margin:0 0 3px;font-size:16px}.imp .sub{color:var(--muted);font-size:12.5px;line-height:1.45}
+.imp .x{position:absolute;right:12px;top:12px;padding:3px 9px}
+.imp .drop{border:2px dashed var(--line);border-radius:12px;padding:18px 14px;text-align:center;color:var(--muted);cursor:pointer;margin:12px 0 8px;line-height:1.5}
+.imp .drop b{color:var(--ink)}.imp .drop.over,.imp .drop:hover{border-color:#2563eb;background:#f3f7ff}
+.imp textarea{width:100%;box-sizing:border-box;min-height:62px;padding:8px 10px;border:1.5px solid var(--line);border-radius:9px;font:inherit;font-size:13px;background:var(--card);color:var(--ink);resize:vertical}
+.imp .stat{margin:8px 0 4px;font-size:12.5px;color:var(--ink)}.imp .stat:empty{display:none}
+.imp .bar{height:6px;background:var(--soft);border-radius:4px;overflow:hidden;margin-top:5px}.imp .bar i{display:block;height:100%;background:#3b8a4c}
+.imp .found{max-height:38vh;overflow:auto;border:1px solid var(--line);border-radius:10px;margin:6px 0}
+.imp .fr{display:flex;gap:8px;padding:6px 10px;border-bottom:1px solid var(--line);align-items:center;font-size:13px;cursor:pointer}
+.imp .fr span{flex:1;min-width:0;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.imp .fr em{font-style:normal;font-size:11px;color:#b45309}
+.imp .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}.imp .row select{padding:6px 8px;font:inherit;font-size:13px}
+.imp .pri{background:#2f7a40;color:#fff;border-color:#2f7a40;font-weight:700}
+.nnew{width:7px;height:7px;border-radius:50%;background:#2563eb;display:inline-block;margin-left:6px;vertical-align:middle}
+.erow .up{font-size:10.5px;font-weight:700;color:#2563eb;margin-left:6px}
+#nlist .tx{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .wmenu{width:230px;padding:6px}.wmenu button{display:block;width:100%;text-align:left;border:0;background:none;padding:8px 10px;border-radius:7px;font:inherit;font-size:13px;cursor:pointer;color:var(--ink)}
 .wmenu button:hover{background:var(--soft)}.wmenu button.on{font-weight:700}.wmenu hr{border:0;border-top:1px solid var(--line);margin:4px 0}
 .wmenu .lab{padding:6px 10px 2px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
@@ -264,14 +284,21 @@ body.popped #po{display:none}
         <div class="elist" id="elist"></div>
         <div class="cnote">From NSE filings since 2005. Tap an event to jump to it. Prices are adjusted for splits and bonuses, so old prices look lower than they were.</div>
       </section>
+      <section id="pnw" hidden>
+        <div class="wlh"><select class="bt" id="nsel" aria-label="Which stocks"></select><button class="bt" data-close title="Close panel" aria-label="Close panel">×</button></div>
+        <div class="elist" id="nlist"></div>
+        <div class="cnote">Order wins, results, splits, bonus, dividends and Breakout Desk stages for the stocks in your lists, last 30 days and coming up. Tap one to open its chart. A blue dot = new since you last looked.</div>
+      </section>
     </aside>
     <nav class="crail" aria-label="Side panels">
       <button id="wb" title="Watchlists (click again to hide)" aria-label="Watchlists"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg></button>
       <button id="eb" title="Events: order wins, results, splits, bonus, dividends (click again to hide)" aria-label="Events"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><small id="ecount"></small></button>
+      <button id="nb" title="What's new for the stocks in my lists (click again to hide)" aria-label="What's new in my lists"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><small id="ncount" style="background:#2563eb"></small></button>
     </nav>
   </div>
   <div class="pop ipop" id="ipop" hidden></div>
   <div class="pop wmenu" id="wmenu" hidden></div>
+  <div class="imback" id="imback" hidden></div><div class="pop imp" id="imp" hidden role="dialog" aria-label="Add stocks to a list"></div>
   <div class="pop npop" id="npop" hidden></div>
   <div class="pop gpop" id="gpop" hidden><b style="font-size:13px">Go to date</b><input type="date" id="gdi"><div class="nbt" style="display:flex;gap:6px;justify-content:flex-end"><button class="bt" id="gdc">Cancel</button><button class="bt okb" id="gdo">Go</button></div></div>
   <div class="kd" id="kd" hidden><input id="kq" aria-label="Type a stock name, or a candle size like 1D, 1W, 1M" autocomplete="off" spellcheck="false"><div class="kl" id="kl"></div><div class="kh" id="kh"></div></div>
@@ -802,7 +829,7 @@ body.popped #po{display:none}
     if (BOD !== undefined) return; BOD = null;
     fetch("../breakouts/data.json", { cache: "no-cache" }).then(r => r.ok ? r.json() : null).then(j => { BOD = j || false;
       if (BOD) for (const r of BOD.rows || []) if (BO_RANK[r.stage] != null && (BOS[r.sym] == null || BO_RANK[r.stage] < BO_RANK[BOS[r.sym]])) BOS[r.sym] = r.stage;
-      drawBO(); legend(); wlDraw(); }).catch(() => { BOD = false; });
+      boLists(); drawBO(); legend(); wlDraw(); }).catch(() => { BOD = false; });
   }
   const BO_RANK = { fresh: 0, climbing: 1, forming: 2 }, BO_NM = { vcp: "VCP", bluesky: "Blue sky", multiyear: "Multi-year", ipo: "IPO base" };
   const BO_ST = { fresh: "Fresh breakout", climbing: "Climbing", forming: "Forming base" };
@@ -916,7 +943,7 @@ body.popped #po{display:none}
   $("#clg").addEventListener("click", e => { if (e.target.closest("[data-bohide]")) { e.stopPropagation(); setBO(false); } }, true);
   const segOn = () => { $("#bob") && $("#bob").classList.toggle("on", !!P.bo); document.querySelectorAll("#tf button").forEach(b => { const on = b.dataset.p === PER; b.classList.toggle("on", on);
       b.textContent = on && SPAN > 1 ? SPAN + b.dataset.p.toUpperCase() : b.dataset.p.toUpperCase(); });
-    $("#lg").classList.toggle("on", !!P.log); $("#pc").classList.toggle("on", !!P.pct); $("#iv").classList.toggle("on", !!P.inv); $("#eb").classList.toggle("on", !$("#side").hidden && P.tab === "ev"); $("#wb").classList.toggle("on", !$("#side").hidden && P.tab === "wl"); $("#ty").value = P.ty; };
+    $("#lg").classList.toggle("on", !!P.log); $("#pc").classList.toggle("on", !!P.pct); $("#iv").classList.toggle("on", !!P.inv); $("#eb").classList.toggle("on", !$("#side").hidden && P.tab === "ev"); $("#wb").classList.toggle("on", !$("#side").hidden && P.tab === "wl"); $("#nb").classList.toggle("on", !$("#side").hidden && P.tab === "nw"); $("#ty").value = P.ty; };
   function setPer(p, n = 1) {
     if (p === "d" && D && !D.d.length) p = "w";
     PER = p; SPAN = n; P.tf = p; P.sp = n; save();
@@ -955,8 +982,8 @@ body.popped #po{display:none}
   document.addEventListener("click", () => { $("#gpop").hidden = true; });
   function resetView() { setLog(); zoomDefault(); hint("View reset"); }
   const setLog = () => { try { chart.setPaneOptions({ id: "candle_pane", axis: { name: P.pct ? "percentage" : P.log ? "logarithm" : "normal", reverse: !!P.inv } }); } catch (e) {} };
-  const showTab = () => { $("#pwl").hidden = P.tab !== "wl"; $("#pev").hidden = P.tab !== "ev"; };
-  const openSide = (tab = "ev") => { P.tab = tab; $("#side").hidden = false; P.side = true; save(); showTab(); segOn(); if (tab === "wl") wlDraw(); setTimeout(() => chart.resize(), 0); };
+  const showTab = () => { $("#pwl").hidden = P.tab !== "wl"; $("#pev").hidden = P.tab !== "ev"; $("#pnw").hidden = P.tab !== "nw"; };
+  const openSide = (tab = "ev") => { P.tab = tab; $("#side").hidden = false; P.side = true; save(); showTab(); segOn(); if (tab === "wl") wlDraw(); if (tab === "nw") nwOpen(); setTimeout(() => chart.resize(), 0); };
   const closeSide = () => { $("#side").hidden = true; P.side = false; save(); segOn(); setTimeout(() => chart.resize(), 0); };
   const setSW = w => { P.sw = Math.round(Math.max(220, Math.min(640, w))); $("#cp").style.setProperty("--sw", P.sw + "px"); };
   if (P.sw) setSW(P.sw);
@@ -967,7 +994,7 @@ body.popped #po{display:none}
       removeEventListener("pointermove", mv); removeEventListener("pointerup", up); save(); chart.resize(); };
     addEventListener("pointermove", mv); addEventListener("pointerup", up); });
   const sideBtn = tab => () => { if (!$("#side").hidden && P.tab === tab) closeSide(); else openSide(tab); };
-  $("#eb").onclick = sideBtn("ev"); $("#wb").onclick = sideBtn("wl");
+  $("#eb").onclick = sideBtn("ev"); $("#wb").onclick = sideBtn("wl"); $("#nb").onclick = sideBtn("nw");
 
   $("#side").addEventListener("click", e => { if (e.target.closest("[data-close]")) closeSide(); });
   $("#sn").onclick = () => { const u = chart.getConvertPictureUrl(true, "png", CARD); const a = document.createElement("a"); a.href = u; a.download = `${SYM}-${PER}-chart.png`; a.click(); };
@@ -993,34 +1020,60 @@ body.popped #po{display:none}
   }
 
   // ---------- watchlists (this browser only). List "main" = the site-wide ★ watchlist (localStorage bo_watch)
+  let IDX = null, BY = {};
+  MM.index().then(d => { IDX = d; (d.list || []).forEach(r => BY[r.s] = r); wlDraw(); }).catch(() => {});
+  // ready-made lists (read-only, rebuilt every evening on the server: IPOs, indices, this week, money flow) + Breakout Desk stages (from its page data)
+  let RL = []; const RLB = {}, RL_ORD = ["IPOs", "Breakout Desk", "This week", "Money flow & price", "Indices", "Sectors", "Themes", "Strategy indices"];
+  function rlAdd(g, lists) {
+    lists = lists.filter(l => l.syms && l.syms.length); if (!lists.length) return;
+    lists.forEach(l => { l.ro = 1; l.g = g; RLB[l.id] = l; });
+    const at = RL.findIndex(x => x.g === g); if (at >= 0) RL[at].lists = lists; else RL.push({ g, lists });
+    RL.sort((a, b) => (RL_ORD.indexOf(a.g) + 99) % 99 - (RL_ORD.indexOf(b.g) + 99) % 99);
+  }
+  fetch(MM.DATA + "lists.json", { cache: "no-cache" }).then(r => r.ok ? r.json() : null).then(j => { if (!j) return; RL.made = j.made;
+    for (const g of j.groups || []) rlAdd(g.g, g.lists.map(l => Object.assign(l, { id: "r:" + l.id })));
+    wlDraw(); nwSoon(); }).catch(() => {});
+  function boLists() {
+    const by = { fresh: [], climbing: [], forming: [] }, x = {};
+    for (const r of BOD.rows || []) if (by[r.stage] && BOS[r.sym] === r.stage && !by[r.stage].includes(r.sym)) { by[r.stage].push(r.sym); const i = boInfo(r.sym); if (i) x[r.sym] = i.text; }
+    rlAdd("Breakout Desk", [["fresh", "Fresh breakouts"], ["climbing", "Climbing after breakout"], ["forming", "Forming a base (watch)"]].map(([k, n]) =>
+      ({ id: "r:bo_" + k, name: "Breakout Desk · " + n, syms: by[k], x, about: "Stocks on our Breakout Desk at this stage, from the latest scan. Updates with the Breakout Desk." })));
+    wlDraw();
+  }
   const WK = "mmwl", MAIN = "bo_watch";
   let W = null; try { W = JSON.parse(localStorage.getItem(WK) || "null"); } catch (e) {}
   if (!W || !Array.isArray(W.lists)) W = { cur: "main", sort: "", lists: [] };
   if (!W.lists.find(l => l.id === "main")) W.lists.unshift({ id: "main", name: "My watchlist" });
-  let IDX = null, BY = {};
-  MM.index().then(d => { IDX = d; (d.list || []).forEach(r => BY[r.s] = r); wlDraw(); }).catch(() => {});
-  const wlSave = () => { try { localStorage.setItem(WK, JSON.stringify({ cur: W.cur, sort: W.sort || "", lists: W.lists.map(l => l.id === "main" ? { id: "main", name: l.name } : l) })); } catch (e) {} };
-  const wlCur = () => W.lists.find(l => l.id === W.cur) || W.lists[0];
-  const wlSyms = l => { if (l.id === "main") { try { const a = JSON.parse(localStorage.getItem(MAIN) || "[]"); return Array.isArray(a) ? a : []; } catch (e) { return []; } } return l.syms || (l.syms = []); };
-  const wlSet = (l, arr) => { arr = [...new Set(arr)]; if (l.id === "main") { try { localStorage.setItem(MAIN, JSON.stringify(arr)); } catch (e) {} } else l.syms = arr; wlSave(); };
+  const wlSave = () => { try { localStorage.setItem(WK, JSON.stringify({ cur: W.cur, own: W.own || "", sort: W.sort || "", lists: W.lists.map(l => l.id === "main" ? { id: "main", name: l.name } : l) })); } catch (e) {} };
+  const wlCur = () => W.lists.find(l => l.id === W.cur) || RLB[W.cur] || W.lists[0];
+  const wlOwn = () => { const l = wlCur(); return l.ro ? (W.lists.find(x => x.id === W.own) || W.lists[0]) : l; };   // where + / ★ / Alt+W add to
+  const wlSyms = l => { if (l.ro) return l.syms; if (l.id === "main") { try { const a = JSON.parse(localStorage.getItem(MAIN) || "[]"); return Array.isArray(a) ? a : []; } catch (e) { return []; } } return l.syms || (l.syms = []); };
+  const wlSet = (l, arr) => { if (l.ro) return; arr = [...new Set(arr)]; if (l.id === "main") { try { localStorage.setItem(MAIN, JSON.stringify(arr)); } catch (e) {} } else l.syms = arr; wlSave(); };
   const pxOf = s => { const L = MM._liveNow && MM._liveNow(); if (L && L.s && L.s[s]) return { p: L.s[s][0], c: L.s[s][1] }; const r = BY[s]; return r ? { p: r.p, c: r.c } : {}; };
   const wlShown = () => { const s = wlSyms(wlCur()).slice();
     if (W.sort === "name") s.sort(); else if (W.sort === "chg") s.sort((a, b) => (pxOf(b).c ?? -1e9) - (pxOf(a).c ?? -1e9));
     else if (W.sort === "chgup") s.sort((a, b) => (pxOf(a).c ?? 1e9) - (pxOf(b).c ?? 1e9)); return s; };
   function wlDraw() {
-    const l = wlCur(), syms = wlShown();
-    $("#wsel").innerHTML = W.lists.map(x => `<option value="${esc(x.id)}" ${x.id === l.id ? "selected" : ""}>${esc(x.name)} (${wlSyms(x).length})</option>`).join("");
-    $("#wlist").innerHTML = syms.length ? syms.map(s => { const r = BY[s] || {}, x = pxOf(s);
-      return `<div class="wrow ${s === SYM ? "on" : ""}" data-s="${esc(s)}" draggable="${W.sort ? "false" : "true"}"><span><b>${esc(s)}</b>${BOS[s] ? `<em class="wbo" title="On Breakout Desk">${BO_ST[BOS[s]]}</em>` : ""}<small>${esc(r.n || "")}</small></span>
+    const l = wlCur(), syms = wlShown(), own = wlOwn(), inOwn = new Set(wlSyms(own));
+    const opt = x => `<option value="${esc(x.id)}" ${x.id === l.id ? "selected" : ""}>${esc(x.name)} (${wlSyms(x).length})</option>`;
+    $("#wsel").innerHTML = `<optgroup label="My lists">${W.lists.map(opt).join("")}</optgroup>`
+      + RL.map(g => `<optgroup label="Ready-made · ${esc(g.g)}">${g.lists.map(opt).join("")}</optgroup>`).join("");
+    $(".wladd").hidden = !!l.ro;
+    const ro = l.ro ? `<div class="wro"><b>Ready-made list</b>, updates itself every evening${RL.made && !l.id.startsWith("r:bo_") ? ` (last ${esc(RL.made.slice(8, 10) + "/" + RL.made.slice(5, 7) + " " + RL.made.slice(11))})` : ""}.
+      ${esc(l.about || `Members of the ${l.name} index. Kept in line when NSE changes the index.`)}<br>
+      <button class="bt" data-copyall>Copy to a new list of mine</button> <span style="color:var(--muted)">or tap <b style="color:#2f7a40">+</b> to add one stock to “${esc(own.name)}”</span></div>` : "";
+    $("#wlist").innerHTML = ro + (syms.length ? syms.map(s => { const r = BY[s] || {}, x = pxOf(s), note = l.ro && l.x && l.x[s];
+      return `<div class="wrow ${s === SYM ? "on" : ""}" data-s="${esc(s)}" draggable="${W.sort || l.ro ? "false" : "true"}"><span><b>${esc(s)}</b>${BOS[s] ? `<em class="wbo" title="On Breakout Desk">${BO_ST[BOS[s]]}</em>` : ""}<small title="${esc(r.n || "")}">${esc(note || r.n || "")}</small></span>
         <span class="p">${x.p != null ? num(x.p) : "–"}</span><span class="c ${MM.cls(x.c)}">${x.c != null ? sgn(x.c, 2) : ""}</span>
-        <button class="rm" data-rm="${esc(s)}" title="Remove from this list" aria-label="Remove ${esc(s)}">×</button></div>`; }).join("")
-      : `<div class="wempty">“${esc(l.name)}” is empty.<br>Add stocks with the box above, the <b>+</b> button, or press <b>Alt+W</b> on any chart.</div>`;
-    const inL = SYM && wlSyms(l).includes(SYM);
+        ${l.ro ? `<button class="wcp ${inOwn.has(s) ? "in" : ""}" data-cp="${esc(s)}" title="${inOwn.has(s) ? "In" : "Add to"} ${esc(own.name)}" aria-label="Add ${esc(s)} to ${esc(own.name)}">${inOwn.has(s) ? "✓" : "+"}</button>`
+          : `<button class="rm" data-rm="${esc(s)}" title="Remove from this list" aria-label="Remove ${esc(s)}">×</button>`}</div>`; }).join("")
+      : `<div class="wempty">“${esc(l.name)}” is empty.<br>Add stocks with the box above, the <b>+</b> button, or press <b>Alt+W</b> on any chart.<br>To bring in many at once: <b>⋯</b> menu → <b>Add from screenshot</b> or <b>Import a file</b>.</div>`);
+    const inL = SYM && inOwn.has(SYM);
     $("#wst").textContent = inL ? "★" : "☆"; $("#wst").classList.toggle("on", !!inL);
-    $("#wst").title = (inL ? "Remove from " : "Add to ") + l.name + " (Alt+W)";
+    $("#wst").title = (inL ? "Remove from " : "Add to ") + own.name + " (Alt+W)";
   }
   function wlToggle(s, add) {
-    if (!s) return; const l = wlCur(), a = wlSyms(l).slice(), has = a.includes(s);
+    if (!s) return; const l = wlOwn(), a = wlSyms(l).slice(), has = a.includes(s);
     if (add === true && has) { hint(`${s} is already in ${l.name}`); return; }
     wlSet(l, has ? a.filter(x => x !== s) : a.concat(s)); wlDraw(); hint(has ? `Removed ${s} from ${l.name}` : `Added ${s} to ${l.name}`);
   }
@@ -1028,46 +1081,195 @@ body.popped #po{display:none}
     const a = wlShown(); if (!a.length) { hint(`“${wlCur().name}” is empty: add stocks with Alt+W`); return; } const i = a.indexOf(SYM);
     go(a[i < 0 ? 0 : (i + d + a.length) % a.length]);
   }
-  $("#wsel").onchange = () => { W.cur = $("#wsel").value; wlSave(); wlDraw(); };
+  const wlNew = (name, syms) => { const id = "l" + Date.now().toString(36); W.lists.push({ id, name: name.slice(0, 40), syms: [...new Set(syms)] }); W.cur = W.own = id; wlSave(); return W.lists[W.lists.length - 1]; };
+  $("#wsel").onchange = () => { W.cur = $("#wsel").value; if (!RLB[W.cur]) W.own = W.cur; wlSave(); wlDraw(); $("#wlist").scrollTop = 0; };
   $("#wadd").onclick = () => wlToggle(SYM, true);
   $("#wst").onclick = () => wlToggle(SYM);
-  MM.attachSearch($("#wq"), r => { const l = wlCur(); if (!wlSyms(l).includes(r.s)) { wlSet(l, wlSyms(l).concat(r.s)); hint(`Added ${r.s} to ${l.name}`); } wlDraw(); });
-  $("#wlist").onclick = e => { const rm = e.target.closest("[data-rm]");
+  MM.attachSearch($("#wq"), r => { const l = wlOwn(); if (!wlSyms(l).includes(r.s)) { wlSet(l, wlSyms(l).concat(r.s)); hint(`Added ${r.s} to ${l.name}`); } wlDraw(); });
+  $("#wlist").onclick = e => { const rm = e.target.closest("[data-rm]"), cp = e.target.closest("[data-cp]");
     if (rm) { e.stopPropagation(); const l = wlCur(); wlSet(l, wlSyms(l).filter(x => x !== rm.dataset.rm)); wlDraw(); return; }
+    if (cp) { e.stopPropagation(); wlToggle(cp.dataset.cp); return; }
+    if (e.target.closest("[data-copyall]")) { const l = wlCur(), n = (prompt("Name for your copy:", l.name.replace(/^Breakout Desk · /, "")) || "").trim(); if (!n) return;
+      wlNew(n, wlShown()); wlDraw(); hint(`Copied ${wlShown().length} stocks to your list “${n}”`); return; }
     const r = e.target.closest(".wrow"); if (!r) return; go(r.dataset.s); if (innerWidth <= 900) closeSide(); };
   let dragS = null;                                   // drag a row to reorder (only when the list is not sorted)
-  $("#wlist").addEventListener("dragstart", e => { const r = e.target.closest(".wrow"); if (!r) return; dragS = r.dataset.s; r.classList.add("drag"); e.dataTransfer.effectAllowed = "move"; });
+  $("#wlist").addEventListener("dragstart", e => { const r = e.target.closest(".wrow"); if (!r || wlCur().ro) return; dragS = r.dataset.s; r.classList.add("drag"); e.dataTransfer.effectAllowed = "move"; });
   $("#wlist").addEventListener("dragend", () => { dragS = null; document.querySelectorAll(".wrow.drag,.wrow.over").forEach(x => x.classList.remove("drag", "over")); });
   $("#wlist").addEventListener("dragover", e => { const r = e.target.closest(".wrow"); if (!dragS || !r) return; e.preventDefault();
     document.querySelectorAll(".wrow.over").forEach(x => x.classList.remove("over")); r.classList.add("over"); });
   $("#wlist").addEventListener("drop", e => { const r = e.target.closest(".wrow"); if (!dragS || !r) return; e.preventDefault();
     const l = wlCur(), a = wlSyms(l).filter(x => x !== dragS), i = a.indexOf(r.dataset.s); a.splice(i < 0 ? a.length : i, 0, dragS); wlSet(l, a); wlDraw(); });
-  // list menu: new / rename / delete / sort / paste many / copy
+  // downloads: TradingView watchlist (.txt, import it in TradingView: watchlist menu → Import list) and a spreadsheet (.csv)
+  const tvSym = s => "NSE:" + s.replace(/[&-]/g, "_");
+  const dl = (name, text, type) => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000); };
+  const fnm = n => (n.replace(/[^\w\- ]+/g, " ").trim().replace(/\s+/g, "_") || "watchlist");
+  const csvQ = v => /[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v ?? "");
+  // list menu: new / rename / delete / sort / add many (screenshot, file, paste) / copy / download
   $("#wmb").onclick = e => { e.stopPropagation(); const m = $("#wmenu"); if (!m.hidden) { m.hidden = true; return; }
-    const l = wlCur(), so = W.sort || "";
-    m.innerHTML = `<button data-a="new">＋ New list</button><button data-a="ren">Rename “${esc(l.name)}”</button>${l.id !== "main" ? `<button data-a="del">Delete “${esc(l.name)}”</button>` : ""}
-      <hr><div class="lab">Sort</div>${[["", "My order (drag to move)"], ["name", "Name A–Z"], ["chg", "Today: best first"], ["chgup", "Today: worst first"]].map(([k, t]) => `<button data-s="${k}" class="${so === k ? "on" : ""}">${so === k ? "✓ " : ""}${t}</button>`).join("")}
-      <hr><button data-a="paste">Add many (paste symbols)</button><button data-a="copy">Copy symbols</button><button data-a="clear">Empty this list</button>`;
+    const l = wlCur(), so = W.sort || "", own = wlOwn();
+    const sorts = `<div class="lab">Sort</div>${[["", l.ro ? "List order" : "My order (drag to move)"], ["name", "Name A–Z"], ["chg", "Today: best first"], ["chgup", "Today: worst first"]].map(([k, t]) => `<button data-s="${k}" class="${so === k ? "on" : ""}">${so === k ? "✓ " : ""}${t}</button>`).join("")}`;
+    const out = `<button data-a="copy">Copy symbols</button><button data-a="tv">Download for TradingView (.txt)</button><button data-a="csv">Download as spreadsheet (.csv)</button>`;
+    m.innerHTML = l.ro ? `<button data-a="copyto">Copy to a new list of mine</button><button data-a="addall">Add all to “${esc(own.name)}”</button><button data-a="new">＋ New empty list</button><hr>${sorts}<hr>${out}`
+      : `<button data-a="new">＋ New list</button><button data-a="ren">Rename “${esc(l.name)}”</button>${l.id !== "main" ? `<button data-a="del">Delete “${esc(l.name)}”</button>` : ""}
+      <hr><div class="lab">Add many at once</div><button data-a="shot">Add from screenshot</button><button data-a="file">Import a file (Zerodha, Fyers, Groww, TradingView)</button><button data-a="paste">Paste symbols or names</button>
+      <hr>${sorts}<hr>${out}<button data-a="clear">Empty this list</button>`;
     m.hidden = false; const r = $("#wmb").getBoundingClientRect(), base = $("#cp").getBoundingClientRect();
     m.style.left = Math.max(6, r.right - base.left - m.offsetWidth) + "px"; m.style.top = (r.bottom - base.top + 6) + "px"; };
   $("#wmenu").onclick = async e => { e.stopPropagation(); const b = e.target.closest("button"); if (!b) return; $("#wmenu").hidden = true;
     const l = wlCur();
     if (b.dataset.s != null) { W.sort = b.dataset.s; wlSave(); wlDraw(); return; }
     const a = b.dataset.a;
-    if (a === "new") { const n = (prompt("Name for the new list:", "List " + W.lists.length) || "").trim(); if (!n) return;
-      const id = "l" + Date.now().toString(36); W.lists.push({ id, name: n.slice(0, 40), syms: [] }); W.cur = id; wlSave(); wlDraw(); hint("Created " + n); }
+    if (a === "new") { const n = (prompt("Name for the new list:", "List " + W.lists.length) || "").trim(); if (!n) return; wlNew(n, []); wlDraw(); hint("Created " + n); }
+    else if (a === "copyto") { const n = (prompt("Name for your copy:", l.name.replace(/^Breakout Desk · /, "")) || "").trim(); if (!n) return; wlNew(n, wlShown()); wlDraw(); hint(`Copied ${wlShown().length} stocks to “${n}”`); }
+    else if (a === "addall") { const o = wlOwn(), before = wlSyms(o).length; wlSet(o, wlSyms(o).concat(wlShown())); wlDraw(); hint(`Added ${wlSyms(o).length - before} stocks to ${o.name}`); }
     else if (a === "ren") { const n = (prompt("New name:", l.name) || "").trim(); if (n) { l.name = n.slice(0, 40); wlSave(); wlDraw(); } }
-    else if (a === "del") { if (confirm(`Delete the list “${l.name}” (${wlSyms(l).length} stocks)? This cannot be undone.`)) { W.lists = W.lists.filter(x => x !== l); W.cur = "main"; wlSave(); wlDraw(); } }
+    else if (a === "del") { if (confirm(`Delete the list “${l.name}” (${wlSyms(l).length} stocks)? This cannot be undone.`)) { W.lists = W.lists.filter(x => x !== l); W.cur = W.own = "main"; wlSave(); wlDraw(); } }
     else if (a === "clear") { if (wlSyms(l).length && confirm(`Remove all ${wlSyms(l).length} stocks from “${l.name}”?`)) { wlSet(l, []); wlDraw(); } }
-    else if (a === "copy") { const t = wlSyms(l).join(", "); try { await navigator.clipboard.writeText(t); hint("Copied " + wlSyms(l).length + " symbols"); } catch (err) { prompt("Copy these symbols:", t); } }
-    else if (a === "paste") { const t = prompt("Paste NSE symbols, separated by commas, spaces or new lines (NSE:TCS also works):", ""); if (!t) return;
-      const got = t.toUpperCase().split(/[\s,;]+/).map(x => x.replace(/^(NSE|BSE):/, "").trim()).filter(Boolean);
-      const ok = got.filter(x => BY[x]), bad = got.filter(x => !BY[x]);
-      wlSet(l, wlSyms(l).concat(ok)); wlDraw(); hint(`Added ${ok.length}` + (bad.length ? ` · not found: ${bad.slice(0, 5).join(", ")}${bad.length > 5 ? "…" : ""}` : ""), 4000); }
+    else if (a === "copy") { const t = wlShown().join(", "); try { await navigator.clipboard.writeText(t); hint("Copied " + wlShown().length + " symbols"); } catch (err) { prompt("Copy these symbols:", t); } }
+    else if (a === "tv") { dl(fnm(l.name) + ".txt", wlShown().map(tvSym).join(","), "text/plain"); hint("Downloaded. In TradingView: watchlist menu → Import list", 4000); }
+    else if (a === "csv") { dl(fnm(l.name) + ".csv", "Symbol,Company,Sector,Price,Change %\n" + wlShown().map(s => { const r = BY[s] || {}, x = pxOf(s); return [s, r.n || "", r.i || "", x.p ?? "", x.c != null ? x.c.toFixed(2) : ""].map(csvQ).join(","); }).join("\n"), "text/csv"); }
+    else if (a === "shot" || a === "file" || a === "paste") impOpen(a);
   };
   document.addEventListener("click", e => { if (!e.target.closest("#wmenu")) $("#wmenu").hidden = true; });
   MM.onLive && MM.onLive(() => { if (!$("#side").hidden && P.tab === "wl") wlDraw(); });
   addEventListener("storage", e => { if (e.key === MAIN || e.key === WK) { try { const n = JSON.parse(localStorage.getItem(WK) || "null"); if (n && n.lists) { W = n; if (!W.lists.find(l => l.id === "main")) W.lists.unshift({ id: "main", name: "My watchlist" }); } } catch (er) {} wlDraw(); } });
+
+  // ---------- add many stocks at once: from a screenshot (read in this browser, free Tesseract.js), a broker file (CSV/Excel/TradingView .txt) or pasted text
+  const loadJS = src => new Promise((ok, no) => { if (loadJS[src]) return ok(); const s = document.createElement("script"); s.src = src; s.onload = () => { loadJS[src] = 1; ok(); }; s.onerror = () => no(new Error("Could not load " + src)); document.head.appendChild(s); });
+  const NSTOP = new Set("NSE BSE EQ BE LTP BUY SELL QTY AVG CHG VOL HIGH LOW OPEN CLOSE NIFTY SENSEX BANKNIFTY FINNIFTY INR RS CMP PNL ALL ADD EDIT FUT OPT CE PE NEW MORE SEARCH WATCHLIST HOLDINGS POSITIONS ORDERS TOTAL DAY VALUE PRICE INVESTED CURRENT RETURNS NET MARKET IST AM PM GTT SIP MTF CNC MIS NRML".split(" "));
+  const nrm = t => String(t).toUpperCase().replace(/&/g, " AND ").replace(/[^A-Z0-9 ]+/g, " ").replace(/\b(LIMITED|LTD|THE|AND|OF|CO|INC)\b/g, " ").replace(/\s+/g, " ").trim();
+  let NI = null;
+  function nameIndex() {
+    if (NI || !IDX) return NI; NI = { full: new Map(), two: new Map(), one: new Map() };
+    const put = (m, k, s) => m.set(k, m.has(k) && m.get(k) !== s ? null : s);
+    for (const r of IDX.list) { const w = nrm(r.n || "").split(" ").filter(Boolean); if (!w.length) continue;
+      put(NI.full, w.join(" "), r.s); if (w.length >= 2) put(NI.two, w[0] + " " + w[1], r.s); if (w[0].length >= 5) put(NI.one, w[0], r.s); }
+    return NI;
+  }
+  const symOf = c => { c = c.toUpperCase().trim().replace(/^"+|"+$/g, "").replace(/^(NSE|BSE)\s*:\s*/, "").replace(/(-EQ|-BE|\.NS|\.BO)$/, "").trim();
+    if (BY[c]) return c; if (c.includes("_")) { for (const v of [c.replace(/_/g, "&"), c.replace(/_/g, "-")]) if (BY[v]) return v; } return null; };
+  function matchText(text, pic) {
+    const ni = nameIndex(), got = new Map(), add = (s, st) => { if (s && (got.get(s) || 0) < st) got.set(s, st); };
+    for (const line of String(text).split(/\r?\n/)) for (const cell of line.split(/[,;\t|]+/)) {
+      const c = cell.trim(); if (!c) continue;
+      const ex = symOf(c); if (ex && !NSTOP.has(ex)) { add(ex, pic && ex.length < 3 ? 1 : 2); continue; }
+      for (const t of c.toUpperCase().split(/\s+/)) { const s = symOf(t); if (s && !NSTOP.has(s) && !/^\d+$/.test(s)) add(s, s.length >= 4 && (pic || /^[A-Z0-9&_.:-]+$/.test(t)) ? (pic ? 2 : 1) : 1); }
+      if (!ni) continue;
+      const w = nrm(c.replace(/[\d.,%₹+()-]+/g, " ")).split(" ").filter(Boolean);
+      if (ni.full.get(w.join(" "))) { add(ni.full.get(w.join(" ")), 2); continue; }
+      for (let i = 0; i < w.length; i++) { const k2 = w[i] + " " + (w[i + 1] || ""); if (w[i + 1] && ni.two.get(k2)) { add(ni.two.get(k2), 2); i++; continue; } if (ni.one.get(w[i])) add(ni.one.get(w[i]), 1); }
+    }
+    return [...got].map(([s, st]) => ({ s, st }));
+  }
+  let IMPF = [], IMPSRC = "";
+  const istat = (t, p) => { $("#istat").innerHTML = esc(t) + (p != null ? `<div class="bar"><i style="width:${Math.round(p * 100)}%"></i></div>` : ""); };
+  function impOpen(mode) {
+    const m = $("#imp"); IMPF = []; IMPSRC = "";
+    m.innerHTML = `<button class="bt x" data-ix title="Close" aria-label="Close">×</button><h3>Add many stocks to a list</h3>
+      <div class="sub">From a screenshot of any app (Fyers, Zerodha, Groww, Stock Scans…), a file you downloaded from your broker, or pasted text. It all happens inside your browser: nothing is uploaded.</div>
+      <div class="drop" id="idrop" tabindex="0"><b>${mode === "file" ? "Choose or drop a file" : "Choose or drop a screenshot or file"}</b><br>or press <kbd>Ctrl</kbd>+<kbd>V</kbd> to paste a screenshot<br>
+        <small>Pictures: PNG / JPG of a watchlist or holdings screen. Files: CSV or Excel (holdings / watchlist download), TradingView watchlist (.txt)</small></div>
+      <input type="file" id="ifile" accept="image/*,.csv,.txt,.tsv,.xlsx,.xls" hidden>
+      <textarea id="itxt" placeholder="…or paste symbols or company names here (one per line, or separated by commas)"></textarea>
+      <div class="stat" id="istat"></div><div id="ifound"></div>`;
+    m.hidden = false; $("#imback").hidden = false;
+    if (mode === "paste") $("#itxt").focus(); else $("#idrop").focus();
+    $("#idrop").onclick = () => $("#ifile").click();
+    $("#idrop").onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("#ifile").click(); } };
+    $("#ifile").onchange = () => { const f = $("#ifile").files[0]; if (f) impFile(f); };
+    const dz = $("#idrop");
+    dz.ondragover = e => { e.preventDefault(); dz.classList.add("over"); }; dz.ondragleave = () => dz.classList.remove("over");
+    dz.ondrop = e => { e.preventDefault(); dz.classList.remove("over"); const f = e.dataTransfer.files[0]; if (f) impFile(f); };
+    let tt; $("#itxt").oninput = () => { clearTimeout(tt); tt = setTimeout(() => { const v = $("#itxt").value; if (v.trim()) { IMPSRC = "text"; IMPF = matchText(v, false); impShow(); } else { $("#ifound").innerHTML = ""; } }, 350); };
+  }
+  const impClose = () => { $("#imp").hidden = true; $("#imback").hidden = true; };
+  $("#imback").onclick = impClose;
+  document.addEventListener("paste", e => { if ($("#imp").hidden) return; const it = [...(e.clipboardData && e.clipboardData.items || [])].find(i => i.type.startsWith("image/"));
+    if (it) { e.preventDefault(); impFile(it.getAsFile()); } });
+  async function impFile(f) {
+    $("#ifound").innerHTML = "";
+    try {
+      let text = "", pic = false;
+      if (/^image\//.test(f.type) || /\.(png|jpe?g|webp|bmp|gif)$/i.test(f.name || "")) {
+        pic = true; istat("Loading the free text reader (first time only, about 10 seconds)…", 0.02);
+        await loadJS("https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js");
+        const img = await createImageBitmap(f), k = img.width < 1600 ? 2 : 1, cv = document.createElement("canvas");   // small phone screenshots read better when enlarged
+        cv.width = img.width * k; cv.height = img.height * k; const cx = cv.getContext("2d"); cx.imageSmoothingQuality = "high"; cx.drawImage(img, 0, 0, cv.width, cv.height);
+        const r = await Tesseract.recognize(cv, "eng", { logger: m => { if (m.status === "recognizing text") istat("Reading the stock names in your picture…", 0.3 + m.progress * 0.7); else if (/load|init/i.test(m.status)) istat("Loading the free text reader (first time only)…", Math.min(0.3, (m.progress || 0) * 0.3)); } });
+        text = r.data.text;
+      } else if (/\.(xlsx|xls)$/i.test(f.name || "")) {
+        istat("Opening the spreadsheet…", 0.3);
+        await loadJS("https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js");
+        const wb = XLSX.read(await f.arrayBuffer(), { type: "array" });
+        text = wb.SheetNames.map(n => XLSX.utils.sheet_to_csv(wb.Sheets[n])).join("\n");
+      } else text = await f.text();
+      IMPSRC = pic ? "pic" : "file"; IMPF = matchText(text, pic); istat(""); impShow();
+    } catch (err) { istat("Could not read that " + (/image/.test(f.type) ? "picture" : "file") + ". " + (err && err.message ? err.message : "") + " Check your internet connection, or paste the names in the box above."); }
+  }
+  function impShow() {
+    const tg = $("#itgt") ? $("#itgt").value : (wlOwn().id), T = W.lists.find(x => x.id === tg), have = new Set(T ? wlSyms(T) : []);
+    if (!IMPF.length) { $("#ifound").innerHTML = `<div class="stat">No NSE stocks found${IMPSRC === "pic" ? " in the picture. Try a sharper screenshot, crop it to just the list, or type the names in the box above." : "."}</div>`; return; }
+    const weak = IMPF.filter(f => f.st < 2 && !have.has(f.s)).length, fresh = IMPF.filter(f => !have.has(f.s)).length;
+    $("#ifound").innerHTML = `<div class="stat">Found <b>${IMPF.length}</b> stock${IMPF.length > 1 ? "s" : ""}${weak ? ` · ${weak} unsure (not ticked)` : ""}. Untick any that are wrong.</div>
+      <div class="found">${IMPF.map(f => { const h = have.has(f.s); return `<label class="fr"><input type="checkbox" data-s="${esc(f.s)}" ${f.st >= 2 && !h ? "checked" : ""} ${h ? "disabled" : ""}><b>${esc(f.s)}</b><span>${esc((BY[f.s] || {}).n || "")}</span>${h ? "<em>already in list</em>" : f.st < 2 ? "<em>unsure</em>" : ""}</label>`; }).join("")}</div>
+      <div class="row">Add to <select id="itgt">${W.lists.map(x => `<option value="${esc(x.id)}" ${x.id === tg ? "selected" : ""}>${esc(x.name)}</option>`).join("")}<option value="+new">＋ A new list…</option></select>
+        <button class="bt pri" id="igo">Add ticked</button><button class="bt" id="iall">Tick all</button></div>`;
+    $("#itgt").onchange = () => { if ($("#itgt").value !== "+new") impShow(); };
+    $("#iall").onclick = () => $("#ifound").querySelectorAll("input:not(:disabled)").forEach(x => x.checked = true);
+    $("#igo").onclick = () => {
+      const pick = [...$("#ifound").querySelectorAll("input:checked")].map(x => x.dataset.s); if (!pick.length) { istat("Tick at least one stock."); return; }
+      let L = W.lists.find(x => x.id === $("#itgt").value);
+      if (!L) { const n = (prompt("Name for the new list:", IMPSRC === "pic" ? "From screenshot" : IMPSRC === "file" ? "Imported" : "List " + W.lists.length) || "").trim(); if (!n) return; L = wlNew(n, []); }
+      wlSet(L, wlSyms(L).concat(pick)); W.cur = W.own = L.id; wlSave(); impClose(); openSide("wl"); wlDraw(); hint(`Added ${pick.length} stocks to ${L.name}`, 3500);
+    };
+  }
+  $("#imp").addEventListener("click", e => { if (e.target.closest("[data-ix]")) impClose(); });
+  $("#imp").addEventListener("keydown", e => { if (e.key === "Escape") { e.stopPropagation(); impClose(); } });
+
+  // ---------- what's new for the stocks in my lists: order wins, results, splits / bonus / dividends (last 30 days + coming up), Breakout Desk stage
+  const EVC = {}, NWK = "mmnw_seen";
+  const evGet = s => EVC[s] || (EVC[s] = fetch(MM.DATA + "events/" + encodeURIComponent(s) + ".json", { cache: "no-cache" }).then(r => r.ok ? r.json() : null).catch(() => null));
+  let NWI = null, nwPrev = "", nwBusy = 0;
+  const today = () => new Date(Date.now() + 5.5 * 36e5).toISOString().slice(0, 10);
+  const nwSeen = () => { try { return localStorage.getItem(NWK) || ""; } catch (e) { return ""; } };
+  function nwSyms() { const v = $("#nsel").value || "all"; const l = v !== "all" && W.lists.find(x => x.id === v); return l ? wlSyms(l) : [...new Set(W.lists.flatMap(l => wlSyms(l)))]; }
+  async function nwBuild() {
+    const syms = nwSyms().slice(0, 150), cut = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10), out = [], my = ++nwBusy;
+    for (let i = 0; i < syms.length; i += 8) await Promise.all(syms.slice(i, i + 8).map(async s => { const E = await evGet(s); if (!E) return;
+      for (const o of E.o || []) if (o.d >= cut) out.push({ s, d: o.d, k: "o", t: o.v ? "Order win " + MM.crs(o.v) : "Order win", tx: /^bagging\/receiving of orders/i.test(o.tx || "") ? "" : (o.tx || ""), u: o.u });
+      for (const r of E.r || []) if (r.d >= cut) { const g = []; if (r.s != null) g.push("Sales " + sgn(r.s, 0)); if (r.n != null) g.push("Profit " + sgn(r.n, 0)); else if (r.loss) g.push("Loss");
+        out.push({ s, d: r.d, k: "r", t: "Results", tx: g.join(" · ") + (r.rt ? (g.length ? " · " : "") + MM.rtName(r.rt) : ""), u: r.u }); }
+      for (const a of E.a || []) if (a.d >= cut) { const k = a.k === "split" || a.k === "bonus" ? "s" : a.k === "div" ? "d" : "x"; out.push({ s, d: a.d, k, kind: a.k, t: a.tx, tx: "Ex-date" }); }
+    }));
+    if (my !== nwBusy) return null;
+    const nx = RLB["r:resn"]; if (nx && nx.dd) for (const s of syms) if (nx.dd[s]) out.push({ s, d: nx.dd[s], k: "r", t: "Results coming", tx: "Board meeting for quarterly results" });
+    for (const s of syms) if (BOS[s] && BOD) { const i = boInfo(s); out.push({ s, d: BOD.date || today(), k: "b", t: "On Breakout Desk", tx: i ? i.text : BO_ST[BOS[s]] }); }
+    out.sort((a, b) => b.d < a.d ? -1 : b.d > a.d ? 1 : 0);
+    return out;
+  }
+  function nwSel() { const v = $("#nsel").value || "all", all = new Set(W.lists.flatMap(l => wlSyms(l)));
+    $("#nsel").innerHTML = `<option value="all">All my lists (${all.size} stocks)</option>` + W.lists.map(l => `<option value="${esc(l.id)}" ${l.id === v ? "selected" : ""}>${esc(l.name)} (${wlSyms(l).length})</option>`).join(""); }
+  function nwDraw() {
+    if (!NWI) { $("#nlist").innerHTML = `<div class="wempty">Checking your stocks…</div>`; return; }
+    const td = today(), EKB = { color: "#3b8a4c", letter: "↑" };
+    if (!NWI.length) { $("#nlist").innerHTML = `<div class="wempty">${nwSyms().length ? "Nothing new for these stocks in the last 30 days." : "Your lists are empty. Add stocks to a watchlist and their order wins, results, splits and bonuses show up here."}</div>`; return; }
+    let h = "", sec = "";
+    for (const e of NWI) { const T = e.k === "b" ? EKB : EK[e.k], up = e.d > td, s2 = up ? "Coming up" : e.d === td ? "Today" : e.d >= new Date(Date.now() - 7 * 864e5).toISOString().slice(0, 10) ? "This week" : "Earlier";
+      if (s2 !== sec) { sec = s2; h += `<div class="eyr">${s2}</div>`; }
+      h += `<div class="erow" data-s="${esc(e.s)}" data-d="${up || e.k === "b" ? "" : e.d}"><span class="dot" style="background:${T.color}">${e.k === "s" ? (e.kind === "bonus" ? "B" : "S") : T.letter}</span>
+        <span class="t"><b>${esc(e.s)}</b> · ${esc(e.t)}${!up && e.k !== "b" && nwPrev && e.d > nwPrev ? `<i class="nnew" title="New since you last looked"></i>` : ""}<small>${fmtD(Date.parse(e.d + "T00:00:00Z"))}${up ? `<span class="up">UPCOMING</span>` : ""} · ${esc((BY[e.s] || {}).n || "")}</small>${e.tx ? `<span class="tx">${esc(e.tx)}</span>` : ""}${e.u ? `<a href="${esc(e.u)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">NSE filing ↗</a>` : ""}</span></div>`; }
+    $("#nlist").innerHTML = h;
+  }
+  async function nwOpen() { nwSel(); nwPrev = nwSeen(); NWI = null; nwDraw(); NWI = await nwBuild(); if (!NWI) return; nwDraw();
+    try { localStorage.setItem(NWK, today()); } catch (e) {} $("#ncount").textContent = ""; }
+  async function nwBadge() { if ($("#side").hidden === false && P.tab === "nw") return; nwSel(); const seen = nwSeen(), L = await nwBuild(); if (!L) return; const td = today();
+    const n = L.filter(e => e.k !== "b" && e.d <= td && (!seen || e.d > seen)).length; $("#ncount").textContent = n ? (n > 99 ? "99+" : n) : ""; }
+  let nwT; const nwSoon = () => { clearTimeout(nwT); nwT = setTimeout(nwBadge, 2500); };
+  $("#nsel").onchange = () => nwOpen();
+  $("#nlist").onclick = async e => { if (e.target.closest("a")) return; const r = e.target.closest(".erow"); if (!r) return;
+    document.querySelectorAll("#nlist .erow.on").forEach(x => x.classList.remove("on")); r.classList.add("on");
+    const d = r.dataset.d; if (innerWidth <= 900) closeSide(); if (r.dataset.s !== SYM) await go(r.dataset.s); if (d) setTimeout(() => jumpTo(Date.parse(d + "T00:00:00Z")), 200); };
+  if (P.side && P.tab === "nw") setTimeout(nwOpen, 0);
 
   // ---------- type anywhere (like TradingView): letters = find a stock, a number first = candle size (1D, 2W, 3M, 1Y)
   let kItems = [], kOn = 0, KMODE = "";
@@ -1140,6 +1342,7 @@ body.popped #po{display:none}
   function openInd() { $("#ipop").hidden = true; $("#ib").click(); setTimeout(() => { const q = $("#ipop .q"); q && q.focus(); }, 0); }
   document.addEventListener("keydown", e => {
     if (e.defaultPrevented) return;
+    if (!$("#imp").hidden) return;                     // the "add many" window is open: leave keys (and Ctrl+V paste) to it
     if (e.target.closest && e.target.closest("input,select,textarea,[contenteditable=true]")) return;
     if (!$("#hlp").hidden) { if (e.key === "Escape" || e.key === "?" || e.key === "/") { e.preventDefault(); $("#hlp").hidden = true; } return; }
     const k = e.key, c = e.code, mod = e.ctrlKey || e.metaKey, stop = () => e.preventDefault();
