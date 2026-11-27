@@ -98,13 +98,62 @@ select.bt{padding-right:6px}
 .ipop .it.act{background:#f2f8f3}
 .ipop .q{width:100%;padding:7px 9px;border:1.5px solid var(--line);border-radius:8px;font:inherit;margin-bottom:4px;background:var(--card);color:var(--ink)}
 .cp:fullscreen{height:100vh}
+#nm{display:none}
+/* bar under the chart: ranges + scale */
+.cbot{display:flex;align-items:center;gap:6px;padding:3px 8px;border-top:1px solid var(--line);font-size:12px;flex:none}
+.cbot .seg button{padding:3px 8px;font-size:12px}
+.cbot .gap{flex:1}
+.cbot .bb{border:0;background:none;padding:3px 8px;border-radius:6px;font:inherit;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer}
+.cbot .bb:hover{background:var(--soft);color:var(--ink)}.cbot .bb.on{color:#2f7a40;background:#e8f1ea}
+.cbot .sep2{width:1px;height:16px;background:var(--line)}
+/* drawing editor bar (shows when a drawing is clicked) */
+.dbar{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:30;display:flex;gap:3px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 6px 24px rgba(15,23,42,.15);padding:4px 6px;white-space:nowrap}
+.dbar[hidden]{display:none}
+.dbar .sw{width:18px;height:18px;border-radius:50%;cursor:pointer;border:2px solid var(--card);box-shadow:0 0 0 1px var(--line);margin:0 1px}
+.dbar .sw.on{box-shadow:0 0 0 2px var(--ink)}
+.dbar .b{border:0;background:none;padding:4px 7px;border-radius:6px;cursor:pointer;font:inherit;font-size:12px;font-weight:700;color:var(--ink)}
+.dbar .b:hover{background:var(--soft)}.dbar .b.on{background:#e8f1ea;color:#2f7a40}
+.dbar .dsep{width:1px;height:18px;background:var(--line);margin:0 3px}
+/* note / date boxes */
+.npop{left:50%;top:110px;transform:translateX(-50%);width:min(320px,92%)}
+.npop textarea{width:100%;margin:8px 0;padding:8px;border:1.5px solid var(--line);border-radius:8px;font:inherit;font-size:13px;resize:vertical;background:var(--card);color:var(--ink)}
+.npop .nbt{display:flex;gap:6px;justify-content:flex-end}
+.gpop{width:250px}.gpop input{width:100%;margin:8px 0;padding:7px;border:1.5px solid var(--line);border-radius:8px;font:inherit;background:var(--card);color:var(--ink)}
+.okb{background:#3b8a4c!important;color:#fff!important;border-color:#3b8a4c!important}
+/* shortcut help */
+.hlp{position:fixed;inset:0;z-index:4000;background:rgba(15,23,42,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.hlp[hidden]{display:none}
+.hlp .box{background:var(--card);color:var(--ink);border-radius:14px;max-width:760px;width:100%;max-height:88vh;overflow:auto;padding:16px 18px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.hlp h3{margin:0 0 4px;font-size:16px}.hlp p{margin:0 0 10px;color:var(--muted);font-size:12.5px}
+.hlp .cols{columns:2 300px;column-gap:24px}
+.hlp h4{margin:10px 0 4px;font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;break-after:avoid}
+.hlp .r{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid var(--line);font-size:13px;break-inside:avoid}
+.hlp kbd{font:inherit;font-size:11.5px;font-weight:700;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 5px;background:var(--soft);white-space:nowrap}
+.boinfo{margin-left:10px;padding:1px 8px;border-radius:10px;background:#e8f1ea;color:#2f7a40;font-weight:700;font-size:11.5px}
 body.full header.mmh,body.full nav.mmb,body.full .mmsheet,body.full footer.mmf{display:none!important}
 body.full{padding:0!important;margin:0}
 body.full .cp{height:100vh!important;min-height:0;border-bottom:0}
 .brandmini{display:none;align-items:center;gap:6px;text-decoration:none;color:var(--ink);font-weight:800;font-size:12.5px;letter-spacing:.04em;margin-right:4px}
 .brandmini img{width:24px;height:24px;border-radius:6px}
 body.full .brandmini{display:inline-flex}
-body.full #po{display:none}
+body.popped #po{display:none}
+/* the price strip sits on the chart (no row of its own) */
+.cwrap .clg{position:absolute;top:0;left:0;z-index:6;border:0;padding:4px 10px 4px 10px;max-width:calc(100% - 90px);background:rgba(255,255,255,.82);border-bottom-right-radius:8px;pointer-events:none;min-height:0}
+.cwrap .clg .ev>span,.cwrap .clg .boinfo{pointer-events:auto}
+.cbot{height:30px}
+/* hide / show tabs on the chart edges */
+.hdl{position:absolute;z-index:25;border:1px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer;opacity:0;transition:opacity .15s;display:flex;align-items:center;justify-content:center;font-size:10px;line-height:1;padding:0}
+.cwrap:hover .hdl,.hdl:focus{opacity:.9}.hdl:hover{opacity:1!important;color:var(--ink);background:var(--soft)}
+@media (hover:none){.hdl{opacity:.65}}
+.hdl-t{top:0;left:50%;transform:translateX(-50%);width:52px;height:14px;border-top:0;border-radius:0 0 8px 8px}
+.hdl-b{bottom:30px;left:50%;transform:translateX(-50%);width:52px;height:14px;border-bottom:0;border-radius:8px 8px 0 0}
+.hdl-l{left:0;top:50%;transform:translateY(-50%);width:14px;height:52px;border-left:0;border-radius:0 8px 8px 0}
+.hdl-r{right:0;top:50%;transform:translateY(-50%);width:14px;height:52px;border-right:0;border-radius:8px 0 0 8px}
+.cp.h-t .ctop,.cp.h-l .ctools,.cp.h-b .cbot,.cp.h-r .crail,.cp.h-r .cside{display:none!important}
+.cp.h-b .hdl-b{bottom:0}
+.dbar{top:20px}
+@media (max-width:700px){.cbot #gd,.cbot #iv,.cbot #rsb,.cbot .notadv,.cbot .sep2{display:none}.cbot{gap:3px;padding:3px 4px}.cbot .seg button{padding:3px 6px}}
+.notadv{font-size:11px;color:var(--muted);text-decoration:none;padding:0 4px}.notadv:hover{text-decoration:underline}
 .cp{position:relative}
 /* side panel tabs */
 .stabs{display:flex;align-items:center;gap:4px;padding:8px 10px;border-bottom:1px solid var(--line)}
@@ -163,7 +212,7 @@ body.full #po{display:none}
 </style>
 </head>
 <body data-root="../" class="cpg">
-<script>if (/[?&]full=1\b/.test(location.search)) document.body.classList.add("full");</script>
+<script>document.body.classList.add("full"); if (/[?&]full=1\b/.test(location.search)) document.body.classList.add("popped");</script>
 <script src="../assets/mm.js"></script>
 <script src="../assets/mmchart.js"></script>
 <script src="../assets/klc.js"></script>
@@ -174,13 +223,12 @@ body.full #po{display:none}
       <input id="q" type="search" placeholder="Change stock…" autocomplete="off" aria-label="Pick a stock to chart"></label>
     <div class="sym"><div class="nm" id="nm">–</div><div class="px" id="px"></div><button class="bt wst" id="wst" title="Add to watchlist (Alt+W)">☆</button></div>
     <span class="seg" id="tf" aria-label="Candle size"><button data-p="d" title="Daily candles">D</button><button data-p="w" title="Weekly candles">W</button><button data-p="m" title="Monthly candles">M</button></span>
-    <span class="seg hide-sm" id="rg" aria-label="Range"><button data-r="3M">3M</button><button data-r="6M">6M</button><button data-r="1Y">1Y</button><button data-r="3Y">3Y</button><button data-r="5Y">5Y</button><button data-r="All">All</button></span>
     <select class="bt" id="ty" aria-label="Chart type" title="Chart type">
       <option value="candle_solid">Candles</option><option value="candle_stroke">Hollow candles</option><option value="heikin">Heikin Ashi</option>
       <option value="ohlc">Bars</option><option value="area">Line</option></select>
     <button class="bt" id="ib" title="Indicators"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l5-6 4 4 9-10"/></svg>Indicators</button>
-    <button class="bt hide-sm" id="lg" title="Log scale: equal % moves look equal">Log</button>
     <div class="rt">
+      <button class="bt hide-sm" id="hb" title="Keyboard shortcuts (?)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg></button>
       <button class="bt hide-sm" id="sn" title="Save a picture of the chart"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
       <button class="bt" id="po" title="Open this chart in its own big window"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4h6v6M20 4l-8 8"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></button>
       <button class="bt" id="fz" title="Full screen"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
@@ -188,7 +236,13 @@ body.full #po{display:none}
   </div>
   <div class="cbody">
     <div class="ctools" id="tools" aria-label="Drawing tools"></div>
-    <div class="cwrap"><div class="clg" id="clg"></div><div class="kbox"><div id="kc"></div><div class="msg" id="msg">Loading chart…</div><div class="hint" id="hint"></div></div></div>
+    <div class="cwrap"><div class="clg" id="clg"></div>
+      <button class="hdl hdl-t" data-h="t" title="Hide / show the top bar (Alt+Enter hides all)"></button><button class="hdl hdl-l" data-h="l" title="Hide / show the drawing tools"></button>
+      <button class="hdl hdl-r" data-h="r" title="Hide / show the watchlist and events strip"></button><button class="hdl hdl-b" data-h="b" title="Hide / show the bottom bar"></button>
+      <div class="kbox"><div id="kc"></div><div class="dbar" id="dbar" hidden></div><div class="msg" id="msg">Loading chart…</div><div class="hint" id="hint"></div></div>
+      <div class="cbot"><span class="seg" id="rg" aria-label="Range"><button data-r="3M">3M</button><button data-r="6M">6M</button><button data-r="1Y">1Y</button><button data-r="3Y">3Y</button><button data-r="5Y">5Y</button><button data-r="All">All</button></span>
+        <span class="gap"></span><button class="bb" id="gd" title="Go to a date (Alt+G)">Go to date</button><span class="sep2"></span>
+        <button class="bb" id="pc" title="Percent scale (Alt+P)">%</button><button class="bb" id="lg" title="Log scale: equal % moves look equal (Alt+L)">log</button><button class="bb" id="iv" title="Upside-down scale (Alt+I)">inv</button><button class="bb" id="rsb" title="Reset the view (Alt+R)">reset</button><span class="sep2"></span><a class="notadv" href="../about/" target="_blank" rel="noopener" title="Market Mint is not SEBI-registered. For learning and research only.">Not advice</a></div></div>
     <aside class="cside" id="side" aria-label="Watchlists and events"><div class="rsz" id="rsz" title="Drag to make the panel wider or narrower"></div>
       <section id="pwl">
         <div class="wlh"><select class="bt" id="wsel" aria-label="Pick a watchlist"></select><button class="bt" id="wadd" title="Add this stock (Alt+W)">+</button><button class="bt" id="wmb" title="Watchlist menu" aria-label="Watchlist menu">⋯</button><button class="bt" data-close title="Close panel" aria-label="Close panel">×</button></div>
@@ -209,8 +263,11 @@ body.full #po{display:none}
   </div>
   <div class="pop ipop" id="ipop" hidden></div>
   <div class="pop wmenu" id="wmenu" hidden></div>
+  <div class="pop npop" id="npop" hidden></div>
+  <div class="pop gpop" id="gpop" hidden><b style="font-size:13px">Go to date</b><input type="date" id="gdi"><div class="nbt" style="display:flex;gap:6px;justify-content:flex-end"><button class="bt" id="gdc">Cancel</button><button class="bt okb" id="gdo">Go</button></div></div>
   <div class="kd" id="kd" hidden><input id="kq" aria-label="Type a stock name, or a candle size like 1D, 1W, 1M" autocomplete="off" spellcheck="false"><div class="kl" id="kl"></div><div class="kh" id="kh"></div></div>
 </main>
+<div class="hlp" id="hlp" hidden><div class="box" id="hlpb"></div></div>
 <script>
 (function () {
   const K = window.klinecharts, $ = s => document.querySelector(s), esc = MM.esc;
@@ -233,10 +290,10 @@ body.full #po{display:none}
 
   // ---------- saved settings (this browser only)
   const PREF = "mmk1";
-  const DEF = { tf: "d", sp: 1, tab: "wl", ty: "candle_solid", log: false, side: innerWidth > 900, ev: { o: 1, r: 1, s: 1, d: 0, x: 1 },
+  const DEF = { tf: "d", sp: 1, tab: "wl", ty: "candle_solid", log: false, side: innerWidth > 900, ev: { o: 1, r: 1, s: 1, d: 0, x: 1 }, bo: 1, hide: {},
     ind: [{ n: "MA", p: [50, 200], main: 1 }, { n: "VOL", p: [20], main: 0 }] };
   let P = DEF;
-  try { P = Object.assign({}, DEF, JSON.parse(localStorage.getItem(PREF) || "{}")); P.ev = Object.assign({}, DEF.ev, P.ev); } catch (e) {}
+  try { P = Object.assign({}, DEF, JSON.parse(localStorage.getItem(PREF) || "{}")); P.ev = Object.assign({}, DEF.ev, P.ev); P.hide = P.hide || {}; } catch (e) {}
   const save = () => { try { localStorage.setItem(PREF, JSON.stringify(P)); } catch (e) {} };
 
   // ---------- page height: fill the window under the site header
@@ -288,10 +345,46 @@ body.full #po{display:none}
     } });
 
   // custom drawings: rectangle and measure
+  // drawing style: [colour, width, dashed]
+  const COLS = ["#2563eb", "#d0342c", "#0f8f55", "#d97706", "#7c3aed", "#db2777", "#0e9384", "#111827"];
+  const stl = (c = "#2563eb", w = 1, d = 0) => ({ line: { color: c, size: w, style: d ? "dashed" : "solid", dashedValue: [6, 4] },
+    point: { color: c, borderColor: c + "55", activeColor: c, activeBorderColor: c + "55" },
+    text: { color: "#fff", backgroundColor: c, borderColor: c }, polygon: { color: c + "16", borderColor: c, borderSize: w } });
+  const stOf = o => { const l = o.styles && o.styles.line; return l && l.color ? [l.color, l.size || 1, l.style === "dashed" ? 1 : 0] : null; };
   K.registerOverlay({ name: "mmRect", totalStep: 3, needDefaultPointFigure: true, needDefaultXAxisFigure: true, needDefaultYAxisFigure: true,
-    createPointFigures: ({ coordinates: c }) => c.length < 2 ? [] : [{ type: "polygon",
-      attrs: { coordinates: [c[0], { x: c[1].x, y: c[0].y }, c[1], { x: c[0].x, y: c[1].y }] },
-      styles: { style: "stroke_fill", color: "rgba(37,99,235,.08)", borderColor: "#2563eb", borderSize: 1 } }] });
+    createPointFigures: ({ coordinates: c, overlay: o }) => { if (c.length < 2) return []; const s = stOf(o) || ["#2563eb", 1, 0];
+      return [{ type: "polygon", attrs: { coordinates: [c[0], { x: c[1].x, y: c[0].y }, c[1], { x: c[0].x, y: c[1].y }] },
+        styles: { style: "stroke_fill", color: s[0] + "16", borderColor: s[0], borderSize: s[1], borderStyle: s[2] ? "dashed" : "solid", borderDashedValue: [6, 4] } }]; } });
+  K.registerOverlay({ name: "mmCross", totalStep: 2, needDefaultPointFigure: true, needDefaultXAxisFigure: true, needDefaultYAxisFigure: true,
+    createPointFigures: ({ coordinates: c, bounding: b }) => !c.length ? [] : [
+      { type: "line", attrs: { coordinates: [{ x: 0, y: c[0].y }, { x: b.width, y: c[0].y }] } },
+      { type: "line", attrs: { coordinates: [{ x: c[0].x, y: 0 }, { x: c[0].x, y: b.height }] } }] });
+  // anchored VWAP: volume-weighted average price from the clicked candle to today
+  K.registerOverlay({ name: "mmAVWAP", totalStep: 2, needDefaultPointFigure: true,
+    createPointFigures: ({ overlay: o, chart: ch0, xAxis, yAxis }) => {
+      const L = ch0.getDataList(), p0 = o.points[0]; if (!p0 || p0.timestamp == null || !L.length || !xAxis || !yAxis) return [];
+      let i0 = L.findIndex(k => k.timestamp >= p0.timestamp); if (i0 < 0) return [];
+      let pv = 0, vv = 0; const pts = [];
+      for (let i = i0; i < L.length; i++) { const k = L[i], v = k.volume || 0, tp = (k.high + k.low + (k.real ?? k.close)) / 3;
+        pv += tp * v; vv += v; if (!vv) continue; pts.push({ x: xAxis.convertTimestampToPixel(k.timestamp), y: yAxis.convertToPixel(pv / vv) }); }
+      if (pts.length < 2) return [];
+      const s = stOf(o) || ["#7c3aed", 2, 0];
+      return [{ type: "line", attrs: { coordinates: pts }, styles: { color: s[0], size: s[1], style: s[2] ? "dashed" : "solid", dashedValue: [6, 4] } },
+        { type: "text", attrs: { x: pts[pts.length - 1].x + 4, y: pts[pts.length - 1].y, text: "AVWAP", align: "left", baseline: "middle" },
+          styles: { color: "#fff", backgroundColor: s[0], borderRadius: 3, paddingLeft: 4, paddingRight: 4, paddingTop: 2, paddingBottom: 2, size: 10.5, weight: 700 } }];
+    } });
+  // Breakout Desk levels (locked, not saved): a full-width line with a label, and base boxes
+  K.registerOverlay({ name: "mmLevel", totalStep: 2, needDefaultPointFigure: false,
+    createPointFigures: ({ coordinates: c, bounding: b, overlay: o }) => { if (!c.length) return []; const x = o.extendData || {};
+      return [{ type: "line", attrs: { coordinates: [{ x: 0, y: c[0].y }, { x: b.width, y: c[0].y }] }, styles: { color: x.c, size: 1, style: "dashed", dashedValue: [6, 4] }, ignoreEvent: true },
+        { type: "text", attrs: { x: b.width - 8, y: c[0].y - 3, text: x.t + " ₹" + num(o.points[0].value), align: "right", baseline: "bottom" },
+          styles: { color: x.c, backgroundColor: "rgba(255,255,255,.85)", borderColor: "transparent", paddingLeft: 4, paddingRight: 4, paddingTop: 1, paddingBottom: 1, size: 11, weight: 700 }, ignoreEvent: true }]; } });
+  K.registerOverlay({ name: "mmBase", totalStep: 3, needDefaultPointFigure: false,
+    createPointFigures: ({ coordinates: c, overlay: o }) => { if (c.length < 2) return []; const x = o.extendData || {}, col = x.on ? "#3b8a4c" : "#9ca3af";
+      return [{ type: "polygon", attrs: { coordinates: [c[0], { x: c[1].x, y: c[0].y }, c[1], { x: c[0].x, y: c[1].y }] },
+          styles: { style: "stroke_fill", color: x.on ? "rgba(59,138,76,.07)" : "rgba(107,114,128,.05)", borderColor: col, borderSize: 1.5, borderStyle: "dashed", borderDashedValue: [5, 4] }, ignoreEvent: true },
+        { type: "text", attrs: { x: Math.min(c[0].x, c[1].x) + 4, y: Math.max(c[0].y, c[1].y) + 3, text: "B" + x.n, align: "left", baseline: "top" },
+          styles: { color: col, backgroundColor: "transparent", borderColor: "transparent", size: 11, weight: 800 }, ignoreEvent: true }]; } });
   K.registerOverlay({ name: "mmMeasure", totalStep: 3, needDefaultPointFigure: true,
     createPointFigures: ({ coordinates: c, overlay: o, chart: ch0 }) => {
       if (c.length < 2 || o.points.length < 2 || o.points[1].value == null) return [];
@@ -309,56 +402,75 @@ body.full #po{display:none}
   const ic = p => `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
   const TOOLS = [
     ["", "Pointer (Esc)", '<path d="M5 3l14 8-6 2-2 6z"/>'],
-    ["segment", "Trend line", '<path d="M4 19L20 5"/><circle cx="4" cy="19" r="1.6"/><circle cx="20" cy="5" r="1.6"/>'],
+    ["segment", "Trend line (Alt+T)", '<path d="M4 19L20 5"/><circle cx="4" cy="19" r="1.6"/><circle cx="20" cy="5" r="1.6"/>'],
     ["rayLine", "Ray", '<path d="M4 19L22 4"/><circle cx="4" cy="19" r="1.6"/>'],
     ["straightLine", "Extended line", '<path d="M2 21L22 3"/>'],
-    ["horizontalStraightLine", "Horizontal line", '<path d="M2 12h20"/>'],
+    ["horizontalStraightLine", "Horizontal line (Alt+H)", '<path d="M2 12h20"/>'],
     ["horizontalRayLine", "Horizontal ray", '<path d="M5 12h17"/><circle cx="5" cy="12" r="1.6"/>'],
-    ["verticalStraightLine", "Vertical line", '<path d="M12 2v20"/>'],
+    ["verticalStraightLine", "Vertical line (Alt+V)", '<path d="M12 2v20"/>'],
+    ["mmCross", "Cross line (Alt+C)", '<path d="M12 2v20M2 12h20"/>'],
     ["priceLine", "Price label", '<path d="M3 12h12"/><path d="M15 8h6v8h-6z"/>'],
     ["parallelStraightLine", "Parallel channel", '<path d="M3 15L21 5M3 20L21 10"/>'],
     ["priceChannelLine", "Price channel", '<path d="M3 17L21 7M3 21L21 11M3 13L21 3"/>'],
-    ["fibonacciLine", "Fibonacci retracement", '<path d="M3 4h18M3 9h18M3 13h18M3 20h18"/>'],
-    ["mmRect", "Rectangle", '<rect x="4" y="6" width="16" height="12" rx="1"/>'],
-    ["mmMeasure", "Measure % move", '<path d="M4 20V4M4 20h16"/><path d="M8 15l4-4 3 3 5-6"/>'],
+    ["fibonacciLine", "Fibonacci retracement (Alt+F)", '<path d="M3 4h18M3 9h18M3 13h18M3 20h18"/>'],
+    ["mmRect", "Rectangle (Alt+Shift+R)", '<rect x="4" y="6" width="16" height="12" rx="1"/>'],
+    ["mmMeasure", "Measure % move (or hold Shift and click)", '<path d="M4 20V4M4 20h16"/><path d="M8 15l4-4 3 3 5-6"/>'],
+    ["mmAVWAP", "Anchored VWAP: click the candle to start from", '<path d="M3 18c4-1 6-9 9-9s4 5 9 3"/><circle cx="3" cy="18" r="1.6"/>'],
     ["simpleAnnotation", "Note", '<path d="M4 4h16v12H9l-5 4z"/>'],
     "-",
     ["@magnet", "Magnet: snap to candle high/low/close", '<path d="M6 3v8a6 6 0 0 0 12 0V3"/><path d="M6 7h4M14 7h4"/>'],
-    ["@hide", "Hide / show drawings", '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'],
+    ["@lock", "Lock / unlock all drawings", '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>'],
+    ["@hide", "Hide / show drawings (Ctrl+Alt+H)", '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'],
     ["@clear", "Delete all drawings on this stock", '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>'],
   ];
   const SUP = new Set(K.getSupportedOverlays());
   $("#tools").innerHTML = TOOLS.map(t => t === "-" ? "<hr>" : (t[0] && t[0][0] !== "@" && !SUP.has(t[0])) ? "" :
     `<button data-t="${t[0]}" title="${t[1]}" aria-label="${t[1]}">${ic(t[2])}</button>`).join("");
-  let tool = "", magnet = false, hidden = false;
+  let tool = "", magnet = false, hidden = false, lockAll = false, SEL = null, DRAWING = null, CLIP = null;
   const hint = (t, ms = 2400) => { const h = $("#hint"); h.textContent = t; h.classList.add("on"); clearTimeout(hint.t); hint.t = setTimeout(() => h.classList.remove("on"), ms); };
   const toolBtns = () => document.querySelectorAll("#tools button").forEach(b => {
-    const t = b.dataset.t; b.classList.toggle("on", t === "@magnet" ? magnet : t === "@hide" ? hidden : t === tool && (t !== "" || true)); });
+    const t = b.dataset.t; b.classList.toggle("on", t === "@magnet" ? magnet : t === "@hide" ? hidden : t === "@lock" ? lockAll : t === tool && (t !== "" || true)); });
   $("#tools").onclick = e => {
     const b = e.target.closest("button"); if (!b || !chart) return; const t = b.dataset.t;
     if (t === "@magnet") { magnet = !magnet; hint(magnet ? "Magnet on: points snap to the candle" : "Magnet off"); }
-    else if (t === "@hide") { hidden = !hidden; chart.overrideOverlay({ groupId: "draw", visible: !hidden }); }
-    else if (t === "@clear") { if (chart.getOverlays({ groupId: "draw" }).length && confirm("Delete all drawings on " + SYM + "?")) { chart.removeOverlay({ groupId: "draw" }); saveDraw(); } }
+    else if (t === "@hide") { hidden = !hidden; chart.overrideOverlay({ groupId: "draw", visible: !hidden }); hint(hidden ? "Drawings hidden" : "Drawings shown"); }
+    else if (t === "@lock") { lockAll = !lockAll; chart.overrideOverlay({ groupId: "draw", lock: lockAll }); hint(lockAll ? "All drawings locked" : "Drawings unlocked"); if (lockAll) selNone(); }
+    else if (t === "@clear") { if (chart.getOverlays({ groupId: "draw" }).length && confirm("Delete all drawings on " + SYM + "? (Ctrl+Z brings them back)")) { selNone(); chart.removeOverlay({ groupId: "draw" }); saveDraw(); } }
     else if (t === "") { tool = ""; }
     else { tool = t; startDraw(t); }
     toolBtns();
   };
   function overlayEvents() {
-    return { onDrawEnd: ev => { tool = ""; toolBtns(); if (ev.overlay.name === "simpleAnnotation") askNote(ev.overlay); else saveDraw(); return false; },
-      onPressedMoveEnd: () => { saveDraw(); return false; }, onRemoved: () => { setTimeout(saveDraw, 0); return false; },
+    return { onDrawEnd: ev => { tool = ""; DRAWING = null; toolBtns(); if (ev.overlay.name === "simpleAnnotation") askNote(ev.overlay, true); else saveDraw(); return false; },
+      onSelected: ev => { SEL = ev.overlay.id; showDbar(); return false; },
+      onDeselected: ev => { if (SEL === ev.overlay.id) selNone(); return false; },
+      onPressedMoveEnd: () => { saveDraw(); return false; }, onRemoved: ev => { if (SEL === ev.overlay.id) selNone(); setTimeout(saveDraw, 0); return false; },
       onDoubleClick: ev => { if (ev.overlay.name === "simpleAnnotation") askNote(ev.overlay); return false; },
       onRightClick: ev => { chart.removeOverlay({ id: ev.overlay.id }); return true; } };
   }
-  function startDraw(name) {
-    chart.createOverlay(Object.assign({ name, groupId: "draw", mode: magnet ? "weak_magnet" : "normal", visible: true }, overlayEvents()));
-    hint(name === "horizontalStraightLine" || name === "verticalStraightLine" || name === "priceLine" || name === "simpleAnnotation" || name === "horizontalRayLine"
-      ? "Click on the chart to place it" : "Click the start point, then the end point" + (name.includes("hannel") || name === "parallelStraightLine" ? ", then the width" : ""));
+  function startDraw(name, quiet) {
+    if (DRAWING) chart.removeOverlay({ id: DRAWING });
+    const sty = name === "mmAVWAP" ? stl("#7c3aed", 2, 0) : name === "mmMeasure" ? undefined : stl(P.dc || "#2563eb", P.dw || 1, 0);
+    DRAWING = chart.createOverlay(Object.assign({ name, groupId: "draw", mode: magnet ? "weak_magnet" : "normal", visible: true, styles: sty }, overlayEvents()));
+    if (!quiet) hint(["horizontalStraightLine", "verticalStraightLine", "priceLine", "simpleAnnotation", "horizontalRayLine", "mmCross"].includes(name) ? "Click on the chart to place it  ·  Esc to cancel"
+      : name === "mmAVWAP" ? "Click the candle to start the VWAP from  ·  Esc to cancel"
+      : "Click the start point, then the end point" + (name.includes("hannel") || name === "parallelStraightLine" ? ", then the width" : "") + "  ·  Esc to cancel");
   }
-  function askNote(o) {
-    const t = prompt("Note text:", (o.extendData && String(o.extendData)) || "");
-    if (t == null) { if (!o.extendData) chart.removeOverlay({ id: o.id }); return; }
-    chart.overrideOverlay({ id: o.id, extendData: t }); saveDraw();
+  // note text: a small box instead of the browser pop-up
+  function askNote(o, fresh) {
+    const p = $("#npop"); p.dataset.id = o.id; p.dataset.fresh = fresh ? "1" : "";
+    p.innerHTML = `<b style="font-size:13px">Note on the chart</b><textarea id="ntx" rows="3" placeholder="Type your note">${esc(o.extendData || "")}</textarea>
+      <div class="nbt"><button class="bt" data-n="del">Delete note</button><button class="bt okb" data-n="ok">Save</button></div>`;
+    p.hidden = false; setTimeout(() => $("#ntx").focus(), 0);
   }
+  function noteDone(save) {
+    const p = $("#npop"), id = p.dataset.id, t = ($("#ntx") || {}).value || "";
+    p.hidden = true;
+    if (!save || !t.trim()) { if (!save && !p.dataset.fresh) return; chart.removeOverlay({ id }); saveDraw(); return; }
+    chart.overrideOverlay({ id, extendData: t.trim().slice(0, 300) }); saveDraw();
+  }
+  $("#npop").addEventListener("click", e => { const b = e.target.closest("[data-n]"); if (b) noteDone(b.dataset.n === "ok"); });
+  $("#npop").addEventListener("keydown", e => { if (e.key === "Escape") { e.preventDefault(); noteDone(false); } else if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); noteDone(true); } });
   document.addEventListener("keydown", e => {
     if (e.target.closest("input,select,textarea")) return;
     if (e.key === "Escape") { tool = ""; toolBtns(); }
@@ -366,23 +478,66 @@ body.full #po{display:none}
 
   // drawings are saved per stock in this browser (by date, so they survive D / W / M switches)
   const DKEY = s => "mmkd:" + s;
+  const ser = o => ({ n: o.name, p: o.points.map(p => [p.timestamp, +p.value.toFixed(4)]), x: o.extendData ?? null, l: o.lock || undefined, s: stOf(o) || undefined });
+  const drawList = () => chart.getOverlays({ groupId: "draw" }).filter(o => o.points.length && o.points.every(p => p.timestamp != null && p.value != null)).map(ser);
+  let UNDO = [], REDO = [], SNAP = "[]";
   function saveDraw() {
     if (!chart || !SYM) return;
-    const list = chart.getOverlays({ groupId: "draw" }).filter(o => o.points.length && o.points.every(p => p.timestamp != null && p.value != null))
-      .map(o => ({ n: o.name, p: o.points.map(p => [p.timestamp, +p.value.toFixed(4)]), x: o.extendData ?? null, l: o.lock || undefined }));
-    try { list.length ? localStorage.setItem(DKEY(SYM), JSON.stringify(list)) : localStorage.removeItem(DKEY(SYM)); } catch (e) {}
+    const list = drawList(), j = JSON.stringify(list);
+    if (j !== SNAP) { UNDO.push(SNAP); if (UNDO.length > 80) UNDO.shift(); REDO = []; SNAP = j; }
+    try { list.length ? localStorage.setItem(DKEY(SYM), j) : localStorage.removeItem(DKEY(SYM)); } catch (e) {}
+  }
+  const snapTs = ts => { const L = chart.getDataList(); if (!L.length) return ts; let lo = 0, hi = L.length - 1;
+    if (ts >= L[hi].timestamp) return ts > L[hi].timestamp + 40 * DAY ? ts : L[hi].timestamp;
+    while (lo < hi) { const m = (lo + hi) >> 1; if (L[m].timestamp < ts) lo = m + 1; else hi = m; } return L[lo].timestamp; };
+  const shiftTs = (ts, n) => { const L = chart.getDataList(); let i = L.findIndex(k => k.timestamp >= ts); if (i < 0) i = L.length - 1; return L[Math.max(0, Math.min(L.length - 1, i + n))].timestamp; };
+  function mkDraw(d) {
+    if (!SUP.has(d.n)) return null;
+    return chart.createOverlay(Object.assign({ name: d.n, groupId: "draw", points: d.p.map(([t, v]) => ({ timestamp: snapTs(t), value: v })),
+      extendData: d.x ?? undefined, lock: !!d.l || lockAll, visible: !hidden, styles: d.s ? stl(...d.s) : d.n === "mmAVWAP" ? stl("#7c3aed", 2, 0) : undefined }, overlayEvents()));
   }
   function loadDraw() {
     let list = []; try { list = JSON.parse(localStorage.getItem(DKEY(SYM)) || "[]"); } catch (e) {}
-    const L = chart.getDataList(); if (!L.length) return;
-    const snapTs = ts => { let lo = 0, hi = L.length - 1; if (ts >= L[hi].timestamp) return ts > L[hi].timestamp + 40 * DAY ? ts : L[hi].timestamp;
-      while (lo < hi) { const m = (lo + hi) >> 1; if (L[m].timestamp < ts) lo = m + 1; else hi = m; } return L[lo].timestamp; };
-    for (const d of list) {
-      if (!SUP.has(d.n)) continue;
-      chart.createOverlay(Object.assign({ name: d.n, groupId: "draw", points: d.p.map(([t, v]) => ({ timestamp: snapTs(t), value: v })),
-        extendData: d.x ?? undefined, lock: !!d.l, visible: !hidden }, overlayEvents()));
-    }
+    if (!chart.getDataList().length) return;
+    for (const d of list) mkDraw(d);
   }
+  function restoreSnap(j) { SNAP = j; selNone(); try { j !== "[]" ? localStorage.setItem(DKEY(SYM), j) : localStorage.removeItem(DKEY(SYM)); } catch (e) {}
+    chart.removeOverlay({ groupId: "draw" }); loadDraw(); }
+  function undo() { if (!UNDO.length) { hint("Nothing to undo"); return; } REDO.push(SNAP); restoreSnap(UNDO.pop()); hint("Undone (Ctrl+Y to redo)"); }
+  function redo() { if (!REDO.length) { hint("Nothing to redo"); return; } UNDO.push(SNAP); restoreSnap(REDO.pop()); hint("Redone"); }
+  const selO = () => SEL && chart.getOverlays({ id: SEL })[0];
+  function copySel() { const o = selO(); if (!o) return; CLIP = ser(o); CLIP.from = SYM; hint("Drawing copied · Ctrl+V to paste (also on another stock)"); }
+  function paste() { if (!CLIP) return; const d = JSON.parse(JSON.stringify(CLIP)); if (d.from === SYM) d.p = d.p.map(([t, v]) => [shiftTs(t, 5), v]); delete d.from; d.l = undefined; mkDraw(d); saveDraw(); hint("Pasted"); }
+  function cloneSel() { const o = selO(); if (!o) return; const d = ser(o); d.p = d.p.map(([t, v]) => [shiftTs(t, 5), v]); d.l = undefined; mkDraw(d); saveDraw(); hint("Cloned"); }
+  // the small bar that edits the clicked drawing
+  function selNone() { SEL = null; $("#dbar").hidden = true; }
+  function showDbar() {
+    const o = selO(); if (!o) { selNone(); return; }
+    const [c, w, d] = stOf(o) || [o.name === "mmAVWAP" ? "#7c3aed" : "#2563eb", 1, 0], measure = o.name === "mmMeasure";
+    $("#dbar").innerHTML = (measure ? "" : COLS.map(x => `<span class="sw ${x === c ? "on" : ""}" data-c="${x}" style="background:${x}" title="Colour"></span>`).join("") + '<span class="dsep"></span>'
+      + [1, 2, 3].map(x => `<button class="b ${x === w ? "on" : ""}" data-w="${x}" title="Thickness">${x}px</button>`).join("")
+      + `<button class="b ${d ? "on" : ""}" data-d="1" title="Dashed line">- - -</button><span class="dsep"></span>`)
+      + (o.name === "simpleAnnotation" ? '<button class="b" data-a="note">Edit text</button>' : "")
+      + '<button class="b" data-a="lock" title="Lock: it can no longer be moved (unlock all with the lock button on the left)">Lock</button>'
+      + '<button class="b" data-a="clone" title="Clone (Ctrl+D)">Clone</button><button class="b" data-a="copy" title="Copy (Ctrl+C), then Ctrl+V to paste">Copy</button>'
+      + `<button class="b" data-a="del" title="Delete (Del)" style="color:${DN}">Delete</button>`;
+    $("#dbar").hidden = false;
+  }
+  $("#dbar").addEventListener("mousedown", e => e.stopPropagation());
+  $("#dbar").addEventListener("click", e => {
+    const o = selO(); if (!o) return selNone();
+    const cur = stOf(o) || ["#2563eb", 1, 0], t = e.target.closest("[data-c],[data-w],[data-d],[data-a]"); if (!t) return;
+    if (t.dataset.c || t.dataset.w || t.dataset.d) {
+      const ns = [t.dataset.c || cur[0], t.dataset.w ? +t.dataset.w : cur[1], t.dataset.d ? (cur[2] ? 0 : 1) : cur[2]];
+      chart.overrideOverlay({ id: o.id, styles: stl(...ns) }); P.dc = ns[0]; P.dw = ns[1]; save(); saveDraw(); showDbar(); return;
+    }
+    const a = t.dataset.a;
+    if (a === "del") { chart.removeOverlay({ id: o.id }); selNone(); }
+    else if (a === "clone") cloneSel();
+    else if (a === "copy") copySel();
+    else if (a === "note") askNote(o);
+    else if (a === "lock") { chart.overrideOverlay({ id: o.id, lock: true }); selNone(); saveDraw(); hint("Locked. The lock button on the left unlocks all drawings."); }
+  });
 
   // ---------- chart
   const chart = K.init("kc", {
@@ -399,7 +554,7 @@ body.full #po{display:none}
         area: { lineColor: "#2563eb", lineSize: 1.6, backgroundColor: [{ offset: 0, color: "rgba(37,99,235,.18)" }, { offset: 1, color: "rgba(37,99,235,.01)" }] },
         priceMark: { high: { color: MUT }, low: { color: MUT }, last: { upColor: UP, downColor: DN, noChangeColor: MUT } },
         tooltip: { showRule: "none" } },
-      indicator: { tooltip: { showRule: "always", text: { color: MUT, size: 11.5 } },
+      indicator: { tooltip: { showRule: "always", offsetTop: 26, text: { color: MUT, size: 11.5 } },
         bars: [{ upColor: "rgba(15,143,85,.35)", downColor: "rgba(208,52,44,.35)", noChangeColor: "rgba(107,114,128,.35)" }] },
       xAxis: { axisLine: { color: LINE }, tickLine: { color: LINE }, tickText: { color: MUT, size: 11.5 } },
       yAxis: { axisLine: { color: LINE }, tickLine: { color: LINE }, tickText: { color: MUT, size: 11.5 } },
@@ -413,7 +568,7 @@ body.full #po{display:none}
   // ---------- data: our chart files (daily ~2 years, weekly back to listing) + live price
   let SYM = "", NAME = "", ROW = null, D = null, EV = null, PER = P.tf, SPAN = Math.max(1, +P.sp || 1), BARS = [];
   const UNIT = { d: "day", w: "week", m: "month" };
-  const FULL = document.body.classList.contains("full"), FULLQ = FULL ? "&full=1" : "";
+  const FULL = document.body.classList.contains("popped"), FULLQ = FULL ? "&full=1" : "";
   const tfName = (p, n) => n > 1 ? (p === "m" && n % 12 === 0 ? (n / 12 === 1 ? "Yearly" : n / 12 + "-year") : n + "-" + UNIT[p]) : { d: "Daily", w: "Weekly", m: "Monthly" }[p];
   const tfCode = () => (SPAN > 1 ? SPAN : "") + PER;
   const period = () => ({ type: PER === "d" ? "day" : PER === "w" ? "week" : "month", span: SPAN });
@@ -527,6 +682,7 @@ body.full #po{display:none}
     const evs = (EVB[i] || []);
     $("#clg").innerHTML = `${fmtD(k.timestamp)}${SPAN > 1 ? ` (${tfName(PER, SPAN).toLowerCase()} candle)` : PER === "w" ? " (week)" : PER === "m" ? " (month)" : ""} · O <b>${num(k.open)}</b> H <b>${num(k.high)}</b> L <b>${num(k.low)}</b> C <b>${num(c)}</b>
       <span class="${MM.cls(ch)}">${ch == null ? "" : sgn(ch, 2)}</span> · Vol <b>${vol(k.volume)}</b>`
+      + (BOTXT ? `<span class="boinfo" title="From Breakout Desk">${BOTXT}</span>` : "")
       + (evs.length ? `<span class="ev">${evs.slice(0, 4).map(e => `<span data-ts="${e.ts}" style="border-color:${EK[e.k].color}"><span class="dot" style="background:${EK[e.k].color};width:13px;height:13px;font-size:8px;margin:0 4px 0 0;padding:0;border:0">${e.k === "s" ? (e.kind === "bonus" ? "B" : "S") : EK[e.k].letter}</span>${esc(e.title)}${e.k === "r" && e.tx ? " · " + esc(e.tx) : ""}</span>`).join("")}${evs.length > 4 ? ` +${evs.length - 4} more` : ""}</span>` : "");
   }
   $("#clg").onclick = e => { const s = e.target.closest("[data-ts]"); if (!s) return; openSide("ev"); const r = document.querySelector(`.erow[data-ts="${s.dataset.ts}"]`);
@@ -548,15 +704,130 @@ body.full #po{display:none}
       <small>${live ? `<span style="color:${UP};font-weight:700">● Live</span> · ${Lv.t.slice(11, 16)}` : "Close " + fmtD(last.t * DAY)}</small>`;
   }
 
+  // ---------- index history (Nifty 50 / 500 / Bank / Midcap 150 / Smallcap 250) for Compare and the RS line
+  const IDXN = ["", "NIFTY50", "NIFTY500", "BANKNIFTY", "MIDCAP150", "SMALLCAP250"];
+  const IDXL = ["", "Nifty 50", "Nifty 500", "Bank Nifty", "Midcap 150", "Smallcap 250"];
+  const IDXLIVE = { NIFTY50: "NIFTY 50", NIFTY500: "NIFTY 500", BANKNIFTY: "NIFTY BANK", MIDCAP150: "NIFTY MIDCAP 150", SMALLCAP250: "NIFTY SMALLCAP 250" };
+  const IDXD = {};
+  function idxLoad(n) {
+    if (IDXD[n] !== undefined) return; IDXD[n] = null;
+    fetch(MM.DATA + "idx/" + n + ".json", { cache: "no-cache" }).then(r => r.ok ? r.json() : null)
+      .then(j => { if (!j || !j.d) { IDXD[n] = false; return; } IDXD[n] = { t: j.d.t.map(x => x * DAY), c: j.d.c }; applyInd(); }).catch(() => { IDXD[n] = false; });
+  }
+  function idxAt(n, t) {
+    const X = IDXD[n]; if (!X || !X.t.length || t < X.t[0]) return null;
+    const last = X.t.length - 1;
+    if (t > X.t[last]) { const L = MM._liveNow && MM._liveNow(), v = L && L.i && L.i[IDXLIVE[n]];
+      return v && Date.parse(L.t.slice(0, 10) + "T00:00:00Z") >= t - 6 * DAY ? v[0] : X.c[last]; }
+    let lo = 0, hi = last; while (lo < hi) { const m = (lo + hi + 1) >> 1; if (X.t[m] <= t) lo = m; else hi = m - 1; } return X.c[lo];
+  }
+  const ixName = k => IDXN[k] || "NIFTY50";
+  const smaN = (a, n) => a.map((_, i) => { if (i < n - 1) return null; let s = 0; for (let j = i - n + 1; j <= i; j++) { if (a[j] == null) return null; s += a[j]; } return s / n; });
+  const emaA = (a, n) => { const k = 2 / (n + 1); let e = null; return a.map(v => v == null ? null : (e = e == null ? v : e + k * (v - e))); };
+  const hhN = (L, i, n) => { let h = -Infinity; for (let j = Math.max(0, i - n + 1); j <= i; j++) h = Math.max(h, L[j].high); return h; };
+  const llN = (L, i, n) => { let l = Infinity; for (let j = Math.max(0, i - n + 1); j <= i; j++) l = Math.min(l, L[j].low); return l; };
+  const cl = k => k.real ?? k.close;
+  const col = c => () => ({ color: c });
+  K.registerIndicator({ name: "STOCH", shortName: "Stoch", calcParams: [14, 3, 3], precision: 2,
+    figures: [{ key: "k", title: "%K: ", type: "line", styles: col("#2563eb") }, { key: "d", title: "%D: ", type: "line", styles: col("#d97706") }],
+    calc: (L, ind) => { const [n, a, b] = ind.calcParams; const raw = L.map((k, i) => { if (i < n - 1) return null; const h = hhN(L, i, n), l = llN(L, i, n); return h > l ? (cl(k) - l) / (h - l) * 100 : 50; });
+      const K1 = smaN(raw, a), D1 = smaN(K1, b); return L.map((_, i) => ({ k: K1[i], d: D1[i] })); } });
+  K.registerIndicator({ name: "DONCHIAN", shortName: "Donchian", series: "price", calcParams: [20], precision: 2,
+    figures: [{ key: "up", title: "Up: ", type: "line", styles: col("#0e9384") }, { key: "mid", title: "Mid: ", type: "line", styles: col("#9ca3af") }, { key: "dn", title: "Down: ", type: "line", styles: col("#0e9384") }],
+    calc: (L, ind) => { const n = ind.calcParams[0]; return L.map((k, i) => { if (i < n - 1) return {}; const h = hhN(L, i, n), l = llN(L, i, n); return { up: h, dn: l, mid: (h + l) / 2 }; }); } });
+  K.registerIndicator({ name: "KELTNER", shortName: "Keltner", series: "price", calcParams: [20, 2, 10], precision: 2,
+    figures: [{ key: "up", title: "Up: ", type: "line", styles: col("#7c3aed") }, { key: "mid", title: "Mid: ", type: "line", styles: col("#9ca3af") }, { key: "dn", title: "Down: ", type: "line", styles: col("#7c3aed") }],
+    calc: (L, ind) => { const [n, m, an] = ind.calcParams, mid = emaA(L.map(cl), n), A = atrList(L, an);
+      return L.map((_, i) => A[i] == null || i < n - 1 ? {} : { mid: mid[i], up: mid[i] + m * A[i], dn: mid[i] - m * A[i] }); } });
+  K.registerIndicator({ name: "ICHIMOKU", shortName: "Ichimoku", series: "price", calcParams: [9, 26, 52], precision: 2,
+    figures: [{ key: "conv", title: "Conv: ", type: "line", styles: col("#2563eb") }, { key: "base", title: "Base: ", type: "line", styles: col("#d0342c") },
+      { key: "a", title: "Span A: ", type: "line", styles: col("#0f8f55") }, { key: "b", title: "Span B: ", type: "line", styles: col("#d97706") }],
+    calc: (L, ind) => { const [c1, c2, c3] = ind.calcParams, mid = (i, n) => i < n - 1 ? null : (hhN(L, i, n) + llN(L, i, n)) / 2;
+      const cv = L.map((_, i) => mid(i, c1)), bs = L.map((_, i) => mid(i, c2));
+      return L.map((_, i) => { const j = i - c2; return { conv: cv[i], base: bs[i], a: j >= 0 && cv[j] != null && bs[j] != null ? (cv[j] + bs[j]) / 2 : null, b: j >= 0 ? mid(j, c3) : null }; }); } });
+  K.registerIndicator({ name: "PIVOTS", shortName: "Pivots", series: "price", calcParams: [0], precision: 2,
+    figures: [{ key: "r2", title: "R2: ", type: "line", styles: col("#d0342c") }, { key: "r1", title: "R1: ", type: "line", styles: col("#f08a84") }, { key: "p", title: "P: ", type: "line", styles: col("#6b7280") },
+      { key: "s1", title: "S1: ", type: "line", styles: col("#6cc3a0") }, { key: "s2", title: "S2: ", type: "line", styles: col("#0f8f55") }],
+    calc: (L, ind) => { let m = ind.calcParams[0] || (PER === "d" ? 2 : 3);
+      const key = t => { const d = new Date(t); return m === 1 ? Math.floor((t / DAY + 3) / 7) : m === 2 ? d.getUTCFullYear() * 12 + d.getUTCMonth() : d.getUTCFullYear(); };
+      let cur = null, ag = null, pv = null; const out = [];
+      for (const k of L) { const kk = key(k.timestamp);
+        if (kk !== cur) { if (ag) { const P0 = (ag.h + ag.l + ag.c) / 3; pv = { p: P0, r1: 2 * P0 - ag.l, s1: 2 * P0 - ag.h, r2: P0 + ag.h - ag.l, s2: P0 - (ag.h - ag.l) }; }
+          cur = kk; ag = { h: k.high, l: k.low, c: cl(k) }; out.push({}); continue; }
+        ag.h = Math.max(ag.h, k.high); ag.l = Math.min(ag.l, k.low); ag.c = cl(k); out.push(pv ? Object.assign({}, pv) : {}); }
+      return out; } });
+  K.registerIndicator({ name: "HL52", shortName: "52-week", series: "price", calcParams: [], precision: 2,
+    figures: [{ key: "h", title: "High: ", type: "line", styles: col("#0f8f55") }, { key: "l", title: "Low: ", type: "line", styles: col("#d0342c") }],
+    calc: L => L.map((k, i) => { let h = -Infinity, l = Infinity; for (let j = i; j >= 0 && L[j].timestamp > k.timestamp - 365 * DAY; j--) { h = Math.max(h, L[j].high); l = Math.min(l, L[j].low); }
+      return L[0].timestamp > k.timestamp - 300 * DAY ? {} : { h, l }; }) });
+  K.registerIndicator({ name: "RSLINE", shortName: "RS line", calcParams: [2, 50], precision: 2,
+    figures: [{ key: "rs", title: "RS: ", type: "line", styles: col("#2563eb") }, { key: "ma", title: "Average: ", type: "line", styles: col("#d97706") }],
+    calc: (L, ind) => { const [k, m] = ind.calcParams, n = ixName(k || 2); idxLoad(n); if (!IDXD[n]) return L.map(() => ({}));
+      const r = L.map(x => { const ic = idxAt(n, x.timestamp); return ic ? cl(x) / ic * 100 : null; }), ma = smaN(r, m || 50);
+      return r.map((v, i) => ({ rs: v, ma: ma[i] })); } });
+  // Compare: the index drawn on the price chart, matched to the stock's price at the first candle on screen
+  K.registerIndicator({ name: "CMPIDX", shortName: "Compare", series: "price", calcParams: [1], figures: [],
+    calc: (L, ind) => { const n = ixName(ind.calcParams[0]); idxLoad(n); return L.map(k => ({ ic: IDXD[n] ? idxAt(n, k.timestamp) : null })); },
+    createTooltipDataSource: ({ indicator }) => ({ name: "Compare: " + (IDXL[indicator.calcParams[0]] || "Nifty 50") + " (orange)", calcParamsText: "", legends: [], features: [] }),
+    draw: ({ ctx, chart: c, indicator, xAxis, yAxis }) => {
+      const L = c.getDataList(), R2 = indicator.result || [], vr = c.getVisibleRange(), to = Math.min(L.length, vr.to + 1);
+      let i0 = -1; for (let i = Math.max(0, Math.ceil(vr.realFrom ?? vr.from) + 1); i < to; i++) if (R2[i] && R2[i].ic) { i0 = i; break; }
+      if (i0 < 0) return false;
+      const f = cl(L[i0]) / R2[i0].ic; let lx = 0, ly = 0, st = false;
+      ctx.save(); ctx.strokeStyle = "#d97706"; ctx.lineWidth = 1.6; ctx.beginPath();
+      for (let i = i0; i < to; i++) { const r = R2[i]; if (!r || !r.ic) continue; const x = xAxis.convertTimestampToPixel(L[i].timestamp), y = yAxis.convertToPixel(r.ic * f);
+        if (st) ctx.lineTo(x, y); else ctx.moveTo(x, y); st = true; lx = x; ly = y; }
+      ctx.stroke();
+      const lastI = to - 1, sp = (cl(L[lastI]) / cl(L[i0]) - 1) * 100, ip = R2[lastI] && R2[lastI].ic ? (R2[lastI].ic / R2[i0].ic - 1) * 100 : null;
+      ctx.font = "700 11px Inter, system-ui, sans-serif"; ctx.fillStyle = "#d97706"; ctx.textBaseline = "middle";
+      const lab = (IDXL[indicator.calcParams[0]] || "Nifty 50") + (ip != null ? ` ${sgn(ip)} · stock ${sgn(sp)}` : ""), tw = ctx.measureText(lab).width;
+      const W = (c.getSize && (c.getSize("candle_pane", "main") || {}).width) || lx + tw + 10;
+      ctx.fillText(lab, Math.max(4, Math.min(lx + 6, W - tw - 8)), ly - (lx + 6 + tw > W - 8 ? 10 : 0));
+      ctx.restore(); return false;
+    } });
+
+  // ---------- Breakout Desk levels (from ../breakouts/data.json)
+  let BOD, BOTXT = "";
+  function boLoad() {
+    if (BOD !== undefined) return; BOD = null;
+    fetch("../breakouts/data.json", { cache: "no-cache" }).then(r => r.ok ? r.json() : null).then(j => { BOD = j || false; drawBO(); legend(); }).catch(() => { BOD = false; });
+  }
+  function drawBO() {
+    chart.removeOverlay({ groupId: "bo" }); BOTXT = "";
+    if (!P.bo || !SYM || !BARS.length) return;
+    if (BOD === undefined || BOD === null) { boLoad(); return; }
+    if (!BOD) return;
+    const rows = (BOD.rows || []).filter(r => r.sym === SYM); if (!rows.length) return;
+    const rank = { fresh: 0, climbing: 1, forming: 2 }, r = rows.slice().sort((a, b) => (rank[a.stage] ?? 9) - (rank[b.stage] ?? 9))[0];
+    const NM = { vcp: "VCP", bluesky: "Blue sky", multiyear: "Multi-year", ipo: "IPO base" }, sn = NM[r.screen] || r.screen;
+    const lastT = BARS[BARS.length - 1].timestamp;
+    const lv = (price, t, c) => { if (price != null) chart.createOverlay({ name: "mmLevel", groupId: "bo", lock: true, points: [{ timestamp: lastT, value: price }], extendData: { t, c } }); };
+    if (r.stage === "forming") { lv(r.pivot, "Pivot", "#3b8a4c"); BOTXT = `Breakout Desk: ${sn} · forming · pivot ₹${num(r.pivot)}`; }
+    else if (r.stage === "fresh" || r.stage === "climbing") { lv(r.entry, "Breakout", "#111827"); lv(r.stop, "8% stop", DN);
+      BOTXT = `Breakout Desk: ${sn} · ${r.stage === "fresh" ? "fresh breakout" : "climbing"} from ₹${num(r.entry)}`; }
+    else return;
+    const k = (BOD.charts || {})[SYM], i0 = k && BOD.dates ? BOD.dates.indexOf(k.d0) : -1;
+    if (i0 >= 0) for (const b of k.bases || []) {
+      const a = BOD.dates[i0 + b.s], z = BOD.dates[i0 + Math.min(b.e, (k.n || 1) - 1)]; if (!a || !z) continue;
+      chart.createOverlay({ name: "mmBase", groupId: "bo", lock: true, extendData: { n: b.n, on: b.n === r.bnum },
+        points: [{ timestamp: snapTs(Date.parse(a + "T00:00:00Z")), value: b.pivot }, { timestamp: snapTs(Date.parse(z + "T00:00:00Z")), value: b.low }] });
+    }
+  }
+
   // ---------- indicators
+  // [name, label, on the price chart?, default settings, settings help]
+  const IXHELP = "index: 1 Nifty 50, 2 Nifty 500, 3 Bank Nifty, 4 Midcap 150, 5 Smallcap 250";
   const CAT = [
     ["MA", "Moving average (SMA)", 1, [50, 200]], ["EMA", "Exponential moving average", 1, [20, 50]], ["BOLL", "Bollinger Bands", 1, [20, 2]],
-    ["SUPERTREND", "Supertrend", 1, [10, 3]], ["SAR", "Parabolic SAR", 1, [2, 2, 20]], ["BBI", "Bull and bear index", 1, [3, 6, 12, 24]],
-    ["VOL", "Volume", 0, [20]], ["RSI", "RSI", 0, [14]], ["MACD", "MACD", 0, [12, 26, 9]], ["KDJ", "Stochastic (KDJ)", 0, [9, 3, 3]],
-    ["ATR", "Average true range", 0, [14]], ["DMI", "ADX / DMI", 0, [14, 6]], ["CCI", "CCI", 0, [20]], ["OBV", "On-balance volume", 0, [30]],
-    ["WR", "Williams %R", 0, [6, 10, 14]], ["ROC", "Rate of change", 0, [12, 6]], ["MTM", "Momentum", 0, [12, 6]], ["TRIX", "TRIX", 0, [12, 9]],
-    ["BIAS", "Bias (distance from average)", 0, [6, 12, 24]], ["PSY", "Psychological line", 0, [12, 6]], ["CR", "CR energy", 0, [26, 10, 20, 40, 60]],
-    ["EMV", "Ease of movement", 0, [14, 9]], ["AO", "Awesome oscillator", 0, [5, 34]], ["PVT", "Price volume trend", 0, []], ["VR", "Volume ratio", 0, [26, 6]],
+    ["SUPERTREND", "Supertrend", 1, [10, 3]], ["KELTNER", "Keltner channels", 1, [20, 2, 10], "average, ATR multiple, ATR length"],
+    ["DONCHIAN", "Donchian channels", 1, [20]], ["ICHIMOKU", "Ichimoku (conversion, base, span A, span B)", 1, [9, 26, 52]],
+    ["PIVOTS", "Pivot points (P, R1, R2, S1, S2)", 1, [0], "0 auto (monthly on daily candles, yearly on weekly/monthly), 1 weekly, 2 monthly, 3 yearly"],
+    ["HL52", "52-week high and low", 1, []], ["SAR", "Parabolic SAR", 1, [2, 2, 20]],
+    ["CMPIDX", "Compare with an index", 1, [1], IXHELP],
+    ["VOL", "Volume", 0, [20]], ["RSLINE", "RS line vs an index", 0, [2, 50], IXHELP + "; then the average length"],
+    ["RSI", "RSI", 0, [14]], ["MACD", "MACD", 0, [12, 26, 9]], ["STOCH", "Stochastic (%K, %D)", 0, [14, 3, 3]],
+    ["DMI", "ADX / DMI", 0, [14, 6]], ["ATR", "Average true range", 0, [14]], ["CCI", "CCI", 0, [20]], ["OBV", "On-balance volume", 0, [30]],
+    ["WR", "Williams %R", 0, [14]], ["ROC", "Rate of change", 0, [12, 6]], ["AO", "Awesome oscillator", 0, [5, 34]],
   ].filter(c => K.getSupportedIndicators().includes(c[0]));
   const COLORS = ["#2563eb", "#d97706", "#7c3aed", "#0e9384", "#db2777"];
   function applyInd() {
@@ -572,12 +843,13 @@ body.full #po{display:none}
   }
   function drawIPop(qs = "") {
     const act = P.ind.map(it => { const c = CAT.find(x => x[0] === it.n); if (!c) return "";
-      return `<div class="it act"><div class="l"><b>${c[1]}</b><small>${c[2] ? "On the price chart" : "Own panel below"}</small></div>
+      return `<div class="it act"><div class="l"><b>${c[1]}</b><small>${c[4] ? esc(c[4]) : c[2] ? "On the price chart" : "Own panel below"}</small></div>
         ${c[3].length ? `<input value="${(it.p && it.p.length ? it.p : c[3]).join(", ")}" data-n="${it.n}" title="Settings (comma separated)">` : ""}<button class="rm" data-rm="${it.n}">Remove</button></div>`; }).join("");
     const q = qs.toLowerCase();
     const add = CAT.filter(c => !P.ind.find(it => it.n === c[0]) && (!q || (c[0] + " " + c[1]).toLowerCase().includes(q)))
       .map(c => `<div class="it"><div class="l"><b>${c[1]}</b><small>${c[2] ? "On the price chart" : "Own panel below"}${c[3].length ? " · " + c[3].join(", ") : ""}</small></div><button data-add="${c[0]}">Add</button></div>`).join("");
-    $("#ipop").innerHTML = `<input class="q" placeholder="Search indicators" value="${esc(qs)}">${act ? `<h4>On your chart</h4>${act}` : ""}<h4>Add</h4>${add || '<div style="padding:6px;color:var(--muted)">Nothing matches.</div>'}
+    const bo = `<h4>Market Mint</h4><div class="it ${P.bo ? "act" : ""}"><div class="l"><b>Breakout Desk levels</b><small>Pivot, breakout, 8% stop and base boxes, when this stock is on a Breakout Desk screen</small></div><button data-bo="1">${P.bo ? "Hide" : "Show"}</button></div>`;
+    $("#ipop").innerHTML = `<input class="q" placeholder="Search indicators" value="${esc(qs)}">${bo}${act ? `<h4>On your chart</h4>${act}` : ""}<h4>Add</h4>${add || '<div style="padding:6px;color:var(--muted)">Nothing matches.</div>'}
       <div style="padding:6px 4px 0;font-size:11.5px;color:var(--muted)">Change a number and press Enter. Saved in this browser.</div>`;
     const qi = $("#ipop .q"); qi.oninput = () => { const v = qi.value; drawIPop(v); const n = $("#ipop .q"); n.focus(); n.setSelectionRange(v.length, v.length); };
   }
@@ -586,6 +858,7 @@ body.full #po{display:none}
     p.style.left = Math.max(6, Math.min(r.left - base.left, base.width - p.offsetWidth - 6)) + "px"; p.style.top = (r.bottom - base.top + 6) + "px"; };
   $("#ipop").onclick = e => { e.stopPropagation();
     const a = e.target.closest("[data-add]"), rm = e.target.closest("[data-rm]");
+    if (e.target.closest("[data-bo]")) { P.bo = P.bo ? 0 : 1; save(); drawBO(); legend(); drawIPop($("#ipop .q").value); return; }
     if (a) { const c = CAT.find(x => x[0] === a.dataset.add); P.ind.push({ n: c[0], p: c[3].slice(), main: c[2] }); }
     else if (rm) P.ind = P.ind.filter(it => it.n !== rm.dataset.rm);
     else return;
@@ -598,7 +871,7 @@ body.full #po{display:none}
   // ---------- toolbar
   const segOn = () => { document.querySelectorAll("#tf button").forEach(b => { const on = b.dataset.p === PER; b.classList.toggle("on", on);
       b.textContent = on && SPAN > 1 ? SPAN + b.dataset.p.toUpperCase() : b.dataset.p.toUpperCase(); });
-    $("#lg").classList.toggle("on", !!P.log); $("#eb").classList.toggle("on", !$("#side").hidden && P.tab === "ev"); $("#wb").classList.toggle("on", !$("#side").hidden && P.tab === "wl"); $("#ty").value = P.ty; };
+    $("#lg").classList.toggle("on", !!P.log); $("#pc").classList.toggle("on", !!P.pct); $("#iv").classList.toggle("on", !!P.inv); $("#eb").classList.toggle("on", !$("#side").hidden && P.tab === "ev"); $("#wb").classList.toggle("on", !$("#side").hidden && P.tab === "wl"); $("#ty").value = P.ty; };
   function setPer(p, n = 1) {
     if (p === "d" && D && !D.d.length) p = "w";
     PER = p; SPAN = n; P.tf = p; P.sp = n; save();
@@ -607,7 +880,7 @@ body.full #po{display:none}
     afterData(); segOn(); zoomDefault();
   }
   function afterData() {
-    BARS = chart.getDataList(); evIndex(); chart.removeOverlay({ groupId: "draw" }); loadDraw(); refreshEv();
+    BARS = chart.getDataList(); evIndex(); selNone(); chart.removeOverlay({ groupId: "draw" }); loadDraw(); refreshEv(); drawBO();
   }
   $("#tf").onclick = e => { const b = e.target.closest("button"); if (b && (b.dataset.p !== PER || SPAN !== 1)) setPer(b.dataset.p); };
   $("#rg").onclick = e => { const b = e.target.closest("button"); if (!b) return; const r = b.dataset.r;
@@ -621,8 +894,22 @@ body.full #po{display:none}
     chart.setBarSpace(Math.max(1, Math.min(40, w / (n + 4)))); chart.scrollToRealTime(); };
   $("#ty").onchange = () => { P.ty = $("#ty").value; save(); chart.setStyles({ candle: { type: P.ty === "heikin" ? "candle_solid" : P.ty } });
     chart.resetData && (P.ty === "heikin" || BARS[0] && BARS[0].real != null) ? reload() : 0; };
-  $("#lg").onclick = () => { P.log = !P.log; save(); setLog(); segOn(); };
-  const setLog = () => { try { chart.setPaneOptions({ id: "candle_pane", axis: { name: P.log ? "logarithm" : "normal" } }); } catch (e) {} };
+  $("#lg").onclick = () => { P.log = !P.log; if (P.log) P.pct = false; save(); setLog(); segOn(); hint(P.log ? "Log scale" : "Normal scale"); };
+  $("#pc").onclick = () => { P.pct = !P.pct; if (P.pct) P.log = false; save(); setLog(); segOn(); hint(P.pct ? "Percent scale: % from the first candle on screen" : "Normal scale"); };
+  $("#iv").onclick = () => { P.inv = !P.inv; save(); setLog(); segOn(); hint(P.inv ? "Scale turned upside down" : "Scale back to normal"); };
+  $("#rsb").onclick = () => resetView();
+  function openDate() { const p = $("#gpop"), r = $("#gd").getBoundingClientRect(), base = $("#cp").getBoundingClientRect();
+    p.hidden = false; p.style.left = Math.max(6, Math.min(r.left - base.left - 120, base.width - 260)) + "px"; p.style.top = Math.max(6, r.top - base.top - p.offsetHeight - 8) + "px";
+    const last = BARS.length ? BARS[BARS.length - 1].timestamp : Date.now(); $("#gdi").max = new Date(last).toISOString().slice(0, 10);
+    if (!$("#gdi").value) $("#gdi").value = new Date(last - 365 * DAY).toISOString().slice(0, 10); $("#gdi").focus(); }
+  const dateGo = () => { const v = $("#gdi").value; $("#gpop").hidden = true; if (!v) return; jumpTo(Date.parse(v + "T00:00:00Z")); hint("Jumped to " + fmtD(Date.parse(v + "T00:00:00Z"))); };
+  $("#gd").onclick = e => { e.stopPropagation(); $("#gpop").hidden ? openDate() : ($("#gpop").hidden = true); };
+  $("#gdo").onclick = dateGo; $("#gdc").onclick = () => { $("#gpop").hidden = true; };
+  $("#gpop").addEventListener("click", e => e.stopPropagation());
+  $("#gdi").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); dateGo(); } else if (e.key === "Escape") { e.preventDefault(); $("#gpop").hidden = true; } });
+  document.addEventListener("click", () => { $("#gpop").hidden = true; });
+  function resetView() { setLog(); zoomDefault(); hint("View reset"); }
+  const setLog = () => { try { chart.setPaneOptions({ id: "candle_pane", axis: { name: P.pct ? "percentage" : P.log ? "logarithm" : "normal", reverse: !!P.inv } }); } catch (e) {} };
   const showTab = () => { $("#pwl").hidden = P.tab !== "wl"; $("#pev").hidden = P.tab !== "ev"; };
   const openSide = (tab = "ev") => { P.tab = tab; $("#side").hidden = false; P.side = true; save(); showTab(); segOn(); if (tab === "wl") wlDraw(); setTimeout(() => chart.resize(), 0); };
   const closeSide = () => { $("#side").hidden = true; P.side = false; save(); segOn(); setTimeout(() => chart.resize(), 0); };
@@ -693,7 +980,7 @@ body.full #po{display:none}
     wlSet(l, has ? a.filter(x => x !== s) : a.concat(s)); wlDraw(); hint(has ? `Removed ${s} from ${l.name}` : `Added ${s} to ${l.name}`);
   }
   function wlStep(d) {
-    const a = wlShown(); if (!a.length) return; const i = a.indexOf(SYM);
+    const a = wlShown(); if (!a.length) { hint(`“${wlCur().name}” is empty: add stocks with Alt+W`); return; } const i = a.indexOf(SYM);
     go(a[i < 0 ? 0 : (i + d + a.length) % a.length]);
   }
   $("#wsel").onchange = () => { W.cur = $("#wsel").value; wlSave(); wlDraw(); };
@@ -738,7 +1025,7 @@ body.full #po{display:none}
   addEventListener("storage", e => { if (e.key === MAIN || e.key === WK) { try { const n = JSON.parse(localStorage.getItem(WK) || "null"); if (n && n.lists) { W = n; if (!W.lists.find(l => l.id === "main")) W.lists.unshift({ id: "main", name: "My watchlist" }); } } catch (er) {} wlDraw(); } });
 
   // ---------- type anywhere (like TradingView): letters = find a stock, a number first = candle size (1D, 2W, 3M, 1Y)
-  let kItems = [], kOn = 0;
+  let kItems = [], kOn = 0, KMODE = "";
   function findStocks(q) {
     q = q.trim().toUpperCase(); if (!q || !IDX) return [];
     const words = q.split(/\s+/), out = [];
@@ -759,9 +1046,10 @@ body.full #po{display:none}
     if (n > { d: 60, w: 52, m: 60 }[p]) return { err: "That candle is too big. Try up to 60D, 52W or 60M." };
     return { p, n };
   }
+  const kVal = () => { const v0 = $("#kq").value.trim(); return KMODE === "tf" && /^[a-z]+$/i.test(v0) ? "1" + v0 : v0; };
   function kdDraw() {
-    const v = $("#kq").value.trim();
-    if (/^\d/.test(v)) { const t = parseTf(v); kItems = []; $("#kl").innerHTML = "";
+    const v = kVal();
+    if (/^\d/.test(v) || KMODE === "tf") { const t = parseTf(v); kItems = []; $("#kl").innerHTML = "";
       $("#kh").innerHTML = !t ? "Candle size: a number and <b>D</b>, <b>W</b>, <b>M</b> or <b>Y</b>. <kbd>1D</kbd> daily · <kbd>2W</kbd> two weeks · <kbd>3M</kbd> three months · <kbd>1Y</kbd> yearly"
         : t.err ? esc(t.err) : `Press <kbd>Enter</kbd> for <b>${tfName(t.p, t.n)}</b> candles`; return; }
     kItems = findStocks(v); kOn = Math.min(kOn, Math.max(0, kItems.length - 1));
@@ -770,32 +1058,89 @@ body.full #po{display:none}
     $("#kh").innerHTML = !IDX ? "Loading the stock list…" : kItems.length ? "<kbd>↑</kbd> <kbd>↓</kbd> choose · <kbd>Enter</kbd> open · <kbd>Esc</kbd> close · type <kbd>1D</kbd> <kbd>1W</kbd> <kbd>1M</kbd> for candle size"
       : v ? `No NSE company matches “${esc(v)}”.` : "Type a company name or NSE symbol";
   }
-  const kdOpen = ch => { $("#kd").hidden = false; $("#kq").value = ch || ""; kOn = 0; kdDraw(); $("#kq").focus(); };
-  const kdClose = () => { $("#kd").hidden = true; $("#kq").blur(); };
+  const kdOpen = (ch, mode = "") => { KMODE = mode; $("#kd").hidden = false; $("#kq").value = ch || ""; $("#kq").placeholder = mode === "tf" ? "Candle size: D, W, M, 2W, 3M…" : ""; kOn = 0; kdDraw(); $("#kq").focus(); };
+  const kdClose = () => { $("#kd").hidden = true; KMODE = ""; $("#kq").blur(); };
   $("#kq").addEventListener("input", () => { kOn = 0; kdDraw(); });
   $("#kq").addEventListener("keydown", e => {
     if (e.key === "Escape") { e.preventDefault(); kdClose(); }
     else if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); if (!kItems.length) return; kOn = (kOn + (e.key === "ArrowDown" ? 1 : -1) + kItems.length) % kItems.length; kdDraw();
       const on = $("#kl .ki.on"); on && on.scrollIntoView({ block: "nearest" }); }
-    else if (e.key === "Enter") { e.preventDefault(); const v = $("#kq").value.trim();
-      if (/^\d/.test(v)) { const t = parseTf(v); if (t && !t.err) { kdClose(); setPer(t.p, t.n); hint(tfName(t.p, t.n) + " candles"); } return; }
+    else if (e.key === "Enter") { e.preventDefault(); const v = kVal();
+      if (/^\d/.test(v) || KMODE === "tf") { const t = parseTf(v); if (t && !t.err) { kdClose(); setPer(t.p, t.n); hint(tfName(t.p, t.n) + " candles"); } return; }
       const r = kItems[kOn]; if (r) { kdClose(); go(r.s); } }
   });
   $("#kl").addEventListener("click", e => { const it = e.target.closest(".ki"); if (!it) return; const r = kItems[+it.dataset.i]; kdClose(); if (r) go(r.s); });
   document.addEventListener("mousedown", e => { if (!$("#kd").hidden && !e.target.closest("#kd")) kdClose(); });
+  // ---------- keyboard shortcuts, same as Fyers / TradingView charts. "?" shows the list.
+  const SHORT = [
+    ["Stock and candles", [["Type a name", "Change stock (letters open the search)"], [", then D / W / M", "Change candle size (also 2W, 3M…)"], ["1D · 1W · 1M · 1Y", "Candle size typed directly"], ["/", "Indicators"], ["Alt + G · Ctrl + G", "Go to a date"]]],
+    ["Watchlist", [["↓ · Space", "Next stock"], ["↑ · Shift + Space", "Previous stock"], ["Home · End", "First / last stock"], ["Alt + W", "Add / remove this stock"]]],
+    ["Move and zoom", [["← · →", "Move 1 candle"], ["Ctrl + ← · →", "Move further"], ["Ctrl + ↑ · ↓", "Zoom in / out"], ["Mouse wheel", "Zoom"], ["Alt + R", "Reset the view"], ["Alt + L · P · I", "Log · percent · upside-down scale"]]],
+    ["Drawing", [["Alt + T", "Trend line"], ["Alt + H", "Horizontal line"], ["Alt + V", "Vertical line"], ["Alt + C", "Cross line"], ["Alt + F", "Fibonacci retracement"], ["Alt + Shift + R", "Rectangle"], ["Shift + click", "Measure % move"], ["Esc", "Cancel the drawing"]]],
+    ["Edit drawings", [["Click a drawing", "Colour, thickness, lock, delete"], ["Del · Backspace", "Delete the selected drawing"], ["Ctrl + Z · Ctrl + Y", "Undo · redo"], ["Ctrl + C · Ctrl + V", "Copy · paste (also onto another stock)"], ["Ctrl + D", "Clone the selected drawing"], ["Ctrl + Alt + H", "Hide all drawings"], ["Right-click a drawing", "Delete it"]]],
+    ["Other", [["Alt + Enter", "Hide / show all bars (biggest chart)"], ["Alt + S", "Save a picture of the chart"], ["?", "This list"]]],
+  ];
+  function openHelp() {
+    $("#hlpb").innerHTML = `<h3>Keyboard shortcuts</h3><p>Same keys as Fyers and TradingView charts. On a Mac, Alt is ⌥ Option and Ctrl also works as ⌘. Click the chart once if a key does nothing.</p><div class="cols">`
+      + SHORT.map(([h, rows]) => `<h4>${h}</h4>` + rows.map(([k, t]) => `<div class="r"><span>${t}</span><kbd>${k}</kbd></div>`).join("")).join("")
+      + `</div><div style="text-align:right;margin-top:12px"><button class="bt okb" id="hlpx">Got it</button></div>`;
+    $("#hlp").hidden = false; $("#hlpx").focus();
+  }
+  $("#hlp").addEventListener("click", e => { if (e.target.id === "hlp" || e.target.id === "hlpx") $("#hlp").hidden = true; });
+  $("#hb").onclick = openHelp;
+  const pickTool = name => { tool = name; startDraw(name); toolBtns(); };
+  const moveBars = (dir, far) => { const bs = chart.getBarSpace().bar || 6; chart.scrollByDistance(-dir * (far ? Math.max(bs * 10, ($("#kc").clientWidth - 70) / 3) : bs), far ? 200 : 0); };
+  const zoomBy = f => chart.zoomAtCoordinate(f, { x: $("#kc").clientWidth - 80, y: $("#kc").clientHeight / 2 }, 120);
+  const wlEnd = last => { const a = wlShown(); if (!a.length) { hint("This watchlist is empty"); return; } go(a[last ? a.length - 1 : 0]); };
+  function openInd() { $("#ipop").hidden = true; $("#ib").click(); setTimeout(() => { const q = $("#ipop .q"); q && q.focus(); }, 0); }
   document.addEventListener("keydown", e => {
-    if (e.defaultPrevented || e.ctrlKey || e.metaKey) return;
+    if (e.defaultPrevented) return;
     if (e.target.closest && e.target.closest("input,select,textarea,[contenteditable=true]")) return;
-    if (e.altKey) { if (e.code === "KeyW") { e.preventDefault(); wlToggle(SYM); } return; }
-    if ((e.key === "ArrowDown" || e.key === "ArrowUp") && !$("#side").hidden && P.tab === "wl") { e.preventDefault(); wlStep(e.key === "ArrowDown" ? 1 : -1); return; }
-    if (e.key.length === 1 && /[a-z0-9&]/i.test(e.key)) { e.preventDefault(); kdOpen(e.key); }
+    if (!$("#hlp").hidden) { if (e.key === "Escape" || e.key === "?" || e.key === "/") { e.preventDefault(); $("#hlp").hidden = true; } return; }
+    const k = e.key, c = e.code, mod = e.ctrlKey || e.metaKey, stop = () => e.preventDefault();
+    if (e.altKey) {
+      const T = { KeyT: "segment", KeyH: "horizontalStraightLine", KeyV: "verticalStraightLine", KeyC: "mmCross", KeyF: "fibonacciLine" };
+      if (mod && c === "KeyH") { stop(); $('#tools [data-t="@hide"]').click(); return; }
+      if (mod) return;
+      if (e.shiftKey && c === "KeyR") { stop(); pickTool("mmRect"); return; }
+      if (T[c]) { stop(); pickTool(T[c]); return; }
+      const A = { KeyW: () => wlToggle(SYM), KeyS: () => { $("#sn").click(); hint("Picture saved"); }, KeyR: resetView, KeyL: () => $("#lg").click(), KeyP: () => $("#pc").click(),
+        KeyI: () => $("#iv").click(), KeyG: openDate };
+      if (A[c]) { stop(); A[c](); }
+      return;
+    }
+    if (mod) {
+      if (c === "KeyZ") { stop(); e.shiftKey ? redo() : undo(); }
+      else if (c === "KeyY") { stop(); redo(); }
+      else if (c === "KeyC" && SEL) { stop(); copySel(); }
+      else if (c === "KeyV" && CLIP) { stop(); paste(); }
+      else if (c === "KeyD" && SEL) { stop(); cloneSel(); }
+      else if (c === "KeyG") { stop(); openDate(); }
+      else if (k === "ArrowLeft" || k === "ArrowRight") { stop(); moveBars(k === "ArrowLeft" ? -1 : 1, true); }
+      else if (k === "ArrowUp" || k === "ArrowDown") { stop(); zoomBy(k === "ArrowUp" ? 1.25 : 0.8); }
+      return;
+    }
+    if (k === "Escape") { if (DRAWING) { chart.removeOverlay({ id: DRAWING }); DRAWING = null; hint("Drawing cancelled"); } tool = ""; toolBtns(); selNone();
+      $("#ipop").hidden = true; $("#gpop").hidden = true; return; }
+    if ((k === "Delete" || k === "Backspace") && SEL) { stop(); chart.removeOverlay({ id: SEL }); selNone(); return; }
+    if (k === "ArrowLeft" || k === "ArrowRight") { if (e.shiftKey) return; stop(); moveBars(k === "ArrowLeft" ? -1 : 1, false); return; }
+    if (k === "ArrowDown" || k === "ArrowUp") { stop(); wlStep(k === "ArrowDown" ? 1 : -1); return; }
+    if (k === " ") { stop(); wlStep(e.shiftKey ? -1 : 1); return; }
+    if (k === "Home" || k === "End") { stop(); wlEnd(k === "End"); return; }
+    if (k === "?" || (k === "/" && e.shiftKey)) { stop(); openHelp(); return; }
+    if (k === "/") { stop(); openInd(); return; }
+    if (k === ",") { stop(); kdOpen("", "tf"); return; }
+    if (k.length === 1 && /[a-z0-9&]/i.test(k)) { stop(); kdOpen(k); }
   });
+  // Shift + click on the chart = quick measure (TradingView / Fyers)
+  $("#kc").addEventListener("mousedown", e => { if (e.shiftKey && e.button === 0 && !DRAWING) { tool = "mmMeasure"; startDraw("mmMeasure", true); toolBtns(); } }, true);
 
   // ---------- load a stock
   function reload() { chart.resetData(); setTimeout(afterData, 0); }
   async function go(sym, push = true) {
     sym = String(sym || "").toUpperCase().trim(); if (!sym) return;
-    SYM = sym; D = null; EV = null; EVL = []; EVB = {};
+    SYM = sym; D = null; EV = null; EVL = []; EVB = {}; selNone(); DRAWING = null;
+    UNDO = []; REDO = []; try { SNAP = localStorage.getItem(DKEY(sym)) || "[]"; } catch (e) { SNAP = "[]"; }
     if (push) history.replaceState(null, "", "?" + encodeURIComponent(sym) + (tfCode() !== "d" ? "&tf=" + tfCode() : "") + FULLQ);
     wlDraw(); $("#q").value = sym;
     $("#msg").hidden = false; $("#msg").textContent = "Loading chart…";
@@ -806,7 +1151,8 @@ body.full #po{display:none}
     ROW = idx && idx.list ? idx.list.find(r => r.s === sym) : null;
     NAME = ROW ? ROW.n : sym;
     document.title = `${NAME} chart | Market Mint`;
-    $("#nm").innerHTML = `<a href="../s/?${encodeURIComponent(sym)}" title="Open the stock page">${esc(NAME)}</a><small>${esc(sym)} · NSE${ROW && ROW.i ? " · " + esc(ROW.i) : ""}</small>`;
+    $("#nm").innerHTML = "";
+    $("#q").title = `${NAME} · NSE${ROW && ROW.i ? " · " + ROW.i : ""}. Click to change stock.`;
     if (!d) { $("#msg").innerHTML = `No price history for <b>&nbsp;${esc(sym)}&nbsp;</b> yet. Try another stock in the search box.`; $("#px").innerHTML = ""; return; }
     D = { d: d.d.map(x => Object.assign({}, x)), w: d.w.map(x => Object.assign({}, x)) };
     liveMerge(); MM.liveShown && MM.liveShown();
@@ -819,6 +1165,16 @@ body.full #po{display:none}
     setTimeout(fit, 400);
     MM.updated && MM.updated(new Date(D.d.length ? D.d[D.d.length - 1].t * DAY : Date.now()).toISOString().slice(0, 10));
   }
+
+  // ---------- hide / show the bars around the chart (saved). Alt+Enter = all at once.
+  const HARR = { t: ["▴", "▾"], b: ["▾", "▴"], l: ["‹", "›"], r: ["›", "‹"] };
+  function applyHide() { ["t", "l", "r", "b"].forEach(k => { $("#cp").classList.toggle("h-" + k, !!P.hide[k]); const b = document.querySelector(`.hdl[data-h="${k}"]`); if (b) b.textContent = HARR[k][P.hide[k] ? 1 : 0]; });
+    setTimeout(() => chart.resize(), 0); }
+  document.querySelectorAll(".hdl").forEach(b => b.addEventListener("click", e => { e.stopPropagation(); const k = b.dataset.h; P.hide[k] = !P.hide[k]; save(); applyHide(); }));
+  function toggleAllBars() { const any = ["t", "l", "r", "b"].some(k => !P.hide[k]); ["t", "l", "r", "b"].forEach(k => P.hide[k] = any); save(); applyHide(); hint(any ? "Bars hidden: Alt+Enter brings them back" : "Bars shown"); }
+  document.addEventListener("keydown", e => { if (e.altKey && e.key === "Enter" && !e.ctrlKey && !e.metaKey) { e.preventDefault(); toggleAllBars(); } });
+  if (!document.body.classList.contains("popped")) $(".brandmini").removeAttribute("target");
+  applyHide();
 
   // ---------- start
   applyInd(); setLog();
