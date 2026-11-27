@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Sector strength | Market Mint</title>
+<meta name="description" content="Which industries and indices lead the market: RS score, status and member strength for every NSE index and industry.">
+<link rel="icon" href="../logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/nav.css">
+<link rel="stylesheet" href="../assets/mm.css">
+<style>
+:root{--s-out:#2e9d57;--s-acc:#3b55c4;--s-con:#e08a2c;--s-und:#d9473f}
+.top{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:6px 0 12px}
+.seg{display:inline-flex;background:var(--soft);border-radius:10px;padding:3px}
+.seg button{border:0;background:none;padding:7px 14px;border-radius:8px;font:inherit;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer}
+.seg button.on{background:var(--card);color:var(--mint-d);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.top input[type=search]{flex:1;min-width:220px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:0 12px;font:inherit;font-size:14.5px}
+.top .found{color:var(--muted);font-size:13px}
+.bar2{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.btn2{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:8px 13px;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.btn2.on{border-color:var(--mint-d);color:var(--mint-d)}
+.btn2 .n{background:var(--mint-d);color:#fff;border-radius:999px;font-size:11px;padding:1px 7px}
+.chipsx{display:flex;gap:6px;flex-wrap:wrap}
+.chipsx button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--muted)}
+.chipsx button.on{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.pane{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:14px}
+.pane[hidden]{display:none}
+.pane h4{margin:0 0 8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px 18px}
+.fgrid label{display:block;font-size:13px;font-weight:600;margin-bottom:5px}
+.rng{display:flex;gap:6px;align-items:center}
+.rng input{width:100%;height:36px;border-radius:9px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:0 9px;font:inherit;font-size:14px}
+.stl{display:flex;flex-direction:column;gap:5px}
+.stl label{display:flex;gap:8px;align-items:center;font-weight:500;margin:0;cursor:pointer}
+.stl input{width:16px;height:16px;accent-color:var(--mint-d)}
+.stl small{margin-left:auto;color:var(--muted)}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%}
+.pft{display:flex;justify-content:space-between;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px 18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px;margin-bottom:16px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 12px 6px;cursor:pointer;text-align:left;font:inherit;color:inherit}
+.tile:hover,.tile.on{border-color:var(--mint-d)}
+.tile .h{display:flex;gap:8px;align-items:center}
+.tile .rk{color:var(--muted);font-size:13px}
+.tile .nm{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+.tile .mc{background:var(--soft);border-radius:999px;font-size:11.5px;font-weight:600;padding:1px 8px;color:var(--muted)}
+.tile .sc{font-weight:800;font-size:17px;font-variant-numeric:tabular-nums}
+.tile .sub{font-size:12px;color:var(--muted);margin:2px 0 0}
+.mb{display:flex;gap:2px;width:72px;height:6px}
+.mb i{display:block;height:100%;border-radius:3px}
+.tile svg{width:100%;height:auto;display:block}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--soft)}
+table.st td,table.st th{text-align:right;white-space:nowrap}
+table.st td:first-child,table.st th:first-child,table.st td:nth-child(2),table.st th:nth-child(2){text-align:left}
+table.st tr[data-k]{cursor:pointer}
+table.st tr[data-k]:hover td{background:var(--soft)}
+#detail{scroll-margin-top:130px}
+.dh{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;padding:16px 18px;border-bottom:1px solid var(--line)}
+.dh h3{margin:0;font-size:20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.dh .big{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;text-align:right}
+.dh .big small{display:block;font-size:12px;font-weight:500;color:var(--muted)}
+.chartbox{padding:8px 12px}
+.chartbox svg{width:100%;height:auto;display:block}
+.help{font-size:13px;color:var(--muted);line-height:1.55}
+.help b{color:var(--ink)}
+</style>
+</head>
+<body data-root="../">
+<script src="../assets/mm.js"></script>
+<main class="wrap">
+  <h1 class="pt">Sector strength</h1>
+  <p class="lead">Which industries and indices are leading the market right now. Each one gets an <b>RS Score</b> from 0 to 100: the share of all NSE stocks it is beating over the last 3 and 6 months.</p>
+
+  <div class="top">
+    <span class="seg" id="kind"><button data-k="industries" class="on">Industries</button><button data-k="indices">Indexes</button></span>
+    <input type="search" id="q" placeholder="Search industries or @company">
+    <span class="found" id="found"></span>
+  </div>
+  <div class="bar2">
+    <select id="grp" aria-label="Group" style="height:38px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:0 10px;font:inherit;font-size:14px;max-width:100%"></select>
+    <span style="margin-left:auto;display:flex;gap:8px">
+      <button class="btn2" id="fbtn">Filters</button>
+      <button class="btn2" id="dbtn">Display</button>
+    </span>
+  </div>
+
+  <section class="pane" id="fpane" hidden>
+    <div class="fgrid">
+      <div><label>Status</label><div class="stl" id="fst"></div></div>
+      <div><label>RS Score</label><div class="rng"><input type="number" id="f_s_min" placeholder="Min" min="0" max="100"><span>to</span><input type="number" id="f_s_max" placeholder="Max" min="0" max="100"></div></div>
+      <div><label>RS Score change 1W</label><div class="rng"><input type="number" id="f_c1w_min" placeholder="Min"><span>to</span><input type="number" id="f_c1w_max" placeholder="Max"></div></div>
+      <div><label>RS Score change 1M</label><div class="rng"><input type="number" id="f_c1m_min" placeholder="Min"><span>to</span><input type="number" id="f_c1m_max" placeholder="Max"></div></div>
+      <div><label>RS Score change 3M</label><div class="rng"><input type="number" id="f_c3m_min" placeholder="Min"><span>to</span><input type="number" id="f_c3m_max" placeholder="Max"></div></div>
+      <div><label>Outperforming members</label><div class="rng"><input type="number" id="f_out_min" placeholder="Min" min="0"><span>to</span><input type="number" id="f_out_max" placeholder="Max" min="0"></div></div>
+      <div><label>Underperforming members</label><div class="rng"><input type="number" id="f_und_min" placeholder="Min" min="0"><span>to</span><input type="number" id="f_und_max" placeholder="Max" min="0"></div></div>
+      <div><label>Members</label><div class="rng"><input type="number" id="f_m_min" placeholder="Min" min="0"><span>to</span><input type="number" id="f_m_max" placeholder="Max" min="0"></div></div>
+    </div>
+    <div class="pft"><button class="btn2" id="fclr">Clear filters</button><button class="btn2" id="fdone">Done</button></div>
+  </section>
+
+  <section class="pane" id="dpane" hidden>
+    <div class="dgrid">
+      <div><h4>Measure</h4><span class="seg" id="dmeas"><button data-v="rs" class="on">RS Score</button><button data-v="price">Price</button></span></div>
+      <div><h4>Layout</h4><span class="seg" id="dlay"><button data-v="tiles" class="on">Tiles</button><button data-v="table">Table</button></span></div>
+      <div><h4>Range</h4><span class="seg" id="drng"><button data-v="21">1M</button><button data-v="63">3M</button><button data-v="126" class="on">6M</button><button data-v="250">1Y</button></span></div>
+      <div><h4>Sort by</h4><span class="seg" id="dsort"><button data-v="s" class="on">RS Score</button><button data-v="c1m">Change 1M</button><button data-v="st">Status</button><button data-v="n">Name</button></span>
+        <button class="btn2" id="ddir" style="margin-top:8px">High to low</button></div>
+    </div>
+  </section>
+
+  <div id="list"></div>
+  <section class="panel" id="detail" hidden></section>
+
+  <section class="pane help">
+    <b>How to read it.</b> The RS Score compares an industry or index (all its stocks, equal weight) with every NSE stock:
+    60% of the 3-month move plus 40% of the 6-month move. A score of 80 means it is beating 80% of stocks. The line shows the score each day.<br>
+    <span class="dot" style="background:var(--s-out)"></span> <b>Outperforming</b> score 70 or more ·
+    <span class="dot" style="background:var(--s-acc)"></span> <b>Accumulating</b> between 30 and 70 and rising over 2 weeks ·
+    <span class="dot" style="background:var(--s-con)"></span> <b>Consolidating</b> between 30 and 70 and falling ·
+    <span class="dot" style="background:var(--s-und)"></span> <b>Underperforming</b> 30 or less.
+    The small bar on each card counts its stocks in each status. Industries use Yahoo's industry for each company, grouped under its NSE sector. Updated every evening after the market closes. Not investment advice.
+  </section>
+</main>
+
+<script>
+(async () => {
+  const { esc, pct, cls, stockUrl, logo } = MM;
+  const [d, S] = await Promise.all([MM.index(), MM.getJSON("strength.json")]);
+  const by = d.by || {};
+  MM.updated && MM.updated(S.day);
+  const ST = { out: ["Outperforming", "var(--s-out)"], acc: ["Accumulating", "var(--s-acc)"], con: ["Consolidating", "var(--s-con)"], und: ["Underperforming", "var(--s-und)"] };
+  const STK = ["out", "acc", "con", "und"];
+  const RANK = { out: 0, acc: 1, con: 2, und: 3 };
+  const P = new URLSearchParams(location.search);
+  const state = { kind: P.get("t") === "idx" ? "indices" : "industries", grp: "", meas: "rs", lay: "tiles", rng: 126, sort: "s", dir: -1, st: new Set(), sel: null };
+  const F = ["s", "c1w", "c1m", "c3m", "out", "und", "m"];
+  const $ = id => document.getElementById(id);
+  const fmtD = s => { const d = new Date(s + "T00:00:00"); return d.toLocaleDateString("en-IN", { month: "short" }); };
+
+  // status of each point of a score line (same rule as the server)
+  const stOf = (sr, i) => { const v = sr[i]; if (v == null) return null; if (v >= 70) return "out"; if (v <= 30) return "und";
+    let j = i - 10; while (j >= 0 && sr[j] == null) j--; return j < 0 || v >= sr[j] ? "acc" : "con"; };
+
+  function chart(x, w, h, big) {
+    const rs = state.meas === "rs";
+    const n = rs ? Math.min(state.rng, x.sr.length) : Math.min(state.rng, x.pl.length);
+    const ys = rs ? x.sr.slice(-n) : x.pl.slice(-n);
+    const dts = rs ? S.dates.slice(-n) : S.pdates.slice(-n);
+    const pad = { l: 4, r: big ? 34 : 28, t: 8, b: 18 };
+    const vals = ys.filter(v => v != null);
+    let lo = rs ? 0 : Math.min(...vals), hi = rs ? 100 : Math.max(...vals);
+    if (!rs) { const m = (hi - lo) * 0.08 || 1; lo -= m; hi += m; }
+    const X = i => pad.l + (w - pad.l - pad.r) * (n > 1 ? i / (n - 1) : 0), Y = v => pad.t + (h - pad.t - pad.b) * (1 - (v - lo) / (hi - lo));
+    let g = "";
+    if (rs) g += `<rect x="${pad.l}" y="${Y(70)}" width="${w - pad.l - pad.r}" height="${Y(30) - Y(70)}" fill="var(--soft)"/>` +
+      [30, 70].map(v => `<line x1="${pad.l}" x2="${w - pad.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)" stroke-dasharray="3 3"/>`).join("") +
+      [20, 40, 60, 80].map(v => `<text x="${w - pad.r + 5}" y="${Y(v) + 4}" font-size="11" fill="var(--muted)">${v}</text>`).join("");
+    else { [lo + (hi - lo) * 0.25, lo + (hi - lo) * 0.75].forEach(v => g += `<text x="${w - pad.r + 5}" y="${Y(v) + 4}" font-size="11" fill="var(--muted)">${Math.round(v)}</text>`); }
+    // month labels
+    let lastM = "";
+    dts.forEach((dt, i) => { const m = dt.slice(0, 7); if (m !== lastM) { if (lastM && i > 3 && i < n - 4 && (n <= 70 || (+dt.slice(5, 7)) % (n > 140 ? 3 : 2) === 0)) g += `<text x="${X(i)}" y="${h - 3}" font-size="11" fill="var(--muted)" text-anchor="middle">${fmtD(dt)}</text>`; lastM = m; } });
+    if (rs) {      // line coloured by status
+      const full = x.sr, off = full.length - n;
+      for (let i = 1; i < n; i++) {
+        const a = ys[i - 1], b = ys[i]; if (a == null || b == null) continue;
+        const c = (ST[stOf(full, off + i)] || [, "var(--muted)"])[1];
+        g += `<line x1="${X(i - 1).toFixed(1)}" y1="${Y(a).toFixed(1)}" x2="${X(i).toFixed(1)}" y2="${Y(b).toFixed(1)}" stroke="${c}" stroke-width="${big ? 2.2 : 1.8}" stroke-linecap="round"/>`;
+      }
+    } else {
+      const up = ys[ys.length - 1] >= ys[0];
+      g += `<polyline fill="none" stroke="${up ? "var(--up)" : "var(--down)"}" stroke-width="${big ? 2.2 : 1.8}" points="${ys.map((v, i) => v == null ? "" : `${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(" ")}"/>`;
+    }
+    return `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${rs ? "RS Score" : "Price"} chart">${g}</svg>`;
+  }
+  const mbar = x => { const t = STK.reduce((a, k) => a + (x[k] || 0), 0) || 1;
+    return `<span class="mb" title="${STK.map(k => `${x[k] || 0} ${ST[k][0].toLowerCase()}`).join(", ")}">${STK.filter(k => x[k]).map(k => `<i style="width:${(x[k] / t) * 100}%;background:${ST[k][1]}"></i>`).join("")}</span>`; };
+  const scol = x => (ST[x.st] || [, "var(--muted)"])[1];
+  const pill = st => st ? `<span class="pill"><span class="dot" style="background:${ST[st][1]}"></span>${ST[st][0]}</span>` : "";
+  const sgn = v => v == null ? "–" : (v > 0 ? "+" : "") + v.toFixed(1);
+  const ret = (x, n) => { const l = x.pl; return l.length > n && l[l.length - 1 - n] ? (l[l.length - 1] / l[l.length - 1 - n] - 1) * 100 : null; };
+
+  function groups() { return state.kind === "indices" ? [...new Set(S.indices.map(x => x.p))] : [...new Set(S.industries.map(x => x.p))].sort(); }
+  function drawGroups() {
+    const gs = groups();
+    $("grp").innerHTML = `<option value="">${state.kind === "indices" ? "All index groups" : "All sectors"}</option>` + gs.map(g => `<option value="${esc(g)}" ${state.grp === g ? "selected" : ""}>${esc(g)}</option>`).join("");
+  }
+  function num(id) { const v = $(id).value; return v === "" ? null : +v; }
+  function filtered() {
+    let L = (state.kind === "indices" ? S.indices : S.industries).filter(x => x.s != null);
+    if (state.grp) L = L.filter(x => x.p === state.grp);
+    const q = $("q").value.trim().toLowerCase();
+    if (q.startsWith("@")) {        // @company: groups that hold this company
+      const w = q.slice(1);
+      if (w) { const hit = new Set(Object.keys(by).filter(s => s.toLowerCase().startsWith(w) || (by[s].n || "").toLowerCase().includes(w)));
+        L = L.filter(x => x.syms.some(s => hit.has(s))); }
+    } else if (q) L = L.filter(x => x.n.toLowerCase().includes(q) || (x.p || "").toLowerCase().includes(q));
+    if (state.st.size) L = L.filter(x => state.st.has(x.st));
+    for (const k of F) {
+      const lo = num(`f_${k}_min`), hi = num(`f_${k}_max`);
+      if (lo != null) L = L.filter(x => x[k] != null && x[k] >= lo);
+      if (hi != null) L = L.filter(x => x[k] != null && x[k] <= hi);
+    }
+    const k = state.sort, dir = state.dir;
+    L = L.slice().sort((a, b) => k === "n" ? a.n.localeCompare(b.n) * dir
+      : k === "st" ? ((RANK[a.st] ?? 9) - (RANK[b.st] ?? 9)) * -dir || b.s - a.s
+      : ((a[k] ?? -1e9) - (b[k] ?? -1e9)) * dir);
+    return L;
+  }
+  function nActive() { return state.st.size + F.reduce((a, k) => a + (num(`f_${k}_min`) != null) + (num(`f_${k}_max`) != null), 0); }
+  function drawStatus() {
+    const all = state.kind === "indices" ? S.indices : S.industries;
+    $("fst").innerHTML = STK.map(k => `<label><input type="checkbox" value="${k}" ${state.st.has(k) ? "checked" : ""}><span class="dot" style="background:${ST[k][1]}"></span>${ST[k][0]}<small>${all.filter(x => x.st === k).length}</small></label>`).join("");
+  }
+  function draw() {
+    const L = filtered();
+    $("found").textContent = `Found ${L.length} ${state.kind === "indices" ? "indexes" : "industries"}`;
+    const na = nActive(); $("fbtn").innerHTML = `Filters${na ? ` <span class="n">${na}</span>` : ""}`; $("fbtn").classList.toggle("on", !!na);
+    $("ddir").textContent = state.sort === "n" ? (state.dir > 0 ? "A to Z" : "Z to A") : (state.dir < 0 ? "High to low" : "Low to high");
+    if (!L.length) { $("list").innerHTML = '<div class="pane empty">Nothing matches these filters.</div>'; return; }
+    if (state.lay === "tiles") {
+      $("list").innerHTML = `<div class="grid">${L.map((x, i) => `<button class="tile ${state.sel === x.k ? "on" : ""}" data-k="${esc(x.k)}">
+        <span class="h"><span class="rk">#${i + 1}</span><span class="nm" title="${esc(x.n)}">${esc(x.n)}</span><span class="mc">${x.m}</span>${mbar(x)}<span class="sc" style="color:${scol(x)}">${x.s.toFixed(1)}</span></span>
+        <span class="sub" style="display:block">${state.kind === "industries" ? esc(x.p) + " · " : ""}${ST[x.st] ? ST[x.st][0] : ""} · 1M change ${sgn(x.c1m)}</span>
+        ${chart(x, 340, 150, false)}</button>`).join("")}</div>`;
+    } else {
+      $("list").innerHTML = `<section class="panel"><div class="tscroll"><table class="st"><thead><tr><th>#</th><th>${state.kind === "indices" ? "Index" : "Industry"}</th><th>RS Score</th><th>Status</th><th>1W</th><th>1M</th><th>3M</th><th>Members</th><th>Out</th><th>Under</th><th>Price 1M</th><th>Price 6M</th></tr></thead><tbody>
+        ${L.map((x, i) => `<tr data-k="${esc(x.k)}"><td>${i + 1}</td><td><b>${esc(x.n)}</b>${state.kind === "industries" ? `<small>${esc(x.p)}</small>` : ""}</td>
+        <td style="color:${scol(x)};font-weight:700">${x.s.toFixed(1)}</td><td>${pill(x.st)}</td>
+        <td class="${cls(x.c1w)}">${sgn(x.c1w)}</td><td class="${cls(x.c1m)}">${sgn(x.c1m)}</td><td class="${cls(x.c3m)}">${sgn(x.c3m)}</td>
+        <td>${x.m}</td><td>${x.out}</td><td>${x.und}</td><td class="${cls(ret(x, 21))}">${pct(ret(x, 21))}</td><td class="${cls(ret(x, 126))}">${pct(ret(x, 126))}</td></tr>`).join("")}
+        </tbody></table></div></section>`;
+    }
+    document.querySelectorAll("#list [data-k]").forEach(el => el.onclick = () => open(L.find(x => x.k === el.dataset.k)));
+  }
+  function open(x) {
+    if (!x) return;
+    state.sel = x.k;
+    document.querySelectorAll("#list [data-k]").forEach(el => el.classList.toggle("on", el.dataset.k === x.k));
+    const mem = x.syms.map(s => ({ s, r: by[s] || { n: s }, v: (S.stocks[s] || [])[0], st: (S.stocks[s] || [])[1] }))
+      .sort((a, b) => (b.v ?? -1) - (a.v ?? -1));
+    const el = $("detail");
+    el.hidden = false;
+    el.innerHTML = `<div class="dh"><h3>${esc(x.n)} ${pill(x.st)}</h3><div class="big" style="color:${scol(x)}">${x.s.toFixed(1)}<small>RS Score · ${x.m} stocks</small></div></div>
+      <div class="rets" style="display:flex;gap:6px;flex-wrap:wrap;padding:12px 18px 0">${[["1W", x.c1w], ["1M", x.c1m], ["3M", x.c3m]].map(([t, v]) => `<span class="pill">Score change ${t} <b class="${cls(v)}">${sgn(v)}</b></span>`).join("")}
+        ${[["1M", 21], ["6M", 126], ["1Y", 250]].map(([t, n]) => `<span class="pill">Price ${t} <b class="${cls(ret(x, n))}">${pct(ret(x, n))}</b></span>`).join("")}</div>
+      <div class="chartbox">${chart(x, 760, 240, true)}</div>
+      <div class="tscroll"><table class="st"><thead><tr><th>#</th><th>Company</th><th>RS Score</th><th>Status</th><th>Price</th><th>Day</th><th>1 yr</th></tr></thead><tbody>
+      ${mem.map((m, i) => `<tr><td>${i + 1}</td><td><a href="${stockUrl(m.s)}" style="display:flex;gap:8px;align-items:center;color:inherit;text-decoration:none">${logo(m.s, m.r.n, m.r.lg, "sm")}<b>${esc(m.r.n || m.s)}</b></a></td>
+        <td style="font-weight:700;color:${(ST[m.st] || [, "var(--muted)"])[1]}">${m.v != null ? m.v.toFixed(0) : "–"}</td><td>${pill(m.st)}</td>
+        <td>${m.r.p != null ? MM.inr(m.r.p) : "–"}</td><td class="${cls(m.r.c)}">${pct(m.r.c, 2)}</td><td class="${cls(m.r.r1y)}">${pct(m.r.r1y)}</td></tr>`).join("")}</tbody></table></div>`;
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  // controls
+  const seg = (id, f) => $(id).onclick = e => { const b = e.target.closest("button"); if (!b) return; $(id).querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); f(b.dataset.v ?? b.dataset.k); draw(); if (state.sel) { const x = [...S.indices, ...S.industries].find(y => y.k === state.sel); if (x && !$("detail").hidden) $("detail").querySelector(".chartbox").innerHTML = chart(x, 760, 240, true); } };
+  seg("kind", v => { state.kind = v; state.grp = ""; state.st.clear(); $("q").placeholder = v === "indices" ? "Search indexes or @company" : "Search industries or @company"; drawGroups(); drawStatus(); $("detail").hidden = true; });
+  seg("dmeas", v => { state.meas = v; });
+  seg("dlay", v => { state.lay = v; });
+  seg("drng", v => { state.rng = +v; });
+  seg("dsort", v => { state.sort = v; state.dir = v === "n" ? 1 : -1; if (v === "n") state.dir = 1; });
+  $("ddir").onclick = () => { state.dir = -state.dir; draw(); };
+  $("grp").onchange = e => { state.grp = e.target.value; draw(); };
+  $("fbtn").onclick = () => { $("fpane").hidden = !$("fpane").hidden; $("dpane").hidden = true; };
+  $("dbtn").onclick = () => { $("dpane").hidden = !$("dpane").hidden; $("fpane").hidden = true; };
+  $("fdone").onclick = () => { $("fpane").hidden = true; };
+  $("fclr").onclick = () => { state.st.clear(); F.forEach(k => { $(`f_${k}_min`).value = ""; $(`f_${k}_max`).value = ""; }); drawStatus(); draw(); };
+  $("fst").onchange = e => { const v = e.target.value; e.target.checked ? state.st.add(v) : state.st.delete(v); draw(); };
+  document.querySelectorAll("#fpane input[type=number]").forEach(i => i.addEventListener("input", draw));
+  $("q").addEventListener("input", draw);
+
+  if (state.kind === "indices") { $("kind").querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.k === "indices")); $("q").placeholder = "Search indexes or @company"; }
+  drawGroups(); drawStatus(); draw();
+})();
+</script>
+</body>
+</html>
