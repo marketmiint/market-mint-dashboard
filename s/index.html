@@ -325,7 +325,7 @@ section{scroll-margin-top:170px}
       <div class="qchart">${bars(qs, "sales", "Sales per quarter")}${bars(qs, "pat", "Net profit per quarter")}</div>
       <div class="tscroll qtable"><table><thead><tr><th>Quarter</th>${cols.map(c => `<th${hid(c)}>${qlabel(c.q.q)}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div>
       ${qs.length > 12 ? `<button class="more" id="qmore">Show all ${qs.length} quarters</button>` : ""}
-      <div class="note">From the company's NSE results filings. Consolidated figures where the company files them, else standalone. For banks, sales = interest earned and operating profit is not shown.</div>`;
+      <div class="note">From the company's NSE results filings. Consolidated figures where the company files them, else standalone. For banks, sales = interest earned and operating profit = profit before provisions. For NBFCs and other lenders, operating profit is after interest cost.</div>`;
   }
 
   function yearly(h, annual) {
