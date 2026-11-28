@@ -196,6 +196,7 @@ body.popped #po{display:none}
 .evh .chips{flex:1;border-bottom:0;padding-left:12px}
 .evh .bt,.wlh [data-close]{padding:5px 9px;flex:none}
 .cside section{display:flex;flex-direction:column;min-height:0;flex:1}
+.eyr.eup{color:#2563eb}.erow.up{background:#f5f8ff;cursor:default}.erow.up .when{color:#2563eb;font-weight:700}
 .cside section[hidden]{display:none}
 /* watchlists */
 .wlh{display:flex;gap:6px;padding:8px 10px 6px;align-items:center}
@@ -358,7 +359,7 @@ body.popped #po{display:none}
       <section id="pev" hidden>
         <div class="evh"><div class="chips" id="chips"></div><button class="bt" data-close title="Close panel" aria-label="Close panel">×</button></div>
         <div class="elist" id="elist"></div>
-        <div class="cnote">From NSE filings since 2005. Tap an event to jump to it. Prices are adjusted for splits and bonuses, so old prices look lower than they were.</div>
+        <div class="cnote">From NSE filings since 2005. "Coming up" = dates companies have announced (ex-dates, board meetings). Tap a past event to jump to it. Prices are adjusted for splits and bonuses, so old prices look lower than they were.</div>
       </section>
       <section id="pnw" hidden>
         <div class="wlh"><select class="bt" id="nsel" aria-label="Which stocks"></select><button class="bt" data-close title="Close panel" aria-label="Close panel">×</button></div>
@@ -695,7 +696,7 @@ body.popped #po{display:none}
   });
   window._mmk = chart;   // for debugging in the console
 
-  // ---------- data: our chart files (daily ~2 years, weekly back to listing) + live price
+  // ---------- data: our chart files (daily back to listing; old files may still have weekly w) + live price
   let SYM = "", NAME = "", ROW = null, D = null, EV = null, PER = P.tf, SPAN = Math.max(1, +P.sp || 1), BARS = [];
   const UNIT = { d: "day", w: "week", m: "month" };
   const FULL = document.body.classList.contains("popped"), FULLQ = FULL ? "&full=1" : "";
@@ -776,13 +777,32 @@ body.popped #po{display:none}
       if (prev && nx && prev.c && nx !== prev && !(e.k === "s")) e.mv = (nx.c / prev.c - 1) * 100;
     }
   }
+  // announced but not yet happened (events/_up.json, made daily by site/events.py)
+  let UPP = null;
+  const upLoad = () => UPP || (UPP = fetch(MM.DATA + "events/_up.json", { cache: "no-cache" }).then(r => r.ok ? r.json() : null).then(j => { UPD = j && j.s || {}; drawSide(); return UPD; }).catch(() => (UPD = {})));
+  let UPD = null;
+  const UPK = { bm: "r", div: "d", split: "s", bonus: "s", rights: "x", buyback: "x", other: "x" };
+  function upRows(sym) { const td = today(), out = [], seen = new Set();
+    for (const u of (UPD && UPD[sym]) || []) { if (u.d < td) continue; const k = u.k === "bm" ? (u.tx === "Results" ? "r" : "x") : UPK[u.k] || "x";
+      out.push({ k, kind: u.k, d: u.d, ts: Date.parse(u.d + "T00:00:00Z"), title: u.k === "bm" ? (u.tx === "Results" ? "Results (board meeting)" : "Board meeting: " + u.tx) : u.tx,
+        tx: u.k === "bm" ? (u.desc || "") : k === "d" ? "Ex-dividend date: buy before this day to get it" : "Ex-date", u: u.u }); seen.add(u.d + k); }
+    for (const e of EVL) if (e.d > td && !seen.has(e.d + e.k)) out.push(e);     // ones already in the stock's own file
+    const nx = RLB["r:resn"]; if (nx && nx.dd && nx.dd[sym] && nx.dd[sym] >= td && !out.some(e => e.k === "r" && e.d === nx.dd[sym]))
+      out.push({ k: "r", d: nx.dd[sym], ts: Date.parse(nx.dd[sym] + "T00:00:00Z"), title: "Results (board meeting)", tx: "" });
+    return out.sort((a, b) => a.ts - b.ts); }
+  const daysTo = d => { const n = Math.round((Date.parse(d + "T00:00:00Z") - Date.parse(today() + "T00:00:00Z")) / DAY); return n <= 0 ? "today" : n === 1 ? "tomorrow" : "in " + n + " days"; };
   function drawSide() {
+    upLoad();
     const ch = Object.entries(EK).map(([k, T]) => { const n = EVL.filter(e => e.k === k).length;
       return `<button class="chip ${P.ev[k] ? "" : "off"}" data-k="${k}"><i style="background:${T.color}">${T.letter}</i>${T.name} <small>${n}</small></button>`; }).join("");
     $("#chips").innerHTML = ch;
-    const list = EVL.filter(e => P.ev[e.k]);
-    $("#ecount").textContent = list.length ? list.length : "";
+    const td = today(), list = EVL.filter(e => P.ev[e.k] && !(e.d > td)), ups = SYM ? upRows(SYM) : [];
+    $("#ecount").textContent = list.length + ups.length ? list.length + ups.length : "";
     let yr = "", h = "";
+    if (ups.length) { h += `<div class="eyr eup">Coming up</div>`;
+      for (const e of ups) { const T = EK[e.k];
+        h += `<div class="erow up" data-up="1"><span class="dot" style="background:${T.color}">${e.k === "s" ? (e.kind === "bonus" ? "B" : "S") : T.letter}</span>
+          <span class="t"><b>${esc(e.title)}</b><small>${fmtD(e.ts)} · <span class="when">${daysTo(e.d)}</span></small>${e.tx ? `<span class="tx">${esc(e.tx)}</span>` : ""}${e.u ? `<a href="${esc(e.u)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">NSE filing ↗</a>` : ""}</span></div>`; } }
     for (const e of list.slice(0, 1500)) {
       const y = e.d.slice(0, 4); if (y !== yr) { yr = y; h += `<div class="eyr">${y}</div>`; }
       const T = EK[e.k];
@@ -793,7 +813,7 @@ body.popped #po{display:none}
     $("#elist").innerHTML = h || `<div class="empty" style="padding:20px 12px;color:var(--muted)">${EV ? "No events of these kinds." : "Events are not ready for this stock yet."}</div>`;
   }
   $("#chips").onclick = e => { const b = e.target.closest(".chip"); if (!b) return; P.ev[b.dataset.k] = P.ev[b.dataset.k] ? 0 : 1; save(); drawSide(); refreshEv(); };
-  $("#elist").onclick = e => { const r = e.target.closest(".erow"); if (!r) return; jumpTo(+r.dataset.ts);
+  $("#elist").onclick = e => { const r = e.target.closest(".erow"); if (!r || r.dataset.up) return; jumpTo(+r.dataset.ts);
     document.querySelectorAll(".erow.on").forEach(x => x.classList.remove("on")); r.classList.add("on"); if (innerWidth <= 900) $("#side").hidden = true; };
   function jumpTo(t) {
     let i = BARS.findIndex(k => k.timestamp >= t); if (i < 0) i = BARS.length - 1;
@@ -1340,13 +1360,16 @@ body.popped #po{display:none}
   P.wper = P.wper || "1D";
   const WPER = { "1D": "Day", "1W": "1W", "1M": "1M", "3M": "3M", "1Y": "1Y" }, WRK = { "1W": "r1w", "1M": "r1m", "3M": "r3m", "1Y": "r1y" };
   const retOf = s => P.wper === "1D" ? pxOf(s).c : (BY[s] || {})[WRK[P.wper]];
-  const WSORT = [["", "My order"], ["name", "Name A → Z"], ["namez", "Name Z → A"], ["chg", "Return: best first"], ["chgup", "Return: worst first"],
-    ["px", "Price: high to low"], ["pxup", "Price: low to high"], ["hi", "Closest to 52-week high"], ["cap", "Biggest company first"]];
+  // [key, menu text, short text on the toolbar]
+  const WSORT = [["", "My order", "My order"], ["name", "Name A → Z", "Name A→Z"], ["namez", "Name Z → A", "Name Z→A"],
+    ["chg", "Return ↓ best first", "Return ↓"], ["chgup", "Return ↑ worst first", "Return ↑"],
+    ["px", "Price ↓ high to low", "Price ↓"], ["pxup", "Price ↑ low to high", "Price ↑"],
+    ["hi", "Closest to 52-week high", "Near 52W high"], ["cap", "Biggest company first", "Size ↓"]];
   const WFILT = [["d", "up", "Up today"], ["d", "dn", "Down today"], ["bo", 1, "On Breakout Desk"], ["hi", 1, "Within 5% of 52-week high"]];
   const wfCount = () => { const f = P.wf || {}; return (f.d ? 1 : 0) + (f.bo ? 1 : 0) + (f.hi ? 1 : 0) + (f.cap ? 1 : 0); };
   let WFN = [0, 0];
-  function wfDraw(n, all) { WFN = [n, all]; const so = (WSORT.find(x => x[0] === (W.sort || "")) || WSORT[0])[1], c = wfCount();
-    $("#wfl").innerHTML = `<button class="wso" data-wm="sort" title="Sort this list"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4"/></svg>${esc(so.replace(/^Return: /, "Return "))}</button>`
+  function wfDraw(n, all) { WFN = [n, all]; const sw = WSORT.find(x => x[0] === (W.sort || "")) || WSORT[0], so = sw[2], c = wfCount();
+    $("#wfl").innerHTML = `<button class="wso" data-wm="sort" title="Sorted: ${esc(sw[1])}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4"/></svg>${esc(so)}</button>`
       + `<span class="wper" title="Change shown on the right">${Object.keys(WPER).map(k => `<button data-per="${k}" class="${P.wper === k ? "on" : ""}">${WPER[k]}</button>`).join("")}</span>`
       + `<button class="wfb ${c ? "on" : ""}" data-wm="filt" title="Filter this list"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg>${c ? `<b>${c}</b>` : ""}</button>`;
     if (!$("#wmenu").hidden && $("#wmenu").dataset.k === "filt") wfMenu(); }
@@ -1697,7 +1720,11 @@ body.popped #po{display:none}
       for (const a of E.a || []) if (a.d >= cut) { const k = a.k === "split" || a.k === "bonus" ? "s" : a.k === "div" ? "d" : "x"; out.push({ s, d: a.d, k, kind: a.k, t: a.tx, tx: "Ex-date" }); }
     }));
     if (my !== nwBusy) return null;
-    const nx = RLB["r:resn"]; if (nx && nx.dd) for (const s of syms) if (nx.dd[s]) out.push({ s, d: nx.dd[s], k: "r", t: "Results coming", tx: "Board meeting for quarterly results" });
+    await upLoad(); if (my !== nwBusy) return null;
+    const td = today(), got = new Set();
+    for (const s of syms) for (const u of (UPD && UPD[s]) || []) { if (u.d < td) continue; const k = u.k === "bm" ? (u.tx === "Results" ? "r" : "x") : UPK[u.k] || "x"; got.add(s + u.d + k);
+      out.push({ s, d: u.d, k, kind: u.k, t: u.k === "bm" ? (u.tx === "Results" ? "Results coming" : "Board meeting: " + u.tx) : u.tx, tx: u.k === "bm" ? "Board meeting" : "Ex-date", u: u.u }); }
+    const nx = RLB["r:resn"]; if (nx && nx.dd) for (const s of syms) if (nx.dd[s] && !got.has(s + nx.dd[s] + "r")) out.push({ s, d: nx.dd[s], k: "r", t: "Results coming", tx: "Board meeting for quarterly results" });
     for (const s of syms) if (BOS[s] && BOD) { const i = boInfo(s); out.push({ s, d: BOD.date || today(), k: "b", t: "On Breakout Desk", tx: i ? i.text : BO_ST[BOS[s]] }); }
     out.sort((a, b) => b.d < a.d ? -1 : b.d > a.d ? 1 : 0);
     return out;
