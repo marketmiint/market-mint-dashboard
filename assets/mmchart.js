@@ -12,7 +12,7 @@
    })
 
    Data (site "data" branch, see breakout repo screen.py chart_files):
-     charts/c/SYM.json        history to the end of last month: d = daily (~2 years), w = weekly before that
+     charts/c/SYM.json        history to the end of last month: d = daily (all of it), w = weekly (older files only)
      breakouts/all/r_X.json   every day since then, symbols starting with X
    Days are numbers (days since 1970-01-01); columns t o h l c v. */
 (function () {
@@ -141,7 +141,7 @@
       <div class="hd"><div class="nm"></div><div class="px"></div>
         <a class="xp ck" href="#" target="_blank" rel="noopener" title="Open in the Charts page: drawing tools, indicators, all events">Open in Charts ↗</a><button class="x fs" title="Full screen" aria-label="Full screen" style="font-size:16px">⤢</button><button class="x cl" aria-label="Close">×</button></div>
       ${TB.replace("XP", "")}
-      <div class="ft">Daily candles for about 2 years, weekly before that. Today's candle follows the live price (a few minutes behind). For learning and research, not advice.</div></div>`;
+      <div class="ft">Daily candles back to listing (or as far as Yahoo has). Today's candle follows the live price (a few minutes behind). For learning and research, not advice.</div></div>`;
     document.body.appendChild(el);
     const v = { root: el.querySelector(".mmv"), modal: true, chart: null, st: prefs() };
     const close = () => { el.hidden = true; document.body.style.overflow = ""; if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); if (v.chart) { v.chart.remove(); v.chart = null; } };
