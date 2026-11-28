@@ -262,6 +262,7 @@ body.popped #po{display:none}
       <option value="ohlc">Bars</option><option value="area">Line</option></select>
     <button class="bt" id="ib" title="Indicators"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l5-6 4 4 9-10"/></svg>Indicators</button>
     <div class="rt">
+      <button class="bt" id="alb" title="Add a price alert (Alt+A)" aria-label="Add a price alert"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></button>
       <button class="bt hide-sm" id="hb" title="Keyboard shortcuts (?)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg></button>
       <button class="bt hide-sm" id="sn" title="Save a picture of the chart"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
       <button class="bt" id="po" title="Open this chart in its own big window"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4h6v6M20 4l-8 8"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></button>
@@ -843,17 +844,85 @@ body.popped #po{display:none}
       ctx.restore(); return false;
     } });
 
-  // ---------- my price alerts (this browser only, localStorage "mmalerts" = {list:[{s, op, v, st}]}, copied from Fyers): labelled lines
+  // ---------- my price alerts: localStorage "mmalerts" = {list:[{id, s, op, v, st, at, hit, hp}]} (synced to the account when signed in)
+  // Alt+A or the bell button adds one; on the chart: drag the line to move it, click it to change, right-click to delete.
+  // While the page is open and prices are live, a crossed alert beeps, shows a notification and turns grey ("hit").
   const ALK = "mmalerts";
-  const alList = () => { try { const j = JSON.parse(localStorage.getItem(ALK) || "null"); return j && Array.isArray(j.list) ? j.list : []; } catch (e) { return []; } };
+  const alGet = () => { try { const j = JSON.parse(localStorage.getItem(ALK) || "null"); return j && Array.isArray(j.list) ? j : { list: [] }; } catch (e) { return { list: [] }; } };
+  const alSave = list => { const j = alGet(); j.list = list; try { localStorage.setItem(ALK, JSON.stringify(j)); } catch (e) {} };
+  const alId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const alList = () => { let ch = false; const L = alGet().list.map(a => { if (!a.id) { a.id = alId(); ch = true; } return a; }); if (ch) alSave(L); return L; };
+  const alPx = () => { const x = SYM ? pxOf(SYM) : {}; return x.p ?? (BARS.length ? (BARS[BARS.length - 1].real ?? BARS[BARS.length - 1].close) : null); };
+  const alOp = v => { const p = alPx(); return p != null && v < p ? "<" : ">"; };
+  K.registerOverlay({ name: "mmAlert", totalStep: 2, needDefaultPointFigure: false,
+    createPointFigures: ({ coordinates: c, bounding: b, overlay: o }) => { if (!c.length) return []; const x = o.extendData || {};
+      return [{ type: "line", attrs: { coordinates: [{ x: 0, y: c[0].y }, { x: b.width, y: c[0].y }] }, styles: { color: x.c, size: 1.5, style: "dashed", dashedValue: [6, 4] } },
+        { type: "text", attrs: { x: b.width - 8, y: c[0].y - 3, text: x.t + " ₹" + num(o.points[0].value), align: "right", baseline: "bottom" },
+          styles: { color: "#fff", backgroundColor: x.c, borderColor: "transparent", borderRadius: 3, paddingLeft: 5, paddingRight: 5, paddingTop: 2, paddingBottom: 2, size: 11, weight: 700 } }]; } });
   function drawAL() {
     chart.removeOverlay({ groupId: "al" });
     if (!SYM || !BARS.length) return;
     const lastT = BARS[BARS.length - 1].timestamp;
     for (const a of alList()) if (a.s === SYM && a.v > 0) { const hit = a.st === "Triggered";
-      chart.createOverlay({ name: "mmLevel", groupId: "al", lock: true, points: [{ timestamp: lastT, value: a.v }],
-        extendData: { t: "Alert " + a.op + (hit ? " (hit)" : ""), c: hit ? "#9ca3af" : "#d97706" } }); }
+      chart.createOverlay({ name: "mmAlert", groupId: "al", lock: false, points: [{ timestamp: lastT, value: a.v }],
+        extendData: { id: a.id, t: "Alert " + a.op + (hit ? " (hit)" : ""), c: hit ? "#9ca3af" : "#d97706" },
+        onPressedMoveEnd: ev => { alMove(ev.overlay); return false; },
+        onClick: ev => { alEdit(ev.overlay.extendData.id); return true; },
+        onRightClick: ev => { alDel(ev.overlay.extendData.id); return true; } }); }
   }
+  function alAdd(v) {
+    if (!SYM || !(v > 0)) return; v = +v.toFixed(2); const op = alOp(v);
+    alSave(alList().concat([{ id: alId(), s: SYM, op, v, st: "Enabled", at: Date.now() }])); drawAL();
+    try { if (window.Notification && Notification.permission === "default") Notification.requestPermission(); } catch (e) {}
+    hint(`Alert set: ${SYM} ${op} ₹${num(v)} · drag the line to move it, click it to change, right-click to delete`, 5000);
+  }
+  function alAsk() {
+    if (!SYM) return; const p = alPx();
+    const r = prompt(`New price alert for ${SYM}${p != null ? " (now ₹" + num(p) + ")" : ""}.\nAlert me when the price reaches:`, p != null ? (+p.toFixed(2)).toString() : "");
+    if (r == null) return; const v = parseFloat(String(r).replace(/[,₹\s]/g, "")); if (v > 0) alAdd(v); else hint("That is not a price");
+  }
+  function alMove(o) {
+    const id = o.extendData && o.extendData.id, v = +o.points[0].value.toFixed(2);
+    alSave(alList().map(a => a.id === id ? Object.assign(a, { v, op: alOp(v), st: "Enabled", hit: undefined, hp: undefined }) : a)); drawAL();
+    hint(`Alert moved to ₹${num(v)}`);
+  }
+  function alEdit(id) {
+    const a = alList().find(x => x.id === id); if (!a) return;
+    const r = prompt(`Alert for ${a.s}: ${a.op} ₹${num(a.v)}${a.st === "Triggered" ? " (already hit)" : ""}.\nType a new price to change it, or 0 to delete it:`, String(a.v));
+    if (r == null) return; const v = parseFloat(String(r).replace(/[,₹\s]/g, ""));
+    if (!v) { alDel(id, true); return; }
+    alSave(alList().map(x => x.id === id ? Object.assign(x, { v: +v.toFixed(2), op: alOp(v), st: "Enabled", hit: undefined, hp: undefined }) : x)); drawAL(); hint(`Alert changed to ₹${num(v)}`);
+  }
+  function alDel(id, sure) {
+    const a = alList().find(x => x.id === id); if (!a) return;
+    if (!sure && !confirm(`Delete the alert ${a.s} ${a.op} ₹${num(a.v)}?`)) return;
+    alSave(alList().filter(x => x.id !== id)); drawAL(); hint("Alert deleted");
+  }
+  // Alt+A: alert at the mouse price (mouse not on the chart = ask for the price)
+  function alNow() {
+    if (CH && BARS.length) { const p = chart.convertFromPixel([{ x: CH.x, y: CH.y }], { paneId: "candle_pane" }), q = Array.isArray(p) ? p[0] : p;
+      if (q && q.value != null && isFinite(q.value) && q.value > 0) { alAdd(q.value); return; } }
+    alAsk();
+  }
+  let AC = null;
+  function alRing(a, p) {
+    try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); [0, 0.22].forEach((d, i) => { const o = AC.createOscillator(), g = AC.createGain();
+      o.frequency.value = i ? 1175 : 880; g.gain.setValueAtTime(0.0001, AC.currentTime + d); g.gain.exponentialRampToValueAtTime(0.25, AC.currentTime + d + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, AC.currentTime + d + 0.2); o.connect(g).connect(AC.destination); o.start(AC.currentTime + d); o.stop(AC.currentTime + d + 0.22); }); } catch (e) {}
+    const t = `${a.s} ${a.op} ₹${num(a.v)} · now ₹${num(p)}`;
+    try { if (window.Notification && Notification.permission === "granted") { const n = new Notification("Market Mint alert: " + a.s, { body: t, tag: "mmal-" + a.id }); n.onclick = () => { focus(); go(a.s); n.close(); }; } } catch (e) {}
+    hint("Alert hit: " + t, 8000);
+  }
+  // only real live prices count (not yesterday's close), so an old alert never rings on page load
+  function alCheck() {
+    const Lv = MM._liveNow && MM._liveNow(); if (!Lv || !Lv.s || (MM.liveOpen && !MM.liveOpen(Lv))) return;
+    let ch = false; const L = alList();
+    for (const a of L) { if (a.st !== "Enabled" || !(a.v > 0)) continue; const x = Lv.s[a.s], p = x && x[0]; if (p == null) continue;
+      if ((a.op.includes(">") && p >= a.v) || (a.op.includes("<") && p <= a.v)) { a.st = "Triggered"; a.hit = Date.now(); a.hp = p; ch = true; alRing(a, p); } }
+    if (ch) { alSave(L); drawAL(); }
+  }
+  MM.onLive && MM.onLive(alCheck);
+  $("#alb").onclick = alAsk;
   addEventListener("storage", e => { if (e.key === ALK) drawAL(); });
   // ---------- Breakout Desk levels (from ../breakouts/data.json)
   let BOD, BOTXT = "";
@@ -1397,7 +1466,7 @@ body.popped #po{display:none}
     ["Stock and candles", [["Type a name", "Change stock (letters open the search)"], [", then D / W / M", "Change candle size (also 2W, 3M…)"], ["1D · 1W · 1M · 1Y", "Candle size typed directly"], ["/", "Indicators"], ["Alt + G · Ctrl + G", "Go to a date"]]],
     ["Watchlist", [["↓ · Space", "Next stock"], ["↑ · Shift + Space", "Previous stock"], ["Home · End", "First / last stock"], ["Alt + W", "Add / remove this stock"]]],
     ["Move and zoom", [["← · →", "Move 1 candle"], ["Ctrl + ← · →", "Move further"], ["Ctrl + ↑ · ↓", "Zoom in / out"], ["Mouse wheel", "Zoom"], ["Alt + R", "Reset the view"], ["Alt + L · P · I", "Log · percent · upside-down scale"]]],
-    ["Drawing", [["Alt + T", "Trend line"], ["Alt + H", "Horizontal line at the mouse (instant)"], ["Alt + V", "Vertical line"], ["Alt + C", "Cross line"], ["Alt + F", "Fibonacci retracement"], ["Alt + Shift + R", "Rectangle"], ["Shift + click", "Measure % move"], ["Esc", "Cancel the drawing"]]],
+    ["Drawing", [["Alt + T", "Trend line"], ["Alt + H", "Horizontal line at the mouse (instant)"], ["Alt + A", "Price alert at the mouse (drag to move · click to change · right-click to delete)"], ["Alt + V", "Vertical line"], ["Alt + C", "Cross line"], ["Alt + F", "Fibonacci retracement"], ["Alt + Shift + R", "Rectangle"], ["Shift + click", "Measure % move"], ["Esc", "Cancel the drawing"]]],
     ["Edit drawings", [["Click a drawing", "Colour, thickness, lock, delete"], ["Del · Backspace", "Delete the selected drawing"], ["Ctrl + Z · Ctrl + Y", "Undo · redo"], ["Ctrl + C · Ctrl + V", "Copy · paste (also onto another stock)"], ["Ctrl + D", "Clone the selected drawing"], ["Ctrl + Alt + H", "Hide all drawings"], ["Right-click a drawing", "Delete it"]]],
     ["Other", [["Double-click chart · Alt + Enter", "Hide / show all bars (biggest chart)"], ["Alt + S", "Save a picture of the chart"], ["?", "This list"]]],
   ];
@@ -1426,6 +1495,7 @@ body.popped #po{display:none}
       if (mod) return;
       if (e.shiftKey && c === "KeyR") { stop(); pickTool("mmRect"); return; }
       if (c === "KeyH" && hlineNow()) { stop(); return; }
+      if (c === "KeyA") { stop(); alNow(); return; }
       if (T[c]) { stop(); pickTool(T[c]); return; }
       const A = { KeyW: () => wlToggle(SYM), KeyS: () => { $("#sn").click(); hint("Picture saved"); }, KeyR: resetView, KeyL: () => $("#lg").click(), KeyP: () => $("#pc").click(),
         KeyI: () => $("#iv").click(), KeyG: openDate };
