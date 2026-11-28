@@ -856,6 +856,7 @@ body.popped #po{display:none}
   const alId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const alList = () => { let ch = false; const L = alGet().list.map(a => { if (!a.id) { a.id = alId(); ch = true; } return a; }); if (ch) alSave(L); return L; };
   const alPx = () => { const x = SYM ? pxOf(SYM) : {}; return x.p ?? (BARS.length ? (BARS[BARS.length - 1].real ?? BARS[BARS.length - 1].close) : null); };
+  const alUp = op => /[>≥]/.test(op || "");          // ≥ / ≤ come from Fyers
   const alOp = v => { const p = alPx(); return p != null && v < p ? "<" : ">"; };
   // alert = thin see-through line across the chart + a price tag on the price scale (▲ = alert when price goes up to it, ▼ = down to it).
   // Tags of alerts close together are stacked so they never cover each other; nothing sits on top of the candles.
@@ -876,7 +877,7 @@ body.popped #po{display:none}
     const mine = alList().filter(a => a.s === SYM && a.v > 0); ALV = mine.map(a => a.v);
     for (const a of mine) { const hit = a.st === "Triggered";
       chart.createOverlay({ name: "mmAlert", groupId: "al", lock: false, points: [{ timestamp: lastT, value: a.v }],
-        extendData: { id: a.id, up: a.op.includes(">"), hit },
+        extendData: { id: a.id, up: alUp(a.op), hit },
         onPressedMoveEnd: ev => { alMove(ev.overlay); return false; },
         onClick: ev => { alEdit(ev.overlay.extendData.id); return true; },
         onRightClick: ev => { alDel(ev.overlay.extendData.id); return true; } }); }
@@ -929,7 +930,7 @@ body.popped #po{display:none}
     const Lv = MM._liveNow && MM._liveNow(); if (!Lv || !Lv.s || (MM.liveOpen && !MM.liveOpen(Lv))) return;
     let ch = false; const L = alList();
     for (const a of L) { if (a.st !== "Enabled" || !(a.v > 0)) continue; const x = Lv.s[a.s], p = x && x[0]; if (p == null) continue;
-      if ((a.op.includes(">") && p >= a.v) || (a.op.includes("<") && p <= a.v)) { a.st = "Triggered"; a.hit = Date.now(); a.hp = p; ch = true; alRing(a, p); } }
+      if ((alUp(a.op) && p >= a.v) || (!alUp(a.op) && p <= a.v)) { a.st = "Triggered"; a.hit = Date.now(); a.hp = p; ch = true; alRing(a, p); } }
     if (ch) { alSave(L); drawAL(); }
   }
   MM.onLive && MM.onLive(alCheck);
