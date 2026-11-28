@@ -1222,7 +1222,8 @@ body.popped #po{display:none}
   $("#tf").onclick = e => { const b = e.target.closest("button"); if (b && (b.dataset.p !== PER || SPAN !== 1)) setPer(b.dataset.p); };
   $("#rg").onclick = e => { const b = e.target.closest("button"); if (!b) return; const r = b.dataset.r;
     const days = { "3M": 92, "6M": 183, "1Y": 366, "3Y": 1096, "5Y": 1827, All: 1e9 }[r];
-    let need = r === "3M" || r === "6M" ? "d" : r === "1Y" ? (PER === "m" ? "w" : PER) : r === "3Y" ? (PER === "d" ? "w" : PER) : r === "5Y" ? (PER === "d" ? "w" : PER) : (PER === "d" ? "w" : PER);
+    // daily candles now go back to listing, so a long range keeps the chosen candles (daily stays daily)
+    let need = r === "3M" || r === "6M" ? "d" : r === "1Y" && PER === "m" ? "w" : PER;
     if (need !== PER) setPer(need);
     let L = BARS; if (!L.length) return; const w = $("#kc").clientWidth - 70;
     const cnt = () => { const last = L[L.length - 1].timestamp; return Math.max(20, L.filter(k => k.timestamp >= last - days * DAY).length); };
