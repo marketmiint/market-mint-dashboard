@@ -843,6 +843,18 @@ body.popped #po{display:none}
       ctx.restore(); return false;
     } });
 
+  // ---------- my price alerts (this browser only, localStorage "mmalerts" = {list:[{s, op, v, st}]}, copied from Fyers): labelled lines
+  const ALK = "mmalerts";
+  const alList = () => { try { const j = JSON.parse(localStorage.getItem(ALK) || "null"); return j && Array.isArray(j.list) ? j.list : []; } catch (e) { return []; } };
+  function drawAL() {
+    chart.removeOverlay({ groupId: "al" });
+    if (!SYM || !BARS.length) return;
+    const lastT = BARS[BARS.length - 1].timestamp;
+    for (const a of alList()) if (a.s === SYM && a.v > 0) { const hit = a.st === "Triggered";
+      chart.createOverlay({ name: "mmLevel", groupId: "al", lock: true, points: [{ timestamp: lastT, value: a.v }],
+        extendData: { t: "Alert " + a.op + (hit ? " (hit)" : ""), c: hit ? "#9ca3af" : "#d97706" } }); }
+  }
+  addEventListener("storage", e => { if (e.key === ALK) drawAL(); });
   // ---------- Breakout Desk levels (from ../breakouts/data.json)
   let BOD, BOTXT = "";
   function boLoad() {
@@ -972,7 +984,7 @@ body.popped #po{display:none}
     afterData(); segOn(); zoomDefault();
   }
   function afterData() {
-    BARS = chart.getDataList(); evIndex(); selNone(); chart.removeOverlay({ groupId: "draw" }); loadDraw(); refreshEv(); drawBO();
+    BARS = chart.getDataList(); evIndex(); selNone(); chart.removeOverlay({ groupId: "draw" }); loadDraw(); refreshEv(); drawBO(); drawAL();
   }
   $("#tf").onclick = e => { const b = e.target.closest("button"); if (b && (b.dataset.p !== PER || SPAN !== 1)) setPer(b.dataset.p); };
   $("#rg").onclick = e => { const b = e.target.closest("button"); if (!b) return; const r = b.dataset.r;
