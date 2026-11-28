@@ -191,6 +191,36 @@ body.popped #po{display:none}
 .wro{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px 6px 12px;border-bottom:1px solid var(--line);font-size:11.5px;color:var(--muted)}
 .wro .bt{padding:3px 9px;font-size:11.5px}
 .wrow.two{grid-template-columns:minmax(0,1fr) auto 62px 18px 18px}
+/* narrow side panel: price and change stack on the right so nothing overlaps */
+.cside{container-type:inline-size}
+@container (max-width:300px){
+  .wrow,.wrow.two{grid-template-columns:minmax(0,1fr) auto 16px;grid-template-areas:"n p cp" "n c rm";row-gap:1px;column-gap:6px;padding-left:10px}
+  .wrow>span:first-child{grid-area:n}.wrow .p{grid-area:p}.wrow .c{grid-area:c;font-size:12px}.wrow .wcp{grid-area:cp}.wrow .rm{grid-area:rm}
+  .wrow .wbo{display:table;margin:1px 0 0}
+  .wlh{gap:4px}.wlh .bt{padding:5px 7px}
+}
+/* list picker */
+.wlh select{display:none}
+#wpick{flex:1;min-width:0;display:flex;align-items:center;gap:6px;font-weight:700;padding:6px 8px;text-align:left}
+#wpick span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wpk{position:fixed;z-index:60;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 14px 34px rgba(15,23,42,.2);display:flex;flex-direction:column;max-height:74vh;width:340px;max-width:94vw;color:var(--ink)}
+.wpk[hidden]{display:none}
+.wpk input{margin:10px 10px 6px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:13.5px;background:var(--card);color:inherit}
+.wpt{display:flex;gap:4px;align-items:center;padding:0 10px 8px;font-size:11.5px;color:var(--muted);flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.wpt button{border:1px solid var(--line);background:transparent;border-radius:6px;padding:2px 7px;font:inherit;cursor:pointer;color:inherit}
+.wpt button.on{background:#0f172a;color:#fff;border-color:#0f172a}.wpt .sp{width:8px}
+#wpb{overflow:auto;padding:2px 6px 8px}
+.wpg{display:flex;width:100%;align-items:center;gap:6px;border:0;background:transparent;padding:9px 6px 4px;font:inherit;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);cursor:pointer}
+.wpg i{font-style:normal;transition:transform .15s}.wpg.op i{transform:rotate(90deg)}
+.wpg .k{margin-left:auto;font-weight:600;text-transform:none;letter-spacing:0;font-size:11px}
+.wph{display:grid;grid-template-columns:1fr 56px 56px;padding:0 8px 2px;font-size:10.5px;color:var(--muted)}.wph span{text-align:right}
+.wpr{display:grid;grid-template-columns:1fr;width:100%;align-items:center;border:0;background:transparent;padding:6px 8px;border-radius:7px;font:inherit;font-size:13.5px;text-align:left;cursor:pointer;color:inherit}
+.wpr.ix{grid-template-columns:1fr 56px 56px}
+.wpr .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wpr:hover{background:var(--soft)}.wpr.on{background:#e8f1ea;font-weight:700}
+.wpr .c{text-align:right;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}.wpr .up{color:var(--up,#0f8f55)}.wpr .down{color:var(--down,#d0342c)}
+.wpr.add{color:#2f7a40;font-weight:700}
+.wpe{padding:16px 10px;color:var(--muted);font-size:13px}
 .lpk{width:250px;padding:6px;z-index:45}.lpk .lab{padding:6px 10px 4px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 .lpk label{display:flex;gap:8px;align-items:center;padding:7px 10px;border-radius:7px;cursor:pointer;font-size:13px}.lpk label:hover{background:var(--soft)}
 .lpk label span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lpk label small{color:var(--muted)}
@@ -282,7 +312,7 @@ body.popped #po{display:none}
         <button class="bb" id="pc" title="Percent scale (Alt+P)">%</button><button class="bb" id="lg" title="Log scale: equal % moves look equal (Alt+L)">log</button><button class="bb" id="iv" title="Upside-down scale (Alt+I)">inv</button><button class="bb" id="rsb" title="Reset the view (Alt+R)">reset</button><span class="sep2"></span><a class="notadv" href="../about/" target="_blank" rel="noopener" title="Market Mint is not SEBI-registered. For learning and research only.">Not advice</a></div></div>
     <aside class="cside" id="side" aria-label="Watchlists and events"><div class="rsz" id="rsz" title="Drag to make the panel wider or narrower"></div>
       <section id="pwl">
-        <div class="wlh"><select class="bt" id="wsel" aria-label="Pick a watchlist"></select><button class="bt" id="wadd" title="Add this stock (Alt+W)">+</button><button class="bt" id="wmb" title="Watchlist menu" aria-label="Watchlist menu">⋯</button><button class="bt" data-close title="Close panel" aria-label="Close panel">×</button></div>
+        <div class="wlh"><select class="bt" id="wsel" aria-label="Pick a watchlist"></select><button class="bt" id="wpick" aria-haspopup="listbox" title="Pick a list (your lists, IPOs, Breakout Desk, indices…)"><span>My watchlist</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></button><button class="bt" id="wadd" title="Add this stock (Alt+W)">+</button><button class="bt" id="wmb" title="Watchlist menu" aria-label="Watchlist menu">⋯</button><button class="bt" data-close title="Close panel" aria-label="Close panel">×</button></div>
         <div class="wladd"><input id="wq" type="search" placeholder="Add a stock to this list…" autocomplete="off" aria-label="Add a stock to this list"></div>
         <div class="wlist" id="wlist"></div>
       </section>
@@ -305,6 +335,7 @@ body.popped #po{display:none}
   </div>
   <div class="pop ipop" id="ipop" hidden></div>
   <div class="pop wmenu" id="wmenu" hidden></div>
+  <div class="wpk" id="wpk" hidden role="dialog" aria-label="Pick a list"><input id="wpq" type="search" placeholder="Find a list or index…" autocomplete="off"><div class="wpt" id="wpt"></div><div id="wpb"></div></div>
   <div class="pop lpk" id="lpk" hidden role="dialog" aria-label="Choose watchlists"></div>
   <div class="imback" id="imback" hidden></div><div class="pop imp" id="imp" hidden role="dialog" aria-label="Add stocks to a list"></div>
   <div class="pop npop" id="npop" hidden></div>
@@ -1177,6 +1208,7 @@ body.popped #po{display:none}
     const opt = x => `<option value="${esc(x.id)}" ${x.id === l.id ? "selected" : ""}>${esc(x.name)}</option>`;
     $("#wsel").innerHTML = `<optgroup label="My lists">${W.lists.map(opt).join("")}<option value="+new">＋ Create a new list…</option></optgroup>`
       + RL.map(g => `<optgroup label="${esc(g.g)}">${g.lists.map(opt).join("")}</optgroup>`).join("");
+    $("#wpick span").textContent = l.name; if (!$("#wpk").hidden) wpDraw();
     $(".wladd").hidden = !!l.ro;
     const ro = l.ro ? `<div class="wro" title="${esc(l.about || `Members of the ${l.name} index. Kept in line when NSE changes the index.`)} Tap + on a stock to put it in one of your lists.">
       <span>Auto-updated daily</span><button class="bt" data-copyall>Copy to my lists</button></div>` : "";
@@ -1203,6 +1235,56 @@ body.popped #po{display:none}
     go(a[i < 0 ? 0 : (i + d + a.length) % a.length]);
   }
   const wlNew = (name, syms) => { const id = "l" + Date.now().toString(36); W.lists.push({ id, name: name.slice(0, 40), syms: [...new Set(syms)] }); W.cur = W.own = id; wlSave(); return W.lists[W.lists.length - 1]; };
+  // ---------- list picker: your lists on top; ready-made groups fold away; index lists show today's move and a longer move
+  const IXG = new Set(["Indices", "Sectors", "Themes", "Strategy indices"]);
+  P.wp = Object.assign({ per: "1M", sort: "", open: {} }, P.wp || {});
+  let IXS = null, IXP = null;
+  const ixLoad = () => IXP || (IXP = fetch(MM.DATA + "scan/indices.json", { cache: "no-cache" }).then(r => r.ok ? r.json() : null).then(j => {
+    const o = {}; for (const x of (j && j.indices) || []) o[x.id] = Object.assign({}, x.r || {}, x.official && x.official.chg != null ? { "1D": x.official.chg } : {});
+    IXS = o; if (!$("#wpk").hidden) wpDraw(); return o; }).catch(() => (IXS = {})));
+  const ixR = l => IXS && IXS[String(l.id).replace(/^r:ix_/, "")];
+  function wpPick(id) {
+    $("#wpk").hidden = true;
+    if (id === "+new") { const n = (prompt("Name for your new list:", "List " + W.lists.length) || "").trim(); if (n) { wlNew(n, []); hint("Created " + n + ". Add stocks with the box above or + on any list"); } wlDraw(); return; }
+    W.cur = id; if (!RLB[W.cur]) W.own = W.cur; wlSave(); wlDraw(); $("#wlist").scrollTop = 0;
+  }
+  function wpDraw() {
+    const cur = wlCur(), q = $("#wpq").value.trim().toLowerCase(), per = P.wp.per, so = P.wp.sort;
+    const hit = l => !q || l.name.toLowerCase().includes(q);
+    const pc = v => v == null ? "" : sgn(v, 1);
+    const row = (l, ix) => { const r = ix ? ixR(l) : null;
+      return `<button class="wpr ${ix ? "ix" : ""} ${l.id === cur.id ? "on" : ""}" data-id="${esc(l.id)}"><span class="n" title="${esc(l.name)}">${esc(l.name)}</span>`
+        + (ix ? `<span class="c ${MM.cls(r && r["1D"])}">${pc(r && r["1D"])}</span><span class="c ${MM.cls(r && r[per])}">${pc(r && r[per])}</span>` : "") + `</button>`; };
+    let h = "";
+    const mine = W.lists.filter(hit);
+    if (mine.length || !q) h += `<div class="wpg op" style="cursor:default"><span>My lists</span><span class="k">${W.lists.length}</span></div>` + mine.map(l => row(l)).join("") + (q ? "" : `<button class="wpr add" data-id="+new">＋ Create a new list…</button>`);
+    for (const g of RL) {
+      const ix = IXG.has(g.g); let ls = g.lists.filter(hit); if (!ls.length) continue;
+      if (ix && so) ls = ls.slice().sort((a, b) => ((ixR(b) || {})[so] ?? -1e9) - ((ixR(a) || {})[so] ?? -1e9));
+      const open = !!q || !!P.wp.open[g.g] || ls.some(l => l.id === cur.id);
+      h += `<button class="wpg ${open ? "op" : ""}" data-g="${esc(g.g)}"><i>▸</i><span>${esc(g.g)}</span><span class="k">${g.lists.length}</span></button>`;
+      if (open) h += (ix ? `<div class="wph"><span></span><span>Day</span><span>${per}</span></div>` : "") + ls.map(l => row(l, ix)).join("");
+    }
+    $("#wpb").innerHTML = h || `<div class="wpe">No list matches “${esc(q)}”.</div>`;
+    $("#wpt").innerHTML = `Index moves:` + ["1W", "1M", "3M", "1Y"].map(k => `<button data-per="${k}" class="${per === k ? "on" : ""}">${k}</button>`).join("")
+      + `<span class="sp"></span>Sort:` + [["", "A–Z"], ["1D", "Today"], [per, per]].map(([k, t]) => `<button data-so="${k}" class="${so === k ? "on" : ""}">${t}</button>`).join("");
+  }
+  $("#wpick").onclick = e => { e.stopPropagation(); const k = $("#wpk"); if (!k.hidden) { k.hidden = true; return; }
+    $("#wpq").value = ""; wpDraw(); k.hidden = false; ixLoad();
+    const r = $("#wpick").getBoundingClientRect(), w = Math.min(340, innerWidth * .94);
+    k.style.top = (r.bottom + 6) + "px"; k.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left)) + "px";
+    k.style.maxHeight = Math.max(240, innerHeight - r.bottom - 16) + "px";
+    const on = $("#wpb .wpr.on"); if (on) on.scrollIntoView({ block: "center" });
+    if (matchMedia("(pointer:fine)").matches) $("#wpq").focus(); };
+  $("#wpk").onclick = e => { e.stopPropagation();
+    const r = e.target.closest("[data-id]"); if (r) { wpPick(r.dataset.id); return; }
+    const g = e.target.closest("[data-g]"); if (g) { const n = g.dataset.g; P.wp.open[n] = !g.classList.contains("op"); if (!P.wp.open[n]) delete P.wp.open[n]; save(); wpDraw(); return; }
+    const pr = e.target.closest("[data-per]"); if (pr) { if (P.wp.sort === P.wp.per) P.wp.sort = pr.dataset.per; P.wp.per = pr.dataset.per; save(); wpDraw(); return; }
+    const so = e.target.closest("[data-so]"); if (so) { P.wp.sort = so.dataset.so; save(); wpDraw(); } };
+  $("#wpq").oninput = wpDraw;
+  $("#wpk").addEventListener("keydown", e => { if (e.key === "Escape") { e.stopPropagation(); $("#wpk").hidden = true; $("#wpick").focus(); }
+    else if (e.key === "Enter" && e.target.id === "wpq") { const f = $("#wpb [data-id]"); if (f) wpPick(f.dataset.id); } });
+  document.addEventListener("click", e => { if (!e.target.closest("#wpk")) $("#wpk").hidden = true; });
   $("#wsel").onchange = () => { if ($("#wsel").value === "+new") { const n = (prompt("Name for your new list:", "List " + W.lists.length) || "").trim(); if (n) { wlNew(n, []); hint("Created " + n + ". Add stocks with the box above or + on any list"); } wlDraw(); return; }
     W.cur = $("#wsel").value; if (!RLB[W.cur]) W.own = W.cur; wlSave(); wlDraw(); $("#wlist").scrollTop = 0; };
   $("#wadd").onclick = () => wlToggle(SYM, true);
