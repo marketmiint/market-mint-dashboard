@@ -376,9 +376,9 @@ section{scroll-margin-top:170px}
   }
 
   function orders(os, name) {
-    if (!(os && os.length)) return `<h2>Order wins</h2><div class="empty">No order wins reported since April 2026. Companies that announce orders on NSE show up here.</div>`;
+    if (!(os && os.length)) return `<h2>Order wins</h2><div class="empty">No order wins found in NSE filings. Companies that announce orders on NSE show up here.</div>`;
     const tot = os.reduce((s, o) => s + (o.value_cr || 0), 0);
-    return `<h2>Order wins <small>${os.length} since Apr 2026 · ${crs(tot)} in all</small></h2>
+    return `<h2>Order wins <small>${os.length} since ${String(os[os.length - 1].date || "").slice(0, 4)} · ${crs(tot)} in all</small></h2>
       ${os.map(o => `<div class="item"><div class="amt">${crs(o.value_cr)}</div><div class="main">
         <b>${esc(o.client || "Order win")}</b>${o.work ? `<div class="sub">${esc(o.work)}</div>` : ""}
         <div class="meta"><span>${fmtDate(o.date)}</span>${o.pct != null ? `<span>${o.pct}% of yearly revenue</span>` : ""}

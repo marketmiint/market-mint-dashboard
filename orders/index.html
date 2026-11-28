@@ -98,7 +98,7 @@ td.cust{max-width:300px;white-space:normal;text-align:left;font-size:13px}
   <div class="hdr">
     <div>
       <h1 class="pt">Order wins</h1>
-      <p class="lead">Every order win announced on NSE this financial year (since 1 Apr 2026): how big it is for the company, how the share reacted, who gave it and which themes are busiest.</p>
+      <p class="lead">Every order win announced on NSE, this financial year first, and older years back to 2013 from the year picker: how big it is for the company, how the share reacted, who gave it and which themes are busiest.</p>
     </div>
     <a class="how" id="howlink">How we count ›</a>
   </div>
@@ -117,6 +117,7 @@ td.cust{max-width:300px;white-space:normal;text-align:left;font-size:13px}
     <div class="fbar">
       <input type="search" id="f" placeholder="Search a company, customer or work">
       <span class="seg2" id="per"><button data-p="7">7 days</button><button data-p="30">30 days</button><button data-p="90">3 months</button><button data-p="0" class="on">This year</button></span>
+      <select id="fysel" aria-label="Financial year"></select>
     </div>
     <div class="fbar" style="padding-top:10px">
       <select id="cap" aria-label="Company size"><option value="">All sizes</option><option>Large</option><option>Mid</option><option>Small</option><option>Micro</option></select>
@@ -145,13 +146,14 @@ td.cust{max-width:300px;white-space:normal;text-align:left;font-size:13px}
     <h2><span>How we count</span></h2>
     <div class="pad how">
       <ul>
-        <li><b>What is listed:</b> new order wins (letters of award, purchase orders, contracts) announced since 1 April 2026 by NSE-listed companies with a market cap of ₹1,000 Cr or more. SME companies are left out.</li>
+        <li><b>What is listed:</b> new order wins (letters of award, purchase orders, contracts) announced on NSE by companies with a market cap of ₹1,000 Cr or more today. SME companies are left out. Older years come from the companies' own NSE letters and press releases; firms that have since delisted are not included.</li>
+        <li><b>Older years:</b> "% of yearly revenue" and share moves are shown only for recent orders, because today's revenue and prices say little about an order from years ago.</li>
         <li><b>What is left out:</b> letters with no ₹ value, orders under ₹1 Cr, amendments and cancellations, and filings about loans, guarantees, share allotments and similar.</li>
         <li><b>Order value</b> comes from the company's letter. Where the letter gives a range, we use the lower end. Foreign-currency orders are changed to ₹ at that day's rate.</li>
         <li><b>% of revenue</b> = order value ÷ the company's sales over the last 4 quarters. <b>% of m-cap</b> = order value ÷ market cap.</li>
         <li><b>BIG</b> = 3% to 10% of yearly revenue. <b>HUGE</b> = 10% or more.</li>
         <li><b>Next day</b> = the share's move on the first session after the filing (the same day if filed before 3:30 PM). <b>Since</b> = move from the close before that session to the latest close. <b>vs Nifty 500</b> = that move minus the Nifty 500's move over the same days.</li>
-        <li><b>"Nth order in FY27"</b> counts only the orders on this page, so it can be lower than the company's own count.</li>
+        <li><b>"Nth order in FY.."</b> counts only the orders on this page, so it can be lower than the company's own count.</li>
         <li><b>Customer type</b> and <b>theme</b> are worked out from the customer's name and the work described, so a few may be wrong.</li>
         <li>Data comes from NSE and BSE filings and NSE closing prices. This page is for information and learning only. It is not investment advice.</li>
       </ul>
@@ -165,7 +167,11 @@ td.cust{max-width:300px;white-space:normal;text-align:left;font-size:13px}
   const $ = id => document.getElementById(id);
   let data;
   try { data = await MM.getJSON("orders.json"); } catch (e) { $("stats").innerHTML = '<div class="s">Could not load the orders. Please refresh.</div>'; return; }
-  const all = data.orders;
+  let all = data.orders;
+  // financial year of a date: Apr 2025 - Mar 2026 = FY26
+  const fyOf = d => { const y = +d.slice(0, 4), m = +d.slice(5, 7); return "FY" + String((m >= 4 ? y + 1 : y) % 100).padStart(2, "0"); };
+  const FY0 = fyOf(data.fy0 || new Date().toISOString().slice(0, 10));      // this financial year
+  const fyName = f => `${f} (Apr ${2000 + +f.slice(2) - 1} – Mar ${2000 + +f.slice(2)})`;
   const pxDay = data.prices_day;
 
   // ---------- worked out once per order
@@ -213,20 +219,27 @@ td.cust{max-width:300px;white-space:normal;text-align:left;font-size:13px}
   ];
   const custOf = o => { const c = o.cl || ""; if (!c || /not disclosed|confidential|^domestic client|^international client|leading|renowned|reputed|^(a|an|one of)\s/i.test(c)) return ""; for (const [n, rx] of CUST) if (rx.test(c)) return n; return c.replace(/\s+(together|include|includes|including|and others)\b.*$/i, "").replace(/\s+\w$/, "").replace(/,?\s+(private limited|pvt\.? ltd\.?|limited|ltd\.?)$/i, "").replace(/^the\s+/i, ""); };
 
-  // FY27 running count per company (oldest first)
-  const byT = all.slice().sort((a, b) => (a.t || a.d).localeCompare(b.t || b.d));
-  const run = {};
-  byT.forEach(o => {
-    o.ty = tyOf(o); o.th = themeOf(o); o.cu = custOf(o); o.mo = o.d.slice(0, 7);
-    const r = run[o.s] = run[o.s] || { n: 0, v: 0, p: 0, pOk: true };
-    r.n++; r.v += o.v || 0; if (o.pr != null) r.p += o.pr; else r.pOk = false;
-    o.fyn = r.n; o.fyv = r.v; o.fyp = r.pOk ? r.p : null;
-  });
+  // running count per company within each financial year (oldest first)
+  function prep() {
+    const byT = all.slice().sort((a, b) => (a.t || a.d).localeCompare(b.t || b.d));
+    const run = {};
+    byT.forEach(o => {
+      o.ty = tyOf(o); o.th = themeOf(o); o.cu = custOf(o); o.mo = o.d.slice(0, 7); o.fy = fyOf(o.d);
+      const k = o.s + "|" + o.fy, r = run[k] = run[k] || { n: 0, v: 0, p: 0, pOk: true };
+      r.n++; r.v += o.v || 0; if (o.pr != null) r.p += o.pr; else r.pOk = false;
+      o.fyn = r.n; o.fyv = r.v; o.fyp = r.pOk ? r.p : null;
+    });
+    all.forEach((o, i) => o.i = i);
+  }
+  prep();
+  // older years live in a second file, loaded only when someone picks an older year
+  let oldP = null;
+  const loadOld = () => oldP = oldP || MM.getJSON("orders_old.json").then(x => { all = all.concat(x.orders || []); prep(); }).catch(() => {});
   const ord = n => n + (n % 100 >= 11 && n % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][n % 10] || "th");
 
   // ---------- state (kept in the link so a view can be shared)
   const q0 = new URLSearchParams(location.search);
-  const st = { v: q0.get("v") || "list", p: q0.has("p") ? +q0.get("p") : 0, sec: q0.get("sec") || "", th: q0.get("th") || "", mo: q0.get("mo") || "",
+  const st = { v: q0.get("v") || "list", p: q0.has("p") ? +q0.get("p") : 0, fy: q0.get("fy") || "", sec: q0.get("sec") || "", th: q0.get("th") || "", mo: q0.get("mo") || "",
     look: q0.get("look") || "cards", shown: 40, csort: "v", usort: "v" };
   const FIELDS = [["f", "q"], ["cap", "cap"], ["ty", "ty"], ["val", "val"], ["min", "min"], ["sort", "sort"]];
   FIELDS.forEach(([id, k]) => { if (q0.has(k)) $(id).value = q0.get(k); });
@@ -238,6 +251,7 @@ td.cust{max-width:300px;white-space:normal;text-align:left;font-size:13px}
     const u = new URLSearchParams();
     if (st.v !== "list") u.set("v", st.v);
     if (st.p) u.set("p", st.p);
+    if (st.fy) u.set("fy", st.fy);
     if (st.mo) u.set("mo", st.mo);
     if (st.sec) u.set("sec", st.sec);
     if (st.th) u.set("th", st.th);
@@ -251,14 +265,16 @@ td.cust{max-width:300px;white-space:normal;text-align:left;font-size:13px}
   const isQuiet = o => o.pr >= 10 && o.d1 != null && o.d1 < 1;   // big order (10%+ of revenue), share moved <1% next day
   function filtered({ noMonth = false, noSec = false } = {}) {
     const f = $("f").value.trim().toUpperCase(), cap = $("cap").value, mn = +$("min").value, val = +$("val").value, ty = $("ty").value;
-    return all.filter(o => (!st.p || days(o) <= st.p) && (noMonth || !st.mo || o.mo === st.mo)
+    const fy = st.fy || FY0;
+    return all.filter(o => (st.fy === "all" || o.fy === fy) && (!st.p || days(o) <= st.p) && (noMonth || !st.mo || o.mo === st.mo)
       && (!f || o.s.includes(f) || [o.n, o.cl, o.w, o.cu].some(x => (x || "").toUpperCase().includes(f)))
       && (!cap || capOf(o.m) === cap) && (!mn || (o.pr || 0) >= mn) && (!val || (o.v || 0) >= val) && (!ty || o.ty === ty)
       && (noSec || !st.sec || (o.sec || "Other") === st.sec) && (!st.th || o.th === st.th) && (st.v !== "quiet" || isQuiet(o)));
   }
   const MON = m => new Date(m + "-15T12:00:00+05:30").toLocaleDateString("en-IN", { month: "short" });
   const MONY = m => new Date(m + "-15T12:00:00+05:30").toLocaleDateString("en-IN", { month: "long", year: "numeric" });
-  const perLbl = () => st.mo ? MONY(st.mo) : ({ 7: "last 7 days", 30: "last 30 days", 90: "last 3 months", 0: "this year (FY27)" }[st.p]);
+  const perLbl = () => st.mo ? MONY(st.mo) : st.p ? ({ 7: "last 7 days", 30: "last 30 days", 90: "last 3 months" }[st.p])
+    : st.fy === "all" ? "all years" : !st.fy || st.fy === FY0 ? `this year (${FY0})` : fyName(st.fy);
   const mv = v => v == null ? '<span class="muted">–</span>' : `<b class="${cls(v)}">${v > 0 ? "▲" : v < 0 ? "▼" : ""} ${Math.abs(v).toFixed(1)}%</b>`;
   const pts = v => v == null ? "" : `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(1)} pts vs Nifty 500`;
   const avg = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null;
@@ -275,11 +291,15 @@ td.cust{max-width:300px;white-space:normal;text-align:left;font-size:13px}
       <div class="s"><small>Share move the next day</small><b class="${cls(a1)}">${a1 == null ? "–" : pct(a1)}</b><span>${r1.length ? `average · rose ${Math.round(up / r1.length * 100)}% of the time` : ""}</span></div>`;
   }
 
-  // ---------- month chart: one series, order value per month of FY27
+  // ---------- month chart: one series, order value per month of the chosen year (per year for "All years")
   function monthChart() {
     const rs = filtered({ noMonth: true });
-    const ms = []; for (let d = new Date("2026-04-15T12:00:00Z"); d <= new Date(); d.setUTCMonth(d.getUTCMonth() + 1)) ms.push(d.toISOString().slice(0, 7));
-    const agg = ms.map(m => { const x = rs.filter(o => o.mo === m); return { m, n: x.length, v: x.reduce((a, o) => a + (o.v || 0), 0), top: x.slice().sort((a, b) => b.v - a.v)[0] }; });
+    const byYr = st.fy === "all", key = o => byYr ? o.fy : o.mo;
+    let ms = [];
+    if (byYr) ms = [...new Set(rs.map(o => o.fy))].sort();
+    else { const f = st.fy || FY0, y0 = 2000 + +f.slice(2) - 1;
+      for (let d = new Date(Date.UTC(y0, 3, 15)); d <= new Date() && d < new Date(Date.UTC(y0 + 1, 3, 1)); d.setUTCMonth(d.getUTCMonth() + 1)) ms.push(d.toISOString().slice(0, 7)); }
+    const agg = ms.map(m => { const x = rs.filter(o => key(o) === m); return { m, n: x.length, v: x.reduce((a, o) => a + (o.v || 0), 0), top: x.slice().sort((a, b) => b.v - a.v)[0] }; });
     const W = Math.max(360, Math.min(1100, $("mchart").clientWidth || 760)), H = 190, L = 6, B = 24, T = 22, mx = Math.max(1, ...agg.map(a => a.v));
     const bw = (W - L * 2) / agg.length, barw = Math.min(56, bw - 12);
     const y = v => H - B - (v / mx) * (H - B - T);
@@ -290,17 +310,17 @@ td.cust{max-width:300px;white-space:normal;text-align:left;font-size:13px}
       s += `<g data-m="${a.m}"><rect class="hit" x="${L + i * bw}" y="0" width="${bw}" height="${H}"/>`;
       if (h > 0) s += `<path class="b${dim}" d="M${x},${H - B} V${yy + r} Q${x},${yy} ${x + r},${yy} H${x + barw - r} Q${x + barw},${yy} ${x + barw},${yy + r} V${H - B} Z"/>`;
       s += `<text class="v" x="${x + barw / 2}" y="${yy - 6}" text-anchor="middle">${a.v ? crs(a.v).replace("₹", "").replace(" Cr", "") : ""}</text>`;
-      s += `<text x="${x + barw / 2}" y="${H - 6}" text-anchor="middle">${MON(a.m)}</text></g>`;
+      s += `<text x="${x + barw / 2}" y="${H - 6}" text-anchor="middle">${byYr ? a.m : MON(a.m)}</text></g>`;
     });
     $("mchart").innerHTML = s + "</svg>";
-    $("mlab").innerHTML = (st.v === "quiet" ? "Big orders, quiet stocks only · " : "") + (st.mo ? `${MONY(st.mo)} only · <a id="mclr" style="cursor:pointer">show all months</a>` : "₹ Cr · tap a month to see only that month");
+    $("mlab").innerHTML = (st.v === "quiet" ? "Big orders, quiet stocks only · " : "") + (byYr ? "₹ Cr per financial year · tap a year to open it" : st.mo ? `${MONY(st.mo)} only · <a id="mclr" style="cursor:pointer">show all months</a>` : "₹ Cr · tap a month to see only that month");
     const tip = $("tip");
     $("mchart").querySelectorAll("g[data-m]").forEach(g => {
       const a = agg.find(x => x.m === g.dataset.m);
-      g.onmousemove = e => { tip.style.display = "block"; tip.innerHTML = `<b>${MONY(a.m)}</b>${a.n} orders · ${crs(a.v)}${a.top ? `<br><span class="muted">Biggest: ${esc(a.top.n)} ${crs(a.top.v)}</span>` : ""}`;
+      g.onmousemove = e => { tip.style.display = "block"; tip.innerHTML = `<b>${byYr ? fyName(a.m) : MONY(a.m)}</b>${a.n} orders · ${crs(a.v)}${a.top ? `<br><span class="muted">Biggest: ${esc(a.top.n)} ${crs(a.top.v)}</span>` : ""}`;
         tip.style.left = Math.min(e.pageX + 14, innerWidth - tip.offsetWidth - 10) + "px"; tip.style.top = (e.pageY - 12) + "px"; };
       g.onmouseleave = () => tip.style.display = "none";
-      g.onclick = () => { tip.style.display = "none"; st.mo = st.mo === a.m ? "" : a.m; if (st.mo) { st.p = 0; setPer(); } st.shown = 40; draw(); };
+      g.onclick = () => { tip.style.display = "none"; if (byYr) { st.fy = a.m === FY0 ? "" : a.m; $("fysel").value = st.fy; st.shown = 40; draw(); return; } st.mo = st.mo === a.m ? "" : a.m; if (st.mo) { st.p = 0; setPer(); } st.shown = 40; draw(); };
     });
     const c = $("mclr"); if (c) c.onclick = () => { st.mo = ""; draw(); };
   }
@@ -319,7 +339,7 @@ td.cust{max-width:300px;white-space:normal;text-align:left;font-size:13px}
       ${o.w ? `<div class="wk">${esc(o.w)}</div>` : ""}
       <div class="meta">${tag}<span>${fmtShort(o.d)}</span>${o.pr != null ? `<span><b style="color:var(--ink)">${o.pr}%</b> of yearly revenue</span>` : ""}
         ${o.pm != null ? `<span>${o.pm}% of m-cap</span>` : ""}<span>${esc(o.th)}</span>${o.tl ? `<span>Delivery: ${esc(o.tl)}</span>` : ""}</div>
-      ${o.fyn > 1 ? `<div class="fy"><b>${ord(o.fyn)} order in FY27</b> · ${crs(o.fyv)} so far${o.fyp != null ? ` (${o.fyp.toFixed(o.fyp >= 100 ? 0 : 1)}% of revenue)` : ""}</div>` : `<div class="fy muted">1st order in FY27</div>`}
+      ${o.fyn > 1 ? `<div class="fy"><b>${ord(o.fyn)} order in ${o.fy}</b> · ${crs(o.fyv)} so far${o.fyp != null ? ` (${o.fyp.toFixed(o.fyp >= 100 ? 0 : 1)}% of revenue)` : ""}</div>` : `<div class="fy muted">1st order in ${o.fy}</div>`}
       <div class="rx">${fresh ? '<span class="muted">Share reaction shows after the next close</span>' : `<span>Next day ${mv(o.d1)}</span><span>Since ${mv(o.sn)}</span>${o.vs != null ? `<span class="muted">${pts(o.vs)}</span>` : ""}`}<span class="shw">${shareO(o)}</span></div>
       <div class="open-h">Details ›</div>
       <div class="more2"><dl>
@@ -331,7 +351,6 @@ td.cust{max-width:300px;white-space:normal;text-align:left;font-size:13px}
       </dl></div>
     </div></div>`;
   };
-  all.forEach((o, i) => o.i = i);
   const ist = t => new Date(t + 5.5 * 36e5).toISOString().slice(0, 10);
   const dayLbl = d => d === ist(Date.now()) ? "Today" : d === ist(Date.now() - 864e5) ? "Yesterday" : fmtDate(d);
 
@@ -397,15 +416,16 @@ td.cust{max-width:300px;white-space:normal;text-align:left;font-size:13px}
   }
 
   function themesView(rs) {
-    const ms = [...new Set(all.map(o => o.mo))].sort();
+    const tk = o => st.fy === "all" ? o.fy : o.mo;
+    const ms = [...new Set(rs.map(tk))].sort();
     const tl = THN.map(n => {
       const x = rs.filter(o => o.th === n), r1 = x.filter(o => o.d1 != null);
       const by = {}; x.forEach(o => by[o.s] = (by[o.s] || 0) + o.v);
-      return { n, x, v: x.reduce((a, o) => a + o.v, 0), a1: avg(r1.map(o => o.d1)), mv: ms.map(m => x.filter(o => o.mo === m).reduce((a, o) => a + o.v, 0)), top: Object.entries(by).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([s]) => all.find(o => o.s === s).n) };
+      return { n, x, v: x.reduce((a, o) => a + o.v, 0), a1: avg(r1.map(o => o.d1)), mv: ms.map(m => x.filter(o => tk(o) === m).reduce((a, o) => a + o.v, 0)), top: Object.entries(by).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([s]) => all.find(o => o.s === s).n) };
     }).filter(t => t.x.length).sort((a, b) => b.v - a.v);
     $("main").innerHTML = `<div class="themes">${tl.map(t => {
       const mx = Math.max(1, ...t.mv), bw = 200 / t.mv.length;
-      const bars = t.mv.map((v, i) => { const h = v / mx * 34; return `<rect x="${i * bw + 1}" y="${36 - h}" width="${bw - 3}" height="${h}" rx="2"><title>${MON(ms[i])}: ${crs(v)}</title></rect>`; }).join("");
+      const bars = t.mv.map((v, i) => { const h = v / mx * 34; return `<rect x="${i * bw + 1}" y="${36 - h}" width="${bw - 3}" height="${h}" rx="2"><title>${st.fy === "all" ? ms[i] : MON(ms[i])}: ${crs(v)}</title></rect>`; }).join("");
       return `<div class="th" data-t="${esc(t.n)}"><h3><span>${esc(t.n)}</span><small>${t.x.length} orders</small></h3><div class="big2">${crs(t.v)}</div>
         <svg viewBox="0 0 200 36" preserveAspectRatio="none" aria-label="Order value by month">${bars}</svg>
         <small>${MON(ms[0])} → ${MON(ms[ms.length - 1])} · next-day move ${t.a1 == null ? "–" : `<b class="${cls(t.a1)}">${pct(t.a1)}</b>`} on average</small>
@@ -463,7 +483,7 @@ td.cust{max-width:300px;white-space:normal;text-align:left;font-size:13px}
 
   // ---------- controls
   $("views").onclick = e => { const b = e.target.closest("button"); if (b) setView(b.dataset.v); };
-  $("per").onclick = e => { const b = e.target.closest("button"); if (!b) return; st.p = +b.dataset.p; st.mo = ""; st.shown = 40; setPer(); draw(); };
+  $("per").onclick = e => { const b = e.target.closest("button"); if (!b) return; st.p = +b.dataset.p; st.mo = ""; st.fy = ""; $("fysel").value = ""; st.shown = 40; setPer(); draw(); };
   $("look").onclick = e => { const b = e.target.closest("button"); if (!b) return; st.look = b.dataset.k; document.querySelectorAll("#look button").forEach(x => x.classList.toggle("on", x === b)); draw(); };
   $("secsel").onchange = () => { st.sec = $("secsel").value; st.shown = 40; draw(); };
   $("thsel").onchange = () => { st.th = $("thsel").value; st.shown = 40; draw(); };
@@ -479,6 +499,17 @@ td.cust{max-width:300px;white-space:normal;text-align:left;font-size:13px}
     a.download = `market-mint-orders-${ist(Date.now())}.csv`; a.click();
   };
 
+  // year picker: this year, then every older year we have, then all years
+  const yrs = []; for (let y = 2000 + +FY0.slice(2) - 1; y >= 2013; y--) yrs.push("FY" + String(y % 100).padStart(2, "0"));
+  $("fysel").innerHTML = `<option value="">This year (${FY0})</option>` + (data.old ? yrs.map(f => `<option value="${f}">${fyName(f)}</option>`).join("") + `<option value="all">All years</option>` : "");
+  $("fysel").value = st.fy;
+  $("fysel").onchange = async () => {
+    st.fy = $("fysel").value; st.mo = ""; st.shown = 40;
+    if (st.fy) { st.p = 0; setPer(); $("cnt").textContent = "Loading older orders…"; await loadOld(); }
+    $("secsel").innerHTML = '<option value="">All sectors</option>' + [...new Set(all.map(o => o.sec || "Other"))].sort().map(s => `<option>${esc(s)}</option>`).join(""); $("secsel").value = st.sec;
+    draw();
+  };
+  if (st.fy) await loadOld();
   let rz; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(monthChart, 200); });
   setPer();
   document.querySelectorAll("#look button").forEach(x => x.classList.toggle("on", x.dataset.k === st.look));
