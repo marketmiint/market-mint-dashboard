@@ -248,6 +248,7 @@ body.popped #po{display:none}
 <body data-root="../" class="cpg">
 <script>document.body.classList.add("full"); if (/[?&]full=1\b/.test(location.search)) document.body.classList.add("popped");</script>
 <script src="../assets/mm.js"></script>
+<script src="../assets/mmsync.js"></script>
 <script src="../assets/mmchart.js"></script>
 <script src="../assets/klc.js"></script>
 <main class="cp" id="cp">
@@ -547,6 +548,8 @@ body.popped #po{display:none}
   }
   function restoreSnap(j) { SNAP = j; selNone(); try { j !== "[]" ? localStorage.setItem(DKEY(SYM), j) : localStorage.removeItem(DKEY(SYM)); } catch (e) {}
     chart.removeOverlay({ groupId: "draw" }); loadDraw(); }
+  // drawings changed from another device (account sync): show them now
+  addEventListener("storage", e => { if (SYM && e.key === DKEY(SYM) && chart) { selNone(); SNAP = localStorage.getItem(DKEY(SYM)) || "[]"; chart.removeOverlay({ groupId: "draw" }); loadDraw(); } });
   function undo() { if (!UNDO.length) { hint("Nothing to undo"); return; } REDO.push(SNAP); restoreSnap(UNDO.pop()); hint("Undone (Ctrl+Y to redo)"); }
   function redo() { if (!REDO.length) { hint("Nothing to redo"); return; } UNDO.push(SNAP); restoreSnap(REDO.pop()); hint("Redone"); }
   const selO = () => { const id = SEL || DSEL; return id ? chart.getOverlays({ id })[0] : null; };
@@ -923,6 +926,7 @@ body.popped #po{display:none}
   }
   MM.onLive && MM.onLive(alCheck);
   $("#alb").onclick = alAsk;
+  window.mmAlertCheck = alCheck;   // for testing the alert check outside market hours
   addEventListener("storage", e => { if (e.key === ALK) drawAL(); });
   // ---------- Breakout Desk levels (from ../breakouts/data.json)
   let BOD, BOTXT = "";
