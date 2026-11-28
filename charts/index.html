@@ -157,6 +157,22 @@ body.popped #po{display:none}
 .cwrap .clg{position:absolute;top:0;left:0;z-index:6;border:0;padding:4px 10px 4px 10px;max-width:calc(100% - 90px);background:rgba(255,255,255,.82);border-bottom-right-radius:8px;pointer-events:none;min-height:0}
 .cwrap .clg .ev>span,.cwrap .clg .boinfo{pointer-events:auto}
 .cbot{height:30px}
+/* indicator lines in the legend (TradingView style) */
+.cwrap .clg{white-space:normal}
+.ilm{display:block}
+.irow{display:flex;align-items:center;gap:6px;height:22px;width:max-content;max-width:100%;padding:0 4px 0 0;border-radius:5px;pointer-events:auto;font-size:12px;white-space:nowrap;cursor:default}
+.irow .inm{color:var(--ink);font-weight:600;cursor:pointer}.irow .inm i{font-style:normal;font-weight:500;color:var(--muted)}
+.irow .ivl{display:flex;gap:7px;font-variant-numeric:tabular-nums;font-weight:600}
+.irow .ibt{display:none;gap:1px}
+.irow:hover{background:rgba(255,255,255,.95);box-shadow:0 0 0 1px var(--line)}.irow:hover .ibt{display:flex}
+.irow .ibt button{border:0;background:none;padding:2px 3px;border-radius:4px;color:var(--muted);cursor:pointer;display:flex;line-height:0}
+.irow .ibt button:hover{background:var(--soft);color:var(--ink)}.irow .ibt [data-ia="x"]:hover{color:var(--down,#d0342c)}
+.irow.off .inm,.irow.off .inm i{color:#a3a8b3;font-weight:500}.irow.off .ibt{display:flex}.irow.off .ibt [data-ia="h"]{color:var(--ink)}
+@media (hover:none){.irow .ibt{display:flex}}
+.ilt{pointer-events:auto;border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:5px;font:inherit;font-size:11px;padding:0 6px;height:18px;cursor:pointer;display:inline-flex;align-items:center;gap:3px;margin-top:1px}
+.ilt.up{border:0;background:none;padding:0 4px}.ilt:hover{color:var(--ink);background:var(--soft)}
+.ils{position:absolute;inset:0;pointer-events:none;z-index:6}
+.isub{position:absolute;left:8px;max-width:calc(100% - 90px)}
 /* hide / show tabs on the chart edges */
 .hdl{position:absolute;z-index:25;border:0;background:var(--muted);cursor:pointer;opacity:.28;transition:opacity .15s,background .15s;padding:0;font-size:0;border-radius:3px}
 .hdl::before{content:"";position:absolute;inset:-7px}  /* bigger click area than the thin bar */
@@ -327,7 +343,7 @@ body.popped #po{display:none}
     <div class="cwrap"><div class="clg" id="clg"></div>
       <button class="hdl hdl-t" data-h="t" title="Hide / show the top bar (Alt+Enter hides all)"></button><button class="hdl hdl-l" data-h="l" title="Hide / show the drawing tools"></button>
       <button class="hdl hdl-r" data-h="r" title="Hide / show the watchlist and events strip"></button><button class="hdl hdl-b" data-h="b" title="Hide / show the bottom bar"></button>
-      <div class="kbox"><div id="kc"></div><div class="dbar" id="dbar" hidden></div><div class="msg" id="msg">Loading chart…</div><div class="hint" id="hint"></div></div>
+      <div class="kbox"><div id="kc"></div><div class="ils" id="ils"></div><div class="dbar" id="dbar" hidden></div><div class="msg" id="msg">Loading chart…</div><div class="hint" id="hint"></div></div>
       <div class="cbot"><span class="seg" id="rg" aria-label="Range"><button data-r="3M">3M</button><button data-r="6M">6M</button><button data-r="1Y">1Y</button><button data-r="3Y">3Y</button><button data-r="5Y">5Y</button><button data-r="All">All</button></span>
         <span class="gap"></span><button class="bb" id="bob" title="Show / hide Breakout Desk levels (pivot, breakout, stop, base boxes)">Breakouts</button><span class="sep2"></span>
         <button class="bb" id="gd" title="Go to a date (Alt+G)">Go to date</button><span class="sep2"></span>
@@ -668,7 +684,7 @@ body.popped #po{display:none}
         area: { lineColor: "#2563eb", lineSize: 1.6, backgroundColor: [{ offset: 0, color: "rgba(37,99,235,.18)" }, { offset: 1, color: "rgba(37,99,235,.01)" }] },
         priceMark: { high: { color: MUT }, low: { color: MUT }, last: { upColor: UP, downColor: DN, noChangeColor: MUT } },
         tooltip: { showRule: "none" } },
-      indicator: { tooltip: { showRule: "always", offsetTop: 26, text: { color: MUT, size: 11.5 } },
+      indicator: { tooltip: { showRule: "none" },
         bars: [{ upColor: "rgba(15,143,85,.35)", downColor: "rgba(208,52,44,.35)", noChangeColor: "rgba(107,114,128,.35)" }] },
       xAxis: { axisLine: { color: LINE }, tickLine: { color: LINE }, tickText: { color: MUT, size: 11.5 } },
       yAxis: { axisLine: { color: LINE }, tickLine: { color: LINE }, tickText: { color: MUT, size: 11.5 } },
@@ -798,7 +814,54 @@ body.popped #po{display:none}
       <span class="${MM.cls(ch)}">${ch == null ? "" : sgn(ch, 2)}</span> · Vol <b>${vol(k.volume)}</b>`
       + (BOTXT ? `<span class="boinfo" title="From Breakout Desk">${BOTXT}<button class="bx" data-bohide="1" title="Hide Breakout Desk levels">×</button></span>` : "")
       + (evs.length ? `<span class="ev">${evs.slice(0, 4).map(e => `<span data-ts="${e.ts}" style="border-color:${EK[e.k].color}"><span class="dot" style="background:${EK[e.k].color};width:13px;height:13px;font-size:8px;margin:0 4px 0 0;padding:0;border:0">${e.k === "s" ? (e.kind === "bonus" ? "B" : "S") : EK[e.k].letter}</span>${esc(e.title)}${e.k === "r" && e.tx ? " · " + esc(e.tx) : ""}</span>`).join("")}${evs.length > 4 ? ` +${evs.length - 4} more` : ""}</span>` : "");
+    indLegend(i);
   }
+  // ---------- indicator lines in the legend: name + settings + values, and eye / gear / × on hover
+  const IC = {
+    eye: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+    off: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l18 18M10.6 5.1A10.7 10.7 0 0 1 12 5c6 0 10 7 10 7a17 17 0 0 1-3.2 3.9M6.6 6.6A17 17 0 0 0 2 12s4 7 10 7a9.8 9.8 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>',
+    gear: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+    del: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+  };
+  const BIGV = new Set(["VOL", "OBV"]);
+  function indRow(it, ind, i) {
+    const c = CAT.find(x => x[0] === it.n) || [it.n, it.n], par = ind && ind.calcParams && ind.calcParams.length ? ind.calcParams.join(" ") : "";
+    let vals = "";
+    if (ind && !it.h) { const r = (ind.result || [])[i] || {}, LS = (ind.styles && ind.styles.lines) || (chart.getStyles().indicator.lines || []); let li = 0;
+      vals = (ind.figures || []).map(f => { const v = r[f.key]; const col = f.type === "line" ? ((LS[li++] || {}).color || INK) : f.type === "bar" ? (r.close != null && r.open != null ? (r.close >= r.open ? UP : DN) : (v >= 0 ? UP : DN)) : INK;
+        if (v == null || !isFinite(v)) return ""; return `<span style="color:${col}">${BIGV.has(it.n) ? vol(v) : num(v)}</span>`; }).join(" "); }
+    return `<div class="irow ${it.h ? "off" : ""}" data-ind="${it.n}"><span class="inm" title="${esc(c[1])} · double-click for settings">${esc(it.n === "VOL" ? "Vol" : it.n)}${par ? ` <i>${esc(par)}</i>` : ""}</span>`
+      + `<span class="ibt"><button data-ia="h" title="${it.h ? "Show" : "Hide"}">${it.h ? IC.off : IC.eye}</button><button data-ia="s" title="Settings">${IC.gear}</button><button data-ia="x" title="Remove">${IC.del}</button></span>`
+      + `<span class="ivl">${vals}</span></div>`;
+  }
+  function indLegend(i) {
+    if (!chart) return; const all = chart.getIndicators().filter(x => x.name !== "MMEV"), byN = {}; all.forEach(x => byN[x.name] = x);
+    const main = P.ind.filter(it => it.main && CAT.find(c => c[0] === it.n)), sub = P.ind.filter(it => !it.main && CAT.find(c => c[0] === it.n));
+    let box = $("#ilm"); if (!box) { box = document.createElement("div"); box.id = "ilm"; box.className = "ilm"; }
+    $("#clg").appendChild(box);
+    box.innerHTML = !main.length ? "" : P.ilc ? `<button class="ilt" data-ilt title="Show indicator values">${IC.eye}<span>${main.length}</span> ▾</button>`
+      : main.map(it => indRow(it, byN[it.n], i)).join("") + `<button class="ilt up" data-ilt title="Fold the indicator lines">▴</button>`;
+    // indicators in their own panel: the line sits at the top of that panel
+    const host = $("#ils"); host.innerHTML = sub.map(it => { const ind = byN[it.n]; if (!ind) return ""; const z = chart.getSize(ind.paneId);
+      return z ? `<div class="isub" style="top:${Math.round(z.top) + 3}px">${indRow(it, ind, i)}</div>` : ""; }).join("");
+  }
+  async function indAct(n, a) {
+    const it = P.ind.find(x => x.n === n), c = CAT.find(x => x[0] === n); if (!it || !c) return;
+    if (a === "h") { it.h = !it.h; save(); chart.overrideIndicator({ name: n, visible: !it.h }); hint(it.h ? c[1] + " hidden" : c[1] + " shown"); }
+    else if (a === "x") { P.ind = P.ind.filter(x => x !== it); save(); applyInd(); hint(c[1] + " removed · Indicators button adds it back"); }
+    else if (a === "s") { if (!c[3] || !c[3].length) { hint(c[1] + " has no settings"); return; }
+      const r = await ask(`${c[1]} settings${c[4] ? "\n(" + c[4] + ")" : ""}\nNumbers, separated by commas:`, (it.p && it.p.length ? it.p : c[3]).join(", "));
+      if (r == null) return; const pp = String(r).split(/[,\s]+/).map(Number).filter(x => isFinite(x) && x > 0); if (!pp.length) { hint("Those are not numbers"); return; }
+      it.p = pp; save(); applyInd(); hint(c[1] + " updated"); }
+    legend();
+  }
+  const indClick = e => { const t = e.target.closest("[data-ilt]"); if (t) { e.stopPropagation(); P.ilc = !P.ilc; save(); legend(); return; }
+    const b = e.target.closest("[data-ia]"), r = e.target.closest("[data-ind]"); if (!b || !r) return; e.stopPropagation(); indAct(r.dataset.ind, b.dataset.ia); };
+  const indDbl = e => { const r = e.target.closest("[data-ind]"); if (r && !e.target.closest("[data-ia]")) { e.stopPropagation(); indAct(r.dataset.ind, "s"); } };
+  $("#clg").addEventListener("click", indClick); $("#ils").addEventListener("click", indClick);
+  $("#clg").addEventListener("dblclick", indDbl); $("#ils").addEventListener("dblclick", indDbl);
+  new ResizeObserver(() => legend()).observe($("#kc"));
+  $("#kc").addEventListener("pointerup", () => setTimeout(legend, 30));   // after dragging a panel border
   $("#clg").onclick = e => { const s = e.target.closest("[data-ts]"); if (!s) return; openSide("ev"); const r = document.querySelector(`.erow[data-ts="${s.dataset.ts}"]`);
     if (r) { document.querySelectorAll(".erow.on").forEach(x => x.classList.remove("on")); r.classList.add("on"); r.scrollIntoView({ block: "center" }); } };
   // the library only reports the mouse x/y: turn x into the candle under the mouse (mouse off the chart = latest candle)
@@ -1083,12 +1146,13 @@ body.popped #po{display:none}
     chart.getIndicators().forEach(i => { if (i.name !== "MMEV") chart.removeIndicator({ id: i.id }); });
     for (const it of P.ind) {
       if (!CAT.find(c => c[0] === it.n)) continue;
-      const v = { name: it.n, id: "i_" + it.n, calcParams: it.p && it.p.length ? it.p : undefined,
+      const v = { name: it.n, id: "i_" + it.n, visible: !it.h, calcParams: it.p && it.p.length ? it.p : undefined,
         styles: it.n === "MA" || it.n === "EMA" ? { lines: COLORS.map(c => ({ color: c, size: 1.3 })) } : undefined };
       if (it.main) chart.createIndicator(Object.assign(v, { paneId: "candle_pane" }), true);
       else chart.createIndicator(v, false, { id: "p_" + it.n, height: it.n === "VOL" ? 90 : 110 });
     }
     if (!chart.getIndicators({ name: "MMEV" }).length) chart.createIndicator({ name: "MMEV", id: "mmev", paneId: "candle_pane" }, true);
+    setTimeout(legend, 30); setTimeout(legend, 300);
   }
   function drawIPop(qs = "") {
     const act = P.ind.map(it => { const c = CAT.find(x => x[0] === it.n); if (!c) return "";
@@ -1119,7 +1183,7 @@ body.popped #po{display:none}
 
   // ---------- toolbar
   // Breakout Desk levels on / off (bottom-bar button, × on the green label, Indicators menu)
-  function setBO(on) { P.bo = on ? 1 : 0; save(); drawBO(); legend(); segOn(); hint(on ? "Breakout Desk levels shown on the chart" : "Breakout Desk levels hidden (the badge stays)en · the Breakouts button below brings them back"); }
+  function setBO(on) { P.bo = on ? 1 : 0; save(); drawBO(); legend(); segOn(); hint(on ? "Breakout Desk levels shown on the chart" : "Breakout Desk levels hidden (the badge stays) · the Breakouts button below brings them back"); }
   $("#bob").onclick = () => setBO(!P.bo);
   $("#clg").addEventListener("click", e => { if (e.target.closest("[data-bohide]")) { e.stopPropagation(); setBO(false); } }, true);
   const segOn = () => { $("#bob") && $("#bob").classList.toggle("on", !!P.bo); document.querySelectorAll("#tf button").forEach(b => { const on = b.dataset.p === PER; b.classList.toggle("on", on);
