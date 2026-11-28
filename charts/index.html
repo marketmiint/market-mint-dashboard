@@ -1166,7 +1166,8 @@ body.popped #po{display:none}
   $("#wmb").onclick = e => { e.stopPropagation(); const m = $("#wmenu"); if (!m.hidden) { m.hidden = true; return; }
     const l = wlCur(), so = W.sort || "", own = wlOwn();
     const sorts = `<div class="lab">Sort</div>${[["", l.ro ? "List order" : "My order (drag to move)"], ["name", "Name A–Z"], ["chg", "Today: best first"], ["chgup", "Today: worst first"]].map(([k, t]) => `<button data-s="${k}" class="${so === k ? "on" : ""}">${so === k ? "✓ " : ""}${t}</button>`).join("")}`;
-    const out = `<button data-a="copy">Copy symbols</button><button data-a="tv">Download for TradingView (.txt)</button><button data-a="csv">Download as spreadsheet (.csv)</button>`;
+    const out = `<button data-a="copy">Copy symbols</button><button data-a="tv">Download for TradingView (.txt)</button><button data-a="csv">Download as spreadsheet (.csv)</button>`
+      + `<hr><div class="lab">Another browser or device</div><button data-a="bk">Back up all my lists + alerts (file)</button><button data-a="rs">Restore from a backup file</button>`;
     m.innerHTML = l.ro ? `<button data-a="copyto">Copy to a new list of mine</button><button data-a="addall">Add all to “${esc(own.name)}”</button><button data-a="new">＋ New empty list</button><hr>${sorts}<hr>${out}`
       : `<button data-a="new">＋ New list</button><button data-a="ren">Rename “${esc(l.name)}”</button>${l.id !== "main" ? `<button data-a="del">Delete “${esc(l.name)}”</button>` : ""}
       <hr><div class="lab">Add many at once</div><button data-a="shot">Add from screenshot</button><button data-a="file">Import a file (Zerodha, Fyers, Groww, TradingView)</button><button data-a="paste">Paste symbols or names</button>
@@ -1187,6 +1188,21 @@ body.popped #po{display:none}
     else if (a === "tv") { dl(fnm(l.name) + ".txt", wlShown().map(tvSym).join(","), "text/plain"); hint("Downloaded. In TradingView: watchlist menu → Import list", 4000); }
     else if (a === "csv") { dl(fnm(l.name) + ".csv", "Symbol,Company,Sector,Price,Change %\n" + wlShown().map(s => { const r = BY[s] || {}, x = pxOf(s); return [s, r.n || "", r.i || "", x.p ?? "", x.c != null ? x.c.toFixed(2) : ""].map(csvQ).join(","); }).join("\n"), "text/csv"); }
     else if (a === "shot" || a === "file" || a === "paste") impOpen(a);
+    else if (a === "bk") { const g = k => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (er) { return null; } };
+      dl("market-mint-backup.json", JSON.stringify({ mm: "backup", v: 1, made: new Date().toISOString().slice(0, 10), wl: g(WK), main: g(MAIN), alerts: g(ALK) }), "application/json");
+      hint("Downloaded. In the other browser: list menu ⋯ → Restore from a backup file", 5000); }
+    else if (a === "rs") { const f = document.createElement("input"); f.type = "file"; f.accept = ".json,application/json";
+      f.onchange = async () => { const file = f.files && f.files[0]; if (!file) return; let j; try { j = JSON.parse(await file.text()); } catch (er) { j = null; }
+        if (!j || j.mm !== "backup") { hint("That is not a Market Mint backup file", 4000); return; }
+        let nl = 0, na = 0;
+        if (j.wl && Array.isArray(j.wl.lists)) for (const x of j.wl.lists) { if (!x || !x.id || x.id === "main") continue;
+          W.lists = W.lists.filter(y => y.id !== x.id); W.lists.push({ id: String(x.id), name: String(x.name || "List").slice(0, 40), syms: Array.isArray(x.syms) ? x.syms.map(String) : [] }); nl++; }
+        if (Array.isArray(j.main) && j.main.length) wlSet(W.lists.find(l => l.id === "main"), wlSyms(W.lists.find(l => l.id === "main")).concat(j.main.map(String)));
+        if (j.wl && j.wl.cur && W.lists.find(l => l.id === j.wl.cur)) W.cur = j.wl.cur;
+        wlSave();
+        if (j.alerts && Array.isArray(j.alerts.list)) { try { localStorage.setItem(ALK, JSON.stringify(j.alerts)); na = j.alerts.list.length; } catch (er) {} }
+        wlDraw(); drawAL(); hint(`Restored ${nl} lists${na ? " and " + na + " alerts" : ""}`, 5000); };
+      f.click(); }
   };
   document.addEventListener("click", e => { if (!e.target.closest("#wmenu")) $("#wmenu").hidden = true; });
   MM.onLive && MM.onLive(() => { if (!$("#side").hidden && P.tab === "wl") wlDraw(); });
