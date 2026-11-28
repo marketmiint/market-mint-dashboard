@@ -857,18 +857,26 @@ body.popped #po{display:none}
   const alList = () => { let ch = false; const L = alGet().list.map(a => { if (!a.id) { a.id = alId(); ch = true; } return a; }); if (ch) alSave(L); return L; };
   const alPx = () => { const x = SYM ? pxOf(SYM) : {}; return x.p ?? (BARS.length ? (BARS[BARS.length - 1].real ?? BARS[BARS.length - 1].close) : null); };
   const alOp = v => { const p = alPx(); return p != null && v < p ? "<" : ">"; };
+  // alert = thin see-through line across the chart + a price tag on the price scale (▲ = alert when price goes up to it, ▼ = down to it).
+  // Tags of alerts close together are stacked so they never cover each other; nothing sits on top of the candles.
+  let ALV = [];                                    // prices of the alerts on this chart (for stacking the tags)
+  const alCol = (hit, a) => hit ? `rgba(120,128,140,${a})` : `rgba(217,119,6,${a})`;
   K.registerOverlay({ name: "mmAlert", totalStep: 2, needDefaultPointFigure: false,
     createPointFigures: ({ coordinates: c, bounding: b, overlay: o }) => { if (!c.length) return []; const x = o.extendData || {};
-      return [{ type: "line", attrs: { coordinates: [{ x: 0, y: c[0].y }, { x: b.width, y: c[0].y }] }, styles: { color: x.c, size: 1.5, style: "dashed", dashedValue: [6, 4] } },
-        { type: "text", attrs: { x: b.width - 8, y: c[0].y - 3, text: x.t + " ₹" + num(o.points[0].value), align: "right", baseline: "bottom" },
-          styles: { color: "#fff", backgroundColor: x.c, borderColor: "transparent", borderRadius: 3, paddingLeft: 5, paddingRight: 5, paddingTop: 2, paddingBottom: 2, size: 11, weight: 700 } }]; } });
+      return [{ type: "line", attrs: { coordinates: [{ x: 0, y: c[0].y }, { x: b.width, y: c[0].y }] }, styles: { color: alCol(x.hit, .7), size: 1, style: "dashed", dashedValue: [5, 4] } }]; },
+    createYAxisFigures: ({ coordinates: c, bounding: b, overlay: o, yAxis }) => { if (!c.length || !yAxis) return []; const x = o.extendData || {}, v = o.points[0].value;
+      const H = 17, ys = ALV.map(w => ({ w, y: yAxis.convertToPixel(w) })).sort((p, q) => p.y - q.y);
+      let y = c[0].y, prev = -1e9; for (const t of ys) { const ty = Math.max(t.y, prev + H); if (Math.abs(t.w - v) < 1e-9) { y = ty; break; } prev = ty; }
+      return [{ type: "text", attrs: { x: 2, y, text: (x.up ? "▲ " : "▼ ") + num(v, 2), align: "left", baseline: "middle" },
+        styles: { color: "#fff", backgroundColor: alCol(x.hit, .92), borderColor: "transparent", borderRadius: 3, paddingLeft: 3, paddingRight: 3, paddingTop: 2, paddingBottom: 2, size: 10.5, weight: 700 } }]; } });
   function drawAL() {
     chart.removeOverlay({ groupId: "al" });
     if (!SYM || !BARS.length) return;
     const lastT = BARS[BARS.length - 1].timestamp;
-    for (const a of alList()) if (a.s === SYM && a.v > 0) { const hit = a.st === "Triggered";
+    const mine = alList().filter(a => a.s === SYM && a.v > 0); ALV = mine.map(a => a.v);
+    for (const a of mine) { const hit = a.st === "Triggered";
       chart.createOverlay({ name: "mmAlert", groupId: "al", lock: false, points: [{ timestamp: lastT, value: a.v }],
-        extendData: { id: a.id, t: "Alert " + a.op + (hit ? " (hit)" : ""), c: hit ? "#9ca3af" : "#d97706" },
+        extendData: { id: a.id, up: a.op.includes(">"), hit },
         onPressedMoveEnd: ev => { alMove(ev.overlay); return false; },
         onClick: ev => { alEdit(ev.overlay.extendData.id); return true; },
         onRightClick: ev => { alDel(ev.overlay.extendData.id); return true; } }); }
@@ -877,7 +885,7 @@ body.popped #po{display:none}
     if (!SYM || !(v > 0)) return; v = +v.toFixed(2); const op = alOp(v);
     alSave(alList().concat([{ id: alId(), s: SYM, op, v, st: "Enabled", at: Date.now() }])); drawAL();
     try { if (window.Notification && Notification.permission === "default") Notification.requestPermission(); } catch (e) {}
-    hint(`Alert set: ${SYM} ${op} ₹${num(v)} · drag the line to move it, click it to change, right-click to delete`, 5000);
+    hint(`Alert set: ${SYM} ${op} ₹${num(v, 2)} · drag the line to move it, click it to change, right-click to delete`, 5000);
   }
   function alAsk() {
     if (!SYM) return; const p = alPx();
@@ -1138,11 +1146,16 @@ body.popped #po{display:none}
   fetch(MM.DATA + "lists.json", { cache: "no-cache" }).then(r => r.ok ? r.json() : null).then(j => { if (!j) return; RL.made = j.made;
     for (const g of j.groups || []) rlAdd(g.g, g.lists.map(l => Object.assign(l, { id: "r:" + l.id })));
     wlDraw(); nwSoon(); }).catch(() => {});
+  // Breakout Desk lists, one per pattern (VCP, Multi-year, IPO base, Blue sky); in each, fresh breakouts first, then climbing, then forming a base
   function boLists() {
-    const by = { fresh: [], climbing: [], forming: [] }, x = {};
-    for (const r of BOD.rows || []) if (by[r.stage] && BOS[r.sym] === r.stage && !by[r.stage].includes(r.sym)) { by[r.stage].push(r.sym); const i = boInfo(r.sym); if (i) x[r.sym] = i.text; }
-    rlAdd("Breakout Desk", [["fresh", "Fresh breakouts"], ["climbing", "Climbing"], ["forming", "Forming base"]].map(([k, n]) =>
-      ({ id: "r:bo_" + k, name: n, syms: by[k], x, about: "Stocks on our Breakout Desk at this stage, from the latest scan. Updates with the Breakout Desk." })));
+    const by = {}, x = {}, best = {};
+    for (const r of BOD.rows || []) { if (BO_RANK[r.stage] == null) continue; const k = r.screen + "|" + r.sym;
+      if (best[k] == null || BO_RANK[r.stage] < BO_RANK[best[k].stage]) best[k] = r; }
+    for (const k in best) { const r = best[k]; (by[r.screen] = by[r.screen] || []).push(r); const i = boInfo(r.sym); if (i) x[r.sym] = i.text; }
+    const ord = [["vcp", "VCP"], ["multiyear", "Multi-year"], ["ipo", "IPO base"], ["bluesky", "Blue sky"]];
+    rlAdd("Breakout Desk", ord.map(([k, n]) => ({ id: "r:bo_" + k, name: n,
+      syms: (by[k] || []).sort((p, q) => BO_RANK[p.stage] - BO_RANK[q.stage]).map(r => r.sym), x,
+      about: `${n} stocks on our Breakout Desk from the latest scan: fresh breakouts first, then climbing, then forming a base. Updates with the Breakout Desk.` })));
     wlDraw();
   }
   const WK = "mmwl", MAIN = "bo_watch";
@@ -1541,7 +1554,7 @@ body.popped #po{display:none}
     if (push) history.replaceState(null, "", "?" + encodeURIComponent(sym) + (tfCode() !== "d" ? "&tf=" + tfCode() : "") + FULLQ);
     wlDraw(); $("#q").value = sym;
     $("#msg").hidden = false; $("#msg").textContent = "Loading chart…";
-    const [idx, d, ev] = await Promise.all([MM.index().catch(() => null), MMChart.load(sym).catch(() => null),
+    const [idx, d, ev] = await Promise.all([MM.index().catch(() => null), MMChart.load(sym, 1).catch(() => null),
       null, MM.live ? MM.live().catch(() => null) : null]);
     if (SYM !== sym) return;
     if (document.activeElement !== $("#q")) $("#q").value = sym;

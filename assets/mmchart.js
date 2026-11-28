@@ -36,8 +36,9 @@
 
   // ---------- data
   const cache = {};
-  async function load(sym) {
-    if (cache[sym]) return cache[sym];
+  async function load(sym, any) {                         // any = the full chart page: show even a few days of history (new listings)
+    const ck = sym + (any ? "|a" : "");
+    if (cache[ck]) return cache[ck];
     const [h, r, ev] = await Promise.all([getJ(DATA() + "charts/c/" + encodeURIComponent(sym) + ".json"),
       getJ(DATA() + "breakouts/all/r_" + encodeURIComponent(sym[0]) + ".json"), getJ(DATA() + "events/" + encodeURIComponent(sym) + ".json")]);
     const rows = o => o ? o.t.map((t, i) => ({ t, o: o.o[i], h: o.h[i], l: o.l[i], c: o.c[i], v: o.v[i] || 0 })).filter(x => x.c != null) : [];
@@ -46,9 +47,9 @@
     const rec = r && r.s && r.s[sym] ? rows(r.s[sym]) : [];
     const lastT = d.length ? d[d.length - 1].t : w.length ? w[w.length - 1].t : -1;
     d = d.concat(rec.filter(x => x.t > lastT));
-    if (!d.length && !w.length || !h && d.length < 60) return null;     // too little history: pages keep their simple chart
+    if (!d.length && !w.length || !h && d.length < 60 && !any) return null;     // too little history: pages keep their simple chart
     for (const x of d) { if (x.o == null) x.o = x.c; if (x.h == null) x.h = Math.max(x.o, x.c); if (x.l == null) x.l = Math.min(x.o, x.c); }
-    return (cache[sym] = { d, w, ev });
+    return (cache[ck] = { d, w, ev });
   }
   const wkKey = t => Math.floor((t + 3) / 7);              // Monday-start weeks (day 0 = Thursday 1 Jan 1970)
   function weekly(D) {
