@@ -119,6 +119,11 @@ select.bt{padding-right:6px}
 .dbar .b:hover{background:var(--soft)}.dbar .b.on{background:#e8f1ea;color:#2f7a40}
 .dbar .dsep{width:1px;height:18px;background:var(--line);margin:0 3px}
 /* note / date boxes */
+.abox{position:fixed;left:50%;top:30%;transform:translate(-50%,-50%);width:min(340px,92vw);z-index:4100;padding:14px 16px}
+.abox .am{font-size:13.5px;line-height:1.45;white-space:pre-line;margin-bottom:8px}
+.abox input{width:100%;padding:8px 10px;border:1.5px solid var(--line);border-radius:8px;font:inherit;font-size:14px;margin-bottom:10px;background:var(--card);color:var(--ink)}
+.abox .nbt{display:flex;gap:6px;justify-content:flex-end}
+#aback{z-index:4090}
 .npop{left:50%;top:110px;transform:translateX(-50%);width:min(320px,92%)}
 .npop textarea{width:100%;margin:8px 0;padding:8px;border:1.5px solid var(--line);border-radius:8px;font:inherit;font-size:13px;resize:vertical;background:var(--card);color:var(--ink)}
 .npop .nbt{display:flex;gap:6px;justify-content:flex-end}
@@ -153,16 +158,15 @@ body.popped #po{display:none}
 .cwrap .clg .ev>span,.cwrap .clg .boinfo{pointer-events:auto}
 .cbot{height:30px}
 /* hide / show tabs on the chart edges */
-.hdl{display:none!important}
-.hdlx{position:absolute;z-index:25;border:1px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer;opacity:0;transition:opacity .15s;display:flex;align-items:center;justify-content:center;font-size:10px;line-height:1;padding:0}
-.cwrap:hover .hdl,.hdl:focus{opacity:.9}.hdl:hover{opacity:1!important;color:var(--ink);background:var(--soft)}
-@media (hover:none){.hdl{opacity:.65}}
-.hdl-t{top:0;left:50%;transform:translateX(-50%);width:52px;height:14px;border-top:0;border-radius:0 0 8px 8px}
-.hdl-b{bottom:30px;left:50%;transform:translateX(-50%);width:52px;height:14px;border-bottom:0;border-radius:8px 8px 0 0}
-.hdl-l{left:0;top:50%;transform:translateY(-50%);width:14px;height:52px;border-left:0;border-radius:0 8px 8px 0}
-.hdl-r{right:0;top:50%;transform:translateY(-50%);width:14px;height:52px;border-right:0;border-radius:8px 0 0 8px}
+.hdl{position:absolute;z-index:25;border:0;background:var(--muted);cursor:pointer;opacity:.28;transition:opacity .15s,background .15s;padding:0;font-size:0;border-radius:3px}
+.hdl::before{content:"";position:absolute;inset:-7px}  /* bigger click area than the thin bar */
+.cwrap:hover .hdl{opacity:.5}.hdl:hover,.hdl:focus-visible{opacity:1!important;background:#2563eb}
+.hdl-t{top:3px;left:50%;transform:translateX(-50%);width:44px;height:4px}
+.hdl-b{bottom:34px;left:50%;transform:translateX(-50%);width:44px;height:4px}
+.hdl-l{left:3px;top:50%;transform:translateY(-50%);width:4px;height:44px}
+.hdl-r{right:3px;top:50%;transform:translateY(-50%);width:4px;height:44px}
 .cp.h-t .ctop,.cp.h-l .ctools,.cp.h-b .cbot,.cp.h-r .crail,.cp.h-r .cside{display:none!important}
-.cp.h-b .hdl-b{bottom:0}
+.cp.h-b .hdl-b{bottom:4px}
 .dbar{top:20px}
 @media (max-width:700px){.cbot #gd,.cbot #iv,.cbot #rsb,.cbot .notadv,.cbot .sep2{display:none}.cbot{gap:3px;padding:3px 4px}.cbot .seg button{padding:3px 6px}}
 .notadv{font-size:11px;color:var(--muted);text-decoration:none;padding:0 4px}.notadv:hover{text-decoration:underline}
@@ -181,11 +185,19 @@ body.popped #po{display:none}
 .wlh{display:flex;gap:6px;padding:8px 10px 6px;align-items:center}
 .wlh select{flex:1;min-width:0;font-weight:700;padding:6px 8px}
 .wlh .bt{padding:5px 9px}
-.wladd{padding:0 10px 8px;position:relative;}
-.wfl{display:flex;flex-wrap:wrap;gap:5px;align-items:center;padding:0 10px 8px;border-bottom:1px solid var(--line);font-size:11.5px}
-.wfl button,.wfl select{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:3px 9px;font:inherit;font-weight:600;cursor:pointer}
-.wfl button.on{background:#0f172a;color:#fff;border-color:#0f172a}.wfl select.on{border-color:#0f172a;font-weight:800}
-.wfl .cnt{margin-left:auto;color:var(--muted)}.wfl .clr{border:0;background:none;color:#2563eb;padding:3px 2px}
+.wladd{padding:0 10px 8px;position:relative}.wladd[hidden]{display:none}#wadd.on{background:var(--soft)}
+.wfl{display:flex;align-items:center;gap:4px;padding:0 8px 6px 10px;border-bottom:1px solid var(--line);font-size:12px}
+.wfl button{border:0;background:none;color:var(--muted);border-radius:6px;padding:3px 6px;font:inherit;font-weight:600;cursor:pointer;white-space:nowrap}
+.wfl button:hover{background:var(--soft);color:var(--ink)}
+.wfl .wso{display:flex;align-items:center;gap:4px;min-width:0;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
+.wfl .wper{display:flex;margin-left:auto;background:var(--soft);border-radius:7px;padding:1px}
+.wfl .wper button{padding:2px 6px;font-size:11.5px}.wfl .wper button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(15,23,42,.12)}
+.wfl .wfb{display:flex;align-items:center;gap:3px}.wfl .wfb.on{color:#2563eb}
+.wfl .wfb b{background:#2563eb;color:#fff;border-radius:8px;font-size:10px;padding:0 5px;line-height:15px}
+.wfm .chk{display:flex!important;align-items:center;gap:8px}.wfm .chk i{width:15px;height:15px;border:1.5px solid var(--line);border-radius:4px;font-style:normal;font-size:11px;display:flex;align-items:center;justify-content:center;flex:none}
+.wfm .chk.on i{background:#2563eb;border-color:#2563eb;color:#fff}
+.wfm .foot{display:flex;justify-content:space-between;align-items:center;padding:6px 10px 2px;font-size:12px;color:var(--muted)}
+.wfm .foot button{width:auto;padding:2px 4px;color:#2563eb;font-weight:600}
 .wpr.mine{cursor:grab}.wpr.dragover{box-shadow:inset 0 2px 0 #2563eb}.wpr.dragging{opacity:.4}
 .wladd input{width:100%;padding:7px 10px;border:1.5px solid var(--line);border-radius:9px;font:inherit;font-size:13px;background:var(--card);color:var(--ink)}
 .wladd .sugg{left:10px;right:10px;min-width:0}
@@ -305,7 +317,7 @@ body.popped #po{display:none}
     <div class="rt">
       <button class="bt" id="alb" title="Add a price alert (Alt+A)" aria-label="Add a price alert"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></button>
       <button class="bt hide-sm" id="hb" title="Keyboard shortcuts (?)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg></button>
-      <button class="bt hide-sm" id="sn" title="Save a picture of the chart"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
+      <button class="bt" id="sn" title="Share or save a picture of the chart" aria-label="Share" aria-haspopup="menu"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
       <button class="bt" id="po" title="Open this chart in its own big window"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4h6v6M20 4l-8 8"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></button>
       <button class="bt" id="fz" title="Full screen"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
     </div>
@@ -322,8 +334,8 @@ body.popped #po{display:none}
         <button class="bb" id="pc" title="Percent scale (Alt+P)">%</button><button class="bb" id="lg" title="Log scale: equal % moves look equal (Alt+L)">log</button><button class="bb" id="iv" title="Upside-down scale (Alt+I)">inv</button><button class="bb" id="rsb" title="Reset the view (Alt+R)">reset</button><span class="sep2"></span><a class="notadv" href="../about/" target="_blank" rel="noopener" title="Market Mint is not SEBI-registered. For learning and research only.">Not advice</a></div></div>
     <aside class="cside" id="side" aria-label="Watchlists and events"><div class="rsz" id="rsz" title="Drag to make the panel wider or narrower"></div>
       <section id="pwl">
-        <div class="wlh"><select class="bt" id="wsel" aria-label="Pick a watchlist"></select><button class="bt" id="wpick" aria-haspopup="listbox" title="Pick a list (your lists, IPOs, Breakout Desk, indices…)"><span>My watchlist</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></button><button class="bt" id="wadd" title="Add this stock (Alt+W)">+</button><button class="bt" id="wmb" title="Watchlist menu" aria-label="Watchlist menu">⋯</button><button class="bt" data-close title="Close panel" aria-label="Close panel">×</button></div>
-        <div class="wladd"><input id="wq" type="search" placeholder="Add a stock to this list…" autocomplete="off" aria-label="Add a stock to this list"></div>
+        <div class="wlh"><select class="bt" id="wsel" aria-label="Pick a watchlist"></select><button class="bt" id="wpick" aria-haspopup="listbox" title="Pick a list (your lists, IPOs, Breakout Desk, indices…)"><span>My watchlist</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></button><button class="bt" id="wadd" title="Add a stock to this list (Alt+W adds the chart's stock)" aria-expanded="false">+</button><button class="bt" id="wmb" title="Watchlist menu" aria-label="Watchlist menu">⋯</button><button class="bt" data-close title="Close panel" aria-label="Close panel">×</button></div>
+        <div class="wladd" hidden><input id="wq" type="search" placeholder="Add a stock to this list…" autocomplete="off" aria-label="Add a stock to this list"></div>
         <div class="wfl" id="wfl"></div>
         <div class="wlist" id="wlist"></div>
       </section>
@@ -346,10 +358,12 @@ body.popped #po{display:none}
   </div>
   <div class="pop ipop" id="ipop" hidden></div>
   <div class="pop wmenu" id="wmenu" hidden></div>
+  <div class="pop wmenu" id="shm" hidden role="menu"></div>
   <div class="wpk" id="wpk" hidden role="dialog" aria-label="Pick a list"><input id="wpq" type="search" placeholder="Find a list or index…" autocomplete="off"><div class="wpt" id="wpt"></div><div id="wpb"></div></div>
   <div class="pop lpk" id="lpk" hidden role="dialog" aria-label="Choose watchlists"></div>
   <div class="imback" id="imback" hidden></div><div class="pop imp" id="imp" hidden role="dialog" aria-label="Add stocks to a list"></div>
   <div class="pop npop" id="npop" hidden></div>
+  <div class="imback" id="aback" hidden></div><div class="pop abox" id="abox" hidden role="dialog"></div>
   <div class="pop gpop" id="gpop" hidden><b style="font-size:13px">Go to date</b><input type="date" id="gdi"><div class="nbt" style="display:flex;gap:6px;justify-content:flex-end"><button class="bt" id="gdc">Cancel</button><button class="bt okb" id="gdo">Go</button></div></div>
   <div class="kd" id="kd" hidden><input id="kq" aria-label="Type a stock name, or a candle size like 1D, 1W, 1M" autocomplete="off" spellcheck="false"><div class="kl" id="kl"></div><div class="kh" id="kh"></div></div>
 </main>
@@ -513,15 +527,26 @@ body.popped #po{display:none}
   $("#tools").innerHTML = TOOLS.map(t => t === "-" ? "<hr>" : (t[0] && t[0][0] !== "@" && !SUP.has(t[0])) ? "" :
     `<button data-t="${t[0]}" title="${t[1]}" aria-label="${t[1]}">${ic(t[2])}</button>`).join("");
   let tool = "", magnet = false, hidden = false, lockAll = false, SEL = null, DSEL = null, inBar = false, DRAWING = null, CLIP = null;
+  // in-page question boxes: the browser's own prompt()/confirm() throw Chrome out of full screen
+  function askBox(msg, def, input) { return new Promise(res => {
+    const p = $("#abox"); p.innerHTML = `<div class="am"></div>${input ? `<input id="abi" autocomplete="off">` : ""}<div class="nbt"><button class="bt" data-a="0">Cancel</button><button class="bt okb" data-a="1">OK</button></div>`;
+    p.querySelector(".am").textContent = msg; const i = $("#abi"); if (i) i.value = def ?? "";
+    $("#aback").hidden = p.hidden = false; (i || p.querySelector(".okb")).focus(); if (i) i.select();
+    const done = ok => { p.hidden = $("#aback").hidden = true; p.onclick = p.onkeydown = $("#aback").onclick = null; res(input ? (ok ? i.value : null) : ok); };
+    p.onclick = e => { const b = e.target.closest("[data-a]"); if (b) done(b.dataset.a === "1"); };
+    $("#aback").onclick = () => done(false);
+    p.onkeydown = e => { e.stopPropagation(); if (e.key === "Enter") { e.preventDefault(); done(true); } else if (e.key === "Escape") { e.preventDefault(); done(false); } };
+  }); }
+  const ask = (msg, def) => askBox(msg, def, true), sure = msg => askBox(msg, null, false);
   const hint = (t, ms = 2400) => { const h = $("#hint"); h.textContent = t; h.classList.add("on"); clearTimeout(hint.t); hint.t = setTimeout(() => h.classList.remove("on"), ms); };
   const toolBtns = () => document.querySelectorAll("#tools button").forEach(b => {
     const t = b.dataset.t; b.classList.toggle("on", t === "@magnet" ? magnet : t === "@hide" ? hidden : t === "@lock" ? lockAll : t === tool && (t !== "" || true)); });
-  $("#tools").onclick = e => {
+  $("#tools").onclick = async e => {
     const b = e.target.closest("button"); if (!b || !chart) return; const t = b.dataset.t;
     if (t === "@magnet") { magnet = !magnet; hint(magnet ? "Magnet on: points snap to the candle" : "Magnet off"); }
     else if (t === "@hide") { hidden = !hidden; chart.overrideOverlay({ groupId: "draw", visible: !hidden }); hint(hidden ? "Drawings hidden" : "Drawings shown"); }
     else if (t === "@lock") { lockAll = !lockAll; chart.overrideOverlay({ groupId: "draw", lock: lockAll }); hint(lockAll ? "All drawings locked" : "Drawings unlocked"); if (lockAll) selNone(); }
-    else if (t === "@clear") { if (chart.getOverlays({ groupId: "draw" }).length && confirm("Delete all drawings on " + SYM + "? (Ctrl+Z brings them back)")) { selNone(); chart.removeOverlay({ groupId: "draw" }); saveDraw(); } }
+    else if (t === "@clear") { if (chart.getOverlays({ groupId: "draw" }).length && await sure("Delete all drawings on " + SYM + "? (Ctrl+Z brings them back)")) { selNone(); chart.removeOverlay({ groupId: "draw" }); saveDraw(); } }
     else if (t === "") { tool = ""; }
     else { tool = t; startDraw(t); }
     toolBtns();
@@ -930,9 +955,9 @@ body.popped #po{display:none}
     try { if (window.Notification && Notification.permission === "default") Notification.requestPermission(); } catch (e) {}
     hint(`Alert set: ${SYM} ${op} ₹${num(v, 2)} · drag the line to move it, click it to change, right-click to delete`, 5000);
   }
-  function alAsk() {
+  async function alAsk() {
     if (!SYM) return; const p = alPx();
-    const r = prompt(`New price alert for ${SYM}${p != null ? " (now ₹" + num(p) + ")" : ""}.\nAlert me when the price reaches:`, p != null ? (+p.toFixed(2)).toString() : "");
+    const r = await ask(`New price alert for ${SYM}${p != null ? " (now ₹" + num(p) + ")" : ""}.\nAlert me when the price reaches:`, p != null ? (+p.toFixed(2)).toString() : "");
     if (r == null) return; const v = parseFloat(String(r).replace(/[,₹\s]/g, "")); if (v > 0) alAdd(v); else hint("That is not a price");
   }
   function alMove(o) {
@@ -940,16 +965,16 @@ body.popped #po{display:none}
     alSave(alList().map(a => a.id === id ? Object.assign(a, { v, op: alOp(v), st: "Enabled", hit: undefined, hp: undefined }) : a)); drawAL();
     hint(`Alert moved to ₹${num(v)}`);
   }
-  function alEdit(id) {
+  async function alEdit(id) {
     const a = alList().find(x => x.id === id); if (!a) return;
-    const r = prompt(`Alert for ${a.s}: ${a.op} ₹${num(a.v)}${a.st === "Triggered" ? " (already hit)" : ""}.\nType a new price to change it, or 0 to delete it:`, String(a.v));
+    const r = await ask(`Alert for ${a.s}: ${a.op} ₹${num(a.v)}${a.st === "Triggered" ? " (already hit)" : ""}.\nType a new price to change it, or 0 to delete it:`, String(a.v));
     if (r == null) return; const v = parseFloat(String(r).replace(/[,₹\s]/g, ""));
     if (!v) { alDel(id, true); return; }
     alSave(alList().map(x => x.id === id ? Object.assign(x, { v: +v.toFixed(2), op: alOp(v), st: "Enabled", hit: undefined, hp: undefined }) : x)); drawAL(); hint(`Alert changed to ₹${num(v)}`);
   }
-  function alDel(id, sure) {
+  async function alDel(id, yes) {
     const a = alList().find(x => x.id === id); if (!a) return;
-    if (!sure && !confirm(`Delete the alert ${a.s} ${a.op} ₹${num(a.v)}?`)) return;
+    if (!yes && !(await sure(`Delete the alert ${a.s} ${a.op} ₹${num(a.v)}?`))) return;
     alSave(alList().filter(x => x.id !== id)); drawAL(); hint("Alert deleted");
   }
   // Alt+A: alert at the mouse price (mouse not on the chart = ask for the price)
@@ -1153,15 +1178,41 @@ body.popped #po{display:none}
   $("#eb").onclick = sideBtn("ev"); $("#wb").onclick = sideBtn("wl"); $("#nb").onclick = sideBtn("nw");
 
   $("#side").addEventListener("click", e => { if (e.target.closest("[data-close]")) closeSide(); });
-  $("#sn").onclick = () => { const u = chart.getConvertPictureUrl(true, "png", CARD); const a = document.createElement("a"); a.href = u; a.download = `${SYM}-${PER}-chart.png`; a.click(); };
+  // share menu: save / copy the picture, copy the link, or the phone/computer share sheet
+  const picUrl = () => chart.getConvertPictureUrl(true, "png", CARD);
+  const picName = () => `${SYM}-${PER}-chart.png`;
+  const picBlob = () => fetch(picUrl()).then(r => r.blob());
+  const chartLink = () => location.origin + location.pathname + "?" + encodeURIComponent(SYM) + (tfCode() !== "d" ? "&tf=" + tfCode() : "");
+  function savePic() { const a = document.createElement("a"); a.href = picUrl(); a.download = picName(); document.body.appendChild(a); a.click(); a.remove(); hint("Picture saved"); }
+  $("#sn").onclick = e => { e.stopPropagation(); const m = $("#shm"); if (!m.hidden) { m.hidden = true; return; }
+    m.innerHTML = `<button data-sh="save">Save picture</button><button data-sh="copy">Copy picture</button><button data-sh="link">Copy link to this chart</button>`
+      + (navigator.share ? `<button data-sh="share">Share…</button>` : "");
+    m.hidden = false; const r = $("#sn").getBoundingClientRect(), base = $("#cp").getBoundingClientRect();
+    m.style.left = Math.max(6, r.right - base.left - m.offsetWidth) + "px"; m.style.top = (r.bottom - base.top + 6) + "px"; };
+  $("#shm").onclick = async e => { e.stopPropagation(); const b = e.target.closest("[data-sh]"); if (!b) return; $("#shm").hidden = true; const k = b.dataset.sh;
+    try {
+      if (k === "save") savePic();
+      else if (k === "copy") { await navigator.clipboard.write([new ClipboardItem({ "image/png": picBlob() })]); hint("Picture copied: paste it into Telegram, WhatsApp…"); }
+      else if (k === "link") { await navigator.clipboard.writeText(chartLink()); hint("Link copied"); }
+      else if (k === "share") { const f = new File([await picBlob()], picName(), { type: "image/png" }), d = { title: SYM + " chart", text: SYM + " chart · Market Mint", url: chartLink() };
+        await navigator.share(navigator.canShare && navigator.canShare({ files: [f] }) ? Object.assign(d, { files: [f] }) : d); }
+    } catch (err) { if (err && err.name !== "AbortError") { if (k === "copy") { savePic(); hint("Could not copy here, so the picture was saved instead"); } else hint("Could not do that in this browser"); } } };
+  document.addEventListener("click", e => { if (!e.target.closest("#shm")) $("#shm").hidden = true; });
   // pop out: the same chart in its own window, filling the whole screen (no site header). Each click = a new window.
   $("#po").onclick = () => {
     const u = location.pathname + "?" + encodeURIComponent(SYM) + (tfCode() !== "d" ? "&tf=" + tfCode() : "") + "&full=1";
     const w = window.open(u, "mmc" + Date.now(), `popup=yes,width=${screen.availWidth},height=${screen.availHeight},left=0,top=0`);
     if (!w) location.href = u;                      // pop-ups blocked: open the full view here
   };
-  $("#fz").onclick = () => { document.fullscreenElement ? document.exitFullscreen() : $("#cp").requestFullscreen && $("#cp").requestFullscreen().catch(() => {}); };
-  document.addEventListener("fullscreenchange", () => setTimeout(() => chart.resize(), 50));
+  // full screen = the whole page (so pop-ups, shortcut list and menus still show); the site header hides while in it
+  const wasFull = document.body.classList.contains("full");
+  $("#fz").onclick = () => { const d = document.documentElement;
+    if (document.fullscreenElement || document.webkitFullscreenElement) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    else { const r = d.requestFullscreen || d.webkitRequestFullscreen; if (r) { const x = r.call(d); x && x.catch && x.catch(() => {}); } } };
+  const fsChange = () => { const on = !!(document.fullscreenElement || document.webkitFullscreenElement);
+    document.body.classList.toggle("full", on || wasFull); $("#fz").classList.toggle("on", on); $("#fz").title = on ? "Leave full screen (Esc)" : "Full screen";
+    setTimeout(() => chart.resize(), 60); };
+  document.addEventListener("fullscreenchange", fsChange); document.addEventListener("webkitfullscreenchange", fsChange);
   MM.attachSearch($("#q"), r => { go(r.s); setTimeout(() => { $("#q").value = r.s; $("#q").blur(); }, 0); });
   // the box shows the stock on the chart; click = select it all, so typing replaces it; leaving it empty puts it back
   let qClick = false;
@@ -1221,18 +1272,41 @@ body.popped #po{display:none}
     if (f.bo && !BOS[sym]) return false; if (f.hi && !(r.fh != null && r.fh >= -5)) return false;
     if (f.cap) { const [a, b] = CAP[f.cap], m = r.m; if (m == null || m < a || m >= b) return false; }
     return true; }
-  function wfDraw(n, all) { const f = P.wf || {};
-    $("#wfl").innerHTML = [["d", "up", "▲ Up today"], ["d", "dn", "▼ Down today"], ["bo", 1, "Breakout Desk"], ["hi", 1, "Near 52W high"]]
-      .map(([k, v, t]) => `<button data-f="${k}" data-v="${v}" class="${f[k] == v ? "on" : ""}" title="${k === "hi" ? "Within 5% of its 52-week high" : k === "bo" ? "On a Breakout Desk screen now" : ""}">${t}</button>`).join("")
-      + `<select data-cap class="${f.cap ? "on" : ""}" aria-label="Company size"><option value="">All sizes</option><option value="large" ${f.cap === "large" ? "selected" : ""}>Large cap</option><option value="mid" ${f.cap === "mid" ? "selected" : ""}>Mid cap</option><option value="small" ${f.cap === "small" ? "selected" : ""}>Small cap</option></select>`
-      + (wfOn() ? `<span class="cnt">${n} of ${all}</span><button class="clr" data-clr>Clear</button>` : ""); }
-  $("#wfl").addEventListener("click", e => { const b = e.target.closest("[data-f]"), c = e.target.closest("[data-clr]");
-    if (c) { P.wf = { d: "", bo: 0, hi: 0, cap: "" }; save(); wlDraw(); return; }
-    if (!b) return; const k = b.dataset.f, v = k === "d" ? b.dataset.v : 1; P.wf[k] = P.wf[k] == v ? (k === "d" ? "" : 0) : v; save(); wlDraw(); });
-  $("#wfl").addEventListener("change", e => { if (e.target.matches("[data-cap]")) { P.wf.cap = e.target.value; save(); wlDraw(); } });
+  // the change column shows Day / 1W / 1M / 3M / 1Y; sorting by return uses the same period
+  P.wper = P.wper || "1D";
+  const WPER = { "1D": "Day", "1W": "1W", "1M": "1M", "3M": "3M", "1Y": "1Y" }, WRK = { "1W": "r1w", "1M": "r1m", "3M": "r3m", "1Y": "r1y" };
+  const retOf = s => P.wper === "1D" ? pxOf(s).c : (BY[s] || {})[WRK[P.wper]];
+  const WSORT = [["", "My order"], ["name", "Name A → Z"], ["namez", "Name Z → A"], ["chg", "Return: best first"], ["chgup", "Return: worst first"],
+    ["px", "Price: high to low"], ["pxup", "Price: low to high"], ["hi", "Closest to 52-week high"], ["cap", "Biggest company first"]];
+  const WFILT = [["d", "up", "Up today"], ["d", "dn", "Down today"], ["bo", 1, "On Breakout Desk"], ["hi", 1, "Within 5% of 52-week high"]];
+  const wfCount = () => { const f = P.wf || {}; return (f.d ? 1 : 0) + (f.bo ? 1 : 0) + (f.hi ? 1 : 0) + (f.cap ? 1 : 0); };
+  let WFN = [0, 0];
+  function wfDraw(n, all) { WFN = [n, all]; const so = (WSORT.find(x => x[0] === (W.sort || "")) || WSORT[0])[1], c = wfCount();
+    $("#wfl").innerHTML = `<button class="wso" data-wm="sort" title="Sort this list"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4"/></svg>${esc(so.replace(/^Return: /, "Return "))}</button>`
+      + `<span class="wper" title="Change shown on the right">${Object.keys(WPER).map(k => `<button data-per="${k}" class="${P.wper === k ? "on" : ""}">${WPER[k]}</button>`).join("")}</span>`
+      + `<button class="wfb ${c ? "on" : ""}" data-wm="filt" title="Filter this list"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg>${c ? `<b>${c}</b>` : ""}</button>`;
+    if (!$("#wmenu").hidden && $("#wmenu").dataset.k === "filt") wfMenu(); }
+  function wmPlace(btn) { const m = $("#wmenu"), r = btn.getBoundingClientRect(), base = $("#cp").getBoundingClientRect();
+    m.hidden = false; m.style.left = Math.max(6, Math.min(r.right - base.left - m.offsetWidth, base.width - m.offsetWidth - 6)) + "px"; m.style.top = (r.bottom - base.top + 4) + "px"; }
+  function wfMenu() { const f = P.wf, m = $("#wmenu"), ck = on => `class="chk ${on ? "on" : ""}"><i>${on ? "✓" : ""}</i`;
+    m.classList.add("wfm"); m.dataset.k = "filt";
+    m.innerHTML = `<div class="lab">Show only</div>` + WFILT.map(([k, v, t]) => `<button data-f="${k}" data-v="${v}" ${ck(f[k] == v)}>${t}</button>`).join("")
+      + `<hr><div class="lab">Company size</div>` + [["", "All sizes"], ["large", "Large cap"], ["mid", "Mid cap"], ["small", "Small cap"]].map(([v, t]) => `<button data-cap="${v}" ${ck((f.cap || "") === v)}>${t}</button>`).join("")
+      + `<div class="foot"><span>${WFN[0]} of ${WFN[1]} shown</span>${wfCount() ? `<button data-clr>Clear all</button>` : ""}</div>`; }
+  function wsMenu() { const m = $("#wmenu"), so = W.sort || ""; m.classList.remove("wfm"); m.dataset.k = "sort";
+    m.innerHTML = `<div class="lab">Sort by</div>` + WSORT.map(([k, t]) => `<button data-s="${k}" class="${so === k ? "on" : ""}">${so === k ? "✓ " : ""}${k === "" && wlCur().ro ? "List order" : t}${/^chg/.test(k) ? ` (${WPER[P.wper]})` : ""}</button>`).join(""); }
+  $("#wfl").addEventListener("click", e => { e.stopPropagation(); const pb = e.target.closest("[data-per]"), mb = e.target.closest("[data-wm]");
+    if (pb) { P.wper = pb.dataset.per; save(); wlDraw(); return; }
+    if (!mb) return; const m = $("#wmenu"); if (!m.hidden && m.dataset.k === mb.dataset.wm) { m.hidden = true; return; }
+    mb.dataset.wm === "sort" ? wsMenu() : wfMenu(); wmPlace(mb); });
   const wlShown = () => { let s = wlSyms(wlCur()).slice(); if (wfOn()) s = s.filter(wfKeep);
-    if (W.sort === "name") s.sort(); else if (W.sort === "chg") s.sort((a, b) => (pxOf(b).c ?? -1e9) - (pxOf(a).c ?? -1e9));
-    else if (W.sort === "chgup") s.sort((a, b) => (pxOf(a).c ?? 1e9) - (pxOf(b).c ?? 1e9)); return s; };
+    const by = (f, up) => s.sort((a, b) => { const x = f(a), y = f(b); return x == null ? 1 : y == null ? -1 : up ? x - y : y - x; });
+    const so = W.sort || "";
+    if (so === "name") s.sort(); else if (so === "namez") s.sort().reverse();
+    else if (so === "chg") by(retOf); else if (so === "chgup") by(retOf, true);
+    else if (so === "px") by(x => pxOf(x).p); else if (so === "pxup") by(x => pxOf(x).p, true);
+    else if (so === "hi") by(x => (BY[x] || {}).fh); else if (so === "cap") by(x => (BY[x] || {}).m);
+    return s; };
   function wlDraw() {
     const l = wlCur(), syms = wlShown(), own = wlOwn(), inOwn = new Set(wlSyms(own));
     wfDraw(syms.length, wlSyms(l).length);
@@ -1240,13 +1314,13 @@ body.popped #po{display:none}
     $("#wsel").innerHTML = `<optgroup label="My lists">${W.lists.map(opt).join("")}<option value="+new">＋ Create a new list…</option></optgroup>`
       + RL.map(g => `<optgroup label="${esc(g.g)}">${g.lists.map(opt).join("")}</optgroup>`).join("");
     $("#wpick span").textContent = l.name; if (!$("#wpk").hidden) wpDraw();
-    $(".wladd").hidden = !!l.ro;
+    if (l.ro) $(".wladd").hidden = true; $("#wadd").hidden = !!l.ro; $("#wadd").classList.toggle("on", !$(".wladd").hidden);
     const ro = l.ro ? `<div class="wro" title="${esc(l.about || `Members of the ${l.name} index. Kept in line when NSE changes the index.`)} Tap + on a stock to put it in one of your lists.">
       <span>Auto-updated daily</span><button class="bt" data-copyall>Copy to my lists</button></div>` : "";
     $("#wlist").innerHTML = ro + (syms.length ? syms.map(s => { const r = BY[s] || {}, x = pxOf(s), note = l.ro && l.x && l.x[s];
       const inN = W.lists.filter(o => wlSyms(o).includes(s)).length;
       return `<div class="wrow ${l.ro ? "" : "two"} ${s === SYM ? "on" : ""}" data-s="${esc(s)}" draggable="${W.sort || l.ro || wfOn() ? "false" : "true"}"><span><b>${esc(s)}</b>${BOS[s] ? `<em class="wbo" title="On Breakout Desk">${BO_ST[BOS[s]]}</em>` : ""}<small title="${esc(r.n || "")}">${esc(note || r.n || "")}</small></span>
-        <span class="p">${x.p != null ? num(x.p) : "–"}</span><span class="c ${MM.cls(x.c)}">${x.c != null ? sgn(x.c, 2) : ""}</span>
+        <span class="p">${x.p != null ? num(x.p) : "–"}</span>${(rv => `<span class="c ${MM.cls(rv)}">${rv != null ? sgn(rv, P.wper === "1D" ? 2 : 1) : ""}</span>`)(retOf(s))}
         <button class="wcp ${(l.ro ? inN : inN > 1) ? "in" : ""}" data-cp="${esc(s)}" title="Add to / move to my other lists${inN ? ` (in ${inN} of my lists)` : ""}" aria-label="Choose lists for ${esc(s)}">${(l.ro ? inN : inN > 1) ? "✓" : "+"}</button>
         ${l.ro ? "" : `<button class="rm" data-rm="${esc(s)}" title="Remove from this list" aria-label="Remove ${esc(s)}">×</button>`}</div>`; }).join("")
       : wfOn() && wlSyms(l).length ? `<div class="wempty">No stock in this list matches the filters. <a href="#" data-clr2>Clear filters</a></div>` : `<div class="wempty">No stocks yet. Use the box above, <b>Alt+W</b>, or <b>⋯</b> → Add from screenshot / file.</div>`);
@@ -1284,9 +1358,9 @@ body.popped #po{display:none}
     out["1D"] = avg(s => pxOf(s).c); for (const k in RK2) out[k] = avg(s => (BY[s] || {})[RK2[k]]);
     return out;
   }
-  function wpPick(id) {
+  async function wpPick(id) {
     $("#wpk").hidden = true;
-    if (id === "+new") { const n = (prompt("Name for your new list:", "List " + W.lists.length) || "").trim(); if (n) { wlNew(n, []); hint("Created " + n + ". Add stocks with the box above or + on any list"); } wlDraw(); return; }
+    if (id === "+new") { const n = (await ask("Name for your new list:", "List " + W.lists.length) || "").trim(); if (n) { wlNew(n, []); hint("Created " + n + ". Add stocks with the box above or + on any list"); } wlDraw(); return; }
     W.cur = id; if (!RLB[W.cur]) W.own = W.cur; wlSave(); wlDraw(); $("#wlist").scrollTop = 0;
   }
   function wpDraw() {
@@ -1351,16 +1425,17 @@ body.popped #po{display:none}
   $("#wpk").addEventListener("keydown", e => { if (e.key === "Escape") { e.stopPropagation(); $("#wpk").hidden = true; $("#wpick").focus(); }
     else if (e.key === "Enter" && e.target.id === "wpq") { const f = $("#wpb [data-id]"); if (f) wpPick(f.dataset.id); } });
   document.addEventListener("click", e => { if (!e.target.closest("#wpk")) $("#wpk").hidden = true; });
-  $("#wsel").onchange = () => { if ($("#wsel").value === "+new") { const n = (prompt("Name for your new list:", "List " + W.lists.length) || "").trim(); if (n) { wlNew(n, []); hint("Created " + n + ". Add stocks with the box above or + on any list"); } wlDraw(); return; }
+  $("#wsel").onchange = async () => { if ($("#wsel").value === "+new") { const n = (await ask("Name for your new list:", "List " + W.lists.length) || "").trim(); if (n) { wlNew(n, []); hint("Created " + n + ". Add stocks with the box above or + on any list"); } wlDraw(); return; }
     W.cur = $("#wsel").value; if (!RLB[W.cur]) W.own = W.cur; wlSave(); wlDraw(); $("#wlist").scrollTop = 0; };
-  $("#wadd").onclick = () => wlToggle(SYM, true);
+  $("#wadd").onclick = () => { const b = $(".wladd"); b.hidden = !b.hidden; $("#wadd").classList.toggle("on", !b.hidden); $("#wadd").setAttribute("aria-expanded", !b.hidden); if (!b.hidden) $("#wq").focus(); };
+  $("#wq").addEventListener("keydown", e => { if (e.key === "Escape" && !$("#wq").value) { $(".wladd").hidden = true; $("#wadd").classList.remove("on"); } });
   $("#wst").onclick = e => { e.stopPropagation(); lpOpen(SYM, $("#wst")); };
   MM.attachSearch($("#wq"), r => { const l = wlOwn(); if (!wlSyms(l).includes(r.s)) { wlSet(l, wlSyms(l).concat(r.s)); hint(`Added ${r.s} to ${l.name}`); } wlDraw(); });
   $("#wlist").addEventListener("click", e => { if (e.target.closest("[data-clr2]")) { e.preventDefault(); P.wf = { d: "", bo: 0, hi: 0, cap: "" }; save(); wlDraw(); } });
-  $("#wlist").onclick = e => { const rm = e.target.closest("[data-rm]"), cp = e.target.closest("[data-cp]");
+  $("#wlist").onclick = async e => { const rm = e.target.closest("[data-rm]"), cp = e.target.closest("[data-cp]");
     if (rm) { e.stopPropagation(); const l = wlCur(); wlSet(l, wlSyms(l).filter(x => x !== rm.dataset.rm)); wlDraw(); return; }
     if (cp) { e.stopPropagation(); lpOpen(cp.dataset.cp, cp); return; }
-    if (e.target.closest("[data-copyall]")) { const l = wlCur(), n = (prompt("Name for your copy:", l.name.replace(/^Breakout Desk · /, "")) || "").trim(); if (!n) return;
+    if (e.target.closest("[data-copyall]")) { const l = wlCur(), n = (await ask("Name for your copy:", l.name.replace(/^Breakout Desk · /, "")) || "").trim(); if (!n) return;
       wlNew(n, wlShown()); wlDraw(); hint(`Copied ${wlShown().length} stocks to your list “${n}”`); return; }
     const r = e.target.closest(".wrow"); if (!r) return; go(r.dataset.s); if (innerWidth <= 900) closeSide(); };
   let dragS = null;                                   // drag a row to reorder (only when the list is not sorted)
@@ -1388,8 +1463,8 @@ body.popped #po{display:none}
   $("#lpk").addEventListener("click", e => e.stopPropagation());
   $("#lpk").addEventListener("change", e => { const i = e.target.closest("input[data-l]"); if (!i) return; const o = W.lists.find(x => x.id === i.dataset.l); if (!o) return;
     wlSet(o, i.checked ? wlSyms(o).concat(LPS) : wlSyms(o).filter(x => x !== LPS)); hint(`${i.checked ? "Added" : "Removed"} ${LPS} ${i.checked ? "to" : "from"} ${o.name}`); wlDraw(); lpDraw(); });
-  $("#lpk").addEventListener("click", e => { const nb = e.target.closest("[data-lnew]"), mv = e.target.closest("[data-lmv]");
-    if (nb) { const n = (prompt("Name for the new list:", "List " + W.lists.length) || "").trim(); if (!n) return; const keep = W.cur; wlNew(n, [LPS]); if (RLB[keep]) { W.cur = keep; wlSave(); } wlDraw(); lpDraw(); hint(`Created ${n} with ${LPS}`); }
+  $("#lpk").addEventListener("click", async e => { const nb = e.target.closest("[data-lnew]"), mv = e.target.closest("[data-lmv]");
+    if (nb) { const n = (await ask("Name for the new list:", "List " + W.lists.length) || "").trim(); if (!n) return; const keep = W.cur; wlNew(n, [LPS]); if (RLB[keep]) { W.cur = keep; wlSave(); } wlDraw(); lpDraw(); hint(`Created ${n} with ${LPS}`); }
     if (mv) { const cur = wlCur(), to = W.lists.find(x => x.id === mv.dataset.lmv); if (!to || cur.ro) return;
       wlSet(to, wlSyms(to).concat(LPS)); wlSet(cur, wlSyms(cur).filter(x => x !== LPS)); $("#lpk").hidden = true; wlDraw(); hint(`Moved ${LPS} to ${to.name}`); } });
   document.addEventListener("click", e => { if (!e.target.closest("#lpk")) $("#lpk").hidden = true; });
@@ -1399,28 +1474,34 @@ body.popped #po{display:none}
   const fnm = n => (n.replace(/[^\w\- ]+/g, " ").trim().replace(/\s+/g, "_") || "watchlist");
   const csvQ = v => /[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v ?? "");
   // list menu: new / rename / delete / sort / add many (screenshot, file, paste) / copy / download
-  $("#wmb").onclick = e => { e.stopPropagation(); const m = $("#wmenu"); if (!m.hidden) { m.hidden = true; return; }
+  $("#wmb").onclick = e => { e.stopPropagation(); const m = $("#wmenu"); if (!m.hidden && m.dataset.k === "more") { m.hidden = true; return; } m.classList.remove("wfm"); m.dataset.k = "more";
     const l = wlCur(), so = W.sort || "", own = wlOwn();
-    const sorts = `<div class="lab">Sort</div>${[["", l.ro ? "List order" : "My order (drag to move)"], ["name", "Name A–Z"], ["chg", "Today: best first"], ["chgup", "Today: worst first"]].map(([k, t]) => `<button data-s="${k}" class="${so === k ? "on" : ""}">${so === k ? "✓ " : ""}${t}</button>`).join("")}`;
+
     const out = `<button data-a="copy">Copy symbols</button><button data-a="tv">Download for TradingView (.txt)</button><button data-a="csv">Download as spreadsheet (.csv)</button>`
       + `<hr><div class="lab">Another browser or device</div><button data-a="bk">Back up all my lists + alerts (file)</button><button data-a="rs">Restore from a backup file</button>`;
-    m.innerHTML = l.ro ? `<button data-a="copyto">Copy to a new list of mine</button><button data-a="addall">Add all to “${esc(own.name)}”</button><button data-a="new">＋ New empty list</button><hr>${sorts}<hr>${out}`
+    m.innerHTML = l.ro ? `<button data-a="copyto">Copy to a new list of mine</button><button data-a="addall">Add all to “${esc(own.name)}”</button><button data-a="new">＋ New empty list</button><hr>${out}`
       : `<button data-a="new">＋ New list</button><button data-a="ren">Rename “${esc(l.name)}”</button>${l.id !== "main" ? `<button data-a="del">Delete “${esc(l.name)}”</button>` : ""}
       <hr><div class="lab">Add many at once</div><button data-a="shot">Add from screenshot</button><button data-a="file">Import a file (Zerodha, Fyers, Groww, TradingView)</button><button data-a="paste">Paste symbols or names</button>
-      <hr>${sorts}<hr>${out}<button data-a="clear">Empty this list</button>`;
+      <hr>${out}<button data-a="clear">Empty this list</button>`;
     m.hidden = false; const r = $("#wmb").getBoundingClientRect(), base = $("#cp").getBoundingClientRect();
     m.style.left = Math.max(6, r.right - base.left - m.offsetWidth) + "px"; m.style.top = (r.bottom - base.top + 6) + "px"; };
-  $("#wmenu").onclick = async e => { e.stopPropagation(); const b = e.target.closest("button"); if (!b) return; $("#wmenu").hidden = true;
+  $("#wmenu").onclick = async e => { e.stopPropagation(); const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.f != null || b.dataset.cap != null || b.dataset.clr != null) {   // filters: the menu stays open
+      if (b.dataset.clr != null) P.wf = { d: "", bo: 0, hi: 0, cap: "" };
+      else if (b.dataset.cap != null) P.wf.cap = b.dataset.cap;
+      else { const k = b.dataset.f, v = k === "d" ? b.dataset.v : 1; P.wf[k] = P.wf[k] == v ? (k === "d" ? "" : 0) : v; }
+      save(); wlDraw(); return; }
+    $("#wmenu").hidden = true;
     const l = wlCur();
     if (b.dataset.s != null) { W.sort = b.dataset.s; wlSave(); wlDraw(); return; }
     const a = b.dataset.a;
-    if (a === "new") { const n = (prompt("Name for the new list:", "List " + W.lists.length) || "").trim(); if (!n) return; wlNew(n, []); wlDraw(); hint("Created " + n); }
-    else if (a === "copyto") { const n = (prompt("Name for your copy:", l.name.replace(/^Breakout Desk · /, "")) || "").trim(); if (!n) return; wlNew(n, wlShown()); wlDraw(); hint(`Copied ${wlShown().length} stocks to “${n}”`); }
+    if (a === "new") { const n = (await ask("Name for the new list:", "List " + W.lists.length) || "").trim(); if (!n) return; wlNew(n, []); wlDraw(); hint("Created " + n); }
+    else if (a === "copyto") { const n = (await ask("Name for your copy:", l.name.replace(/^Breakout Desk · /, "")) || "").trim(); if (!n) return; wlNew(n, wlShown()); wlDraw(); hint(`Copied ${wlShown().length} stocks to “${n}”`); }
     else if (a === "addall") { const o = wlOwn(), before = wlSyms(o).length; wlSet(o, wlSyms(o).concat(wlShown())); wlDraw(); hint(`Added ${wlSyms(o).length - before} stocks to ${o.name}`); }
-    else if (a === "ren") { const n = (prompt("New name:", l.name) || "").trim(); if (n) { l.name = n.slice(0, 40); wlSave(); wlDraw(); } }
-    else if (a === "del") { if (confirm(`Delete the list “${l.name}” (${wlSyms(l).length} stocks)? This cannot be undone.`)) { W.lists = W.lists.filter(x => x !== l); W.cur = W.own = "main"; wlSave(); wlDraw(); } }
-    else if (a === "clear") { if (wlSyms(l).length && confirm(`Remove all ${wlSyms(l).length} stocks from “${l.name}”?`)) { wlSet(l, []); wlDraw(); } }
-    else if (a === "copy") { const t = wlShown().join(", "); try { await navigator.clipboard.writeText(t); hint("Copied " + wlShown().length + " symbols"); } catch (err) { prompt("Copy these symbols:", t); } }
+    else if (a === "ren") { const n = (await ask("New name:", l.name) || "").trim(); if (n) { l.name = n.slice(0, 40); wlSave(); wlDraw(); } }
+    else if (a === "del") { if (await sure(`Delete the list “${l.name}” (${wlSyms(l).length} stocks)? This cannot be undone.`)) { W.lists = W.lists.filter(x => x !== l); W.cur = W.own = "main"; wlSave(); wlDraw(); } }
+    else if (a === "clear") { if (wlSyms(l).length && await sure(`Remove all ${wlSyms(l).length} stocks from “${l.name}”?`)) { wlSet(l, []); wlDraw(); } }
+    else if (a === "copy") { const t = wlShown().join(", "); try { await navigator.clipboard.writeText(t); hint("Copied " + wlShown().length + " symbols"); } catch (err) { await ask("Copy these symbols:", t); } }
     else if (a === "tv") { dl(fnm(l.name) + ".txt", wlShown().map(tvSym).join(","), "text/plain"); hint("Downloaded. In TradingView: watchlist menu → Import list", 4000); }
     else if (a === "csv") { dl(fnm(l.name) + ".csv", "Symbol,Company,Sector,Price,Change %\n" + wlShown().map(s => { const r = BY[s] || {}, x = pxOf(s); return [s, r.n || "", r.i || "", x.p ?? "", x.c != null ? x.c.toFixed(2) : ""].map(csvQ).join(","); }).join("\n"), "text/csv"); }
     else if (a === "shot" || a === "file" || a === "paste") impOpen(a);
@@ -1526,10 +1607,10 @@ body.popped #po{display:none}
         <button class="bt pri" id="igo">Add ticked</button><button class="bt" id="iall">Tick all</button></div>`;
     $("#itgt").onchange = () => { if ($("#itgt").value !== "+new") impShow(); };
     $("#iall").onclick = () => $("#ifound").querySelectorAll("input:not(:disabled)").forEach(x => x.checked = true);
-    $("#igo").onclick = () => {
+    $("#igo").onclick = async () => {
       const pick = [...$("#ifound").querySelectorAll("input:checked")].map(x => x.dataset.s); if (!pick.length) { istat("Tick at least one stock."); return; }
       let L = W.lists.find(x => x.id === $("#itgt").value);
-      if (!L) { const n = (prompt("Name for the new list:", IMPSRC === "pic" ? "From screenshot" : IMPSRC === "file" ? "Imported" : "List " + W.lists.length) || "").trim(); if (!n) return; L = wlNew(n, []); }
+      if (!L) { const n = (await ask("Name for the new list:", IMPSRC === "pic" ? "From screenshot" : IMPSRC === "file" ? "Imported" : "List " + W.lists.length) || "").trim(); if (!n) return; L = wlNew(n, []); }
       wlSet(L, wlSyms(L).concat(pick)); W.cur = W.own = L.id; wlSave(); impClose(); openSide("wl"); wlDraw(); hint(`Added ${pick.length} stocks to ${L.name}`, 3500);
     };
   }
@@ -1664,7 +1745,7 @@ body.popped #po{display:none}
       if (c === "KeyH" && hlineNow()) { stop(); return; }
       if (c === "KeyA") { stop(); alNow(); return; }
       if (T[c]) { stop(); pickTool(T[c]); return; }
-      const A = { KeyW: () => wlToggle(SYM), KeyS: () => { $("#sn").click(); hint("Picture saved"); }, KeyR: resetView, KeyL: () => $("#lg").click(), KeyP: () => $("#pc").click(),
+      const A = { KeyW: () => wlToggle(SYM), KeyS: () => savePic(), KeyR: resetView, KeyL: () => $("#lg").click(), KeyP: () => $("#pc").click(),
         KeyI: () => $("#iv").click(), KeyG: openDate };
       if (A[c]) { stop(); A[c](); }
       return;
