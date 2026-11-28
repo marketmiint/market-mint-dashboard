@@ -15,7 +15,11 @@
 /* Charts page: full-height app under the site header. Library: KLineChart v10 (Apache-2.0, assets/klc.js). */
 body.cpg{overflow-x:hidden}
 .cp{display:flex;flex-direction:column;height:var(--ch,calc(100vh - 110px));min-height:520px;background:var(--card,#fff);border-bottom:1px solid var(--line)}
-.ctop{display:flex;align-items:center;gap:6px;padding:5px 10px;border-bottom:1px solid var(--line);flex-wrap:wrap;font-size:13px}
+.ctop{display:flex;align-items:center;gap:6px;padding:5px 10px;border-bottom:1px solid var(--line);flex-wrap:nowrap;font-size:13px;min-width:0}
+.ctop>*{flex:none}.ctop .sym{flex:0 1 auto;min-width:0}.ctop .sym .bocat{min-width:0;flex:0 1 auto}.ctop .rt{flex:none}
+@media (max-width:1500px){.ctop #ib{font-size:0;gap:0}.ctop #ib svg{margin:0}.ctop .fs input{width:120px}}
+@media (max-width:1250px){.ctop .bocat .sw2{display:none}.ctop .px small{display:none}}
+@media (max-width:900px){.ctop{flex-wrap:wrap}}
 .ctop .sym{display:flex;align-items:center;gap:10px;min-width:0;margin-right:4px}
 .ctop .sym .nm{font-weight:800;font-size:15.5px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
 .ctop .sym .nm small{display:block;font-weight:500;font-size:12px;color:var(--muted)}
@@ -177,7 +181,12 @@ body.popped #po{display:none}
 .wlh{display:flex;gap:6px;padding:8px 10px 6px;align-items:center}
 .wlh select{flex:1;min-width:0;font-weight:700;padding:6px 8px}
 .wlh .bt{padding:5px 9px}
-.wladd{padding:0 10px 8px;position:relative;border-bottom:1px solid var(--line)}
+.wladd{padding:0 10px 8px;position:relative;}
+.wfl{display:flex;flex-wrap:wrap;gap:5px;align-items:center;padding:0 10px 8px;border-bottom:1px solid var(--line);font-size:11.5px}
+.wfl button,.wfl select{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:3px 9px;font:inherit;font-weight:600;cursor:pointer}
+.wfl button.on{background:#0f172a;color:#fff;border-color:#0f172a}.wfl select.on{border-color:#0f172a;font-weight:800}
+.wfl .cnt{margin-left:auto;color:var(--muted)}.wfl .clr{border:0;background:none;color:#2563eb;padding:3px 2px}
+.wpr.mine{cursor:grab}.wpr.dragover{box-shadow:inset 0 2px 0 #2563eb}.wpr.dragging{opacity:.4}
 .wladd input{width:100%;padding:7px 10px;border:1.5px solid var(--line);border-radius:9px;font:inherit;font-size:13px;background:var(--card);color:var(--ink)}
 .wladd .sugg{left:10px;right:10px;min-width:0}
 .wlist{flex:1;overflow-y:auto}
@@ -213,6 +222,7 @@ body.popped #po{display:none}
 .wpg{display:flex;width:100%;align-items:center;gap:6px;border:0;background:transparent;padding:9px 6px 4px;font:inherit;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);cursor:pointer}
 .wpg i{font-style:normal;transition:transform .15s}.wpg.op i{transform:rotate(90deg)}
 .wpg .k{margin-left:auto;font-weight:600;text-transform:none;letter-spacing:0;font-size:11px}
+.wpg.sub{padding-left:20px;font-size:10.5px}.wph.sub{padding-left:28px}.wpr.sub{padding-left:28px}
 .wph{display:grid;grid-template-columns:1fr 56px 56px;padding:0 8px 2px;font-size:10.5px;color:var(--muted)}.wph span{text-align:right}
 .wpr{display:grid;grid-template-columns:1fr;width:100%;align-items:center;border:0;background:transparent;padding:6px 8px;border-radius:7px;font:inherit;font-size:13.5px;text-align:left;cursor:pointer;color:inherit}
 .wpr.ix{grid-template-columns:1fr 56px 56px}
@@ -314,6 +324,7 @@ body.popped #po{display:none}
       <section id="pwl">
         <div class="wlh"><select class="bt" id="wsel" aria-label="Pick a watchlist"></select><button class="bt" id="wpick" aria-haspopup="listbox" title="Pick a list (your lists, IPOs, Breakout Desk, indices…)"><span>My watchlist</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></button><button class="bt" id="wadd" title="Add this stock (Alt+W)">+</button><button class="bt" id="wmb" title="Watchlist menu" aria-label="Watchlist menu">⋯</button><button class="bt" data-close title="Close panel" aria-label="Close panel">×</button></div>
         <div class="wladd"><input id="wq" type="search" placeholder="Add a stock to this list…" autocomplete="off" aria-label="Add a stock to this list"></div>
+        <div class="wfl" id="wfl"></div>
         <div class="wlist" id="wlist"></div>
       </section>
       <section id="pev" hidden>
@@ -1173,21 +1184,22 @@ body.popped #po{display:none}
     lists = lists.filter(l => l.syms && l.syms.length); if (!lists.length) return;
     lists.forEach(l => { l.ro = 1; l.g = g; RLB[l.id] = l; });
     const at = RL.findIndex(x => x.g === g); if (at >= 0) RL[at].lists = lists; else RL.push({ g, lists });
-    RL.sort((a, b) => (RL_ORD.indexOf(a.g) + 99) % 99 - (RL_ORD.indexOf(b.g) + 99) % 99);
+    const gi = g => (RL_ORD.indexOf(g.split("|")[0]) + 99) % 99; RL.sort((a, b) => gi(a.g) - gi(b.g));   // "Breakout Desk|VCP" = sub-group
   }
   fetch(MM.DATA + "lists.json", { cache: "no-cache" }).then(r => r.ok ? r.json() : null).then(j => { if (!j) return; RL.made = j.made;
     for (const g of j.groups || []) rlAdd(g.g, g.lists.map(l => Object.assign(l, { id: "r:" + l.id })));
     wlDraw(); nwSoon(); }).catch(() => {});
-  // Breakout Desk lists, one per pattern (VCP, Multi-year, IPO base, Blue sky); in each, fresh breakouts first, then climbing, then forming a base
+  // Breakout Desk lists: pattern (VCP, Multi-year, IPO base, Blue sky) → stage (fresh breakout, climbing, forming base, played out)
   function boLists() {
-    const by = {}, x = {}, best = {};
-    for (const r of BOD.rows || []) { if (BO_RANK[r.stage] == null) continue; const k = r.screen + "|" + r.sym;
-      if (best[k] == null || BO_RANK[r.stage] < BO_RANK[best[k].stage]) best[k] = r; }
-    for (const k in best) { const r = best[k]; (by[r.screen] = by[r.screen] || []).push(r); const i = boInfo(r.sym); if (i) x[r.sym] = i.text; }
-    const ord = [["vcp", "VCP"], ["multiyear", "Multi-year"], ["ipo", "IPO base"], ["bluesky", "Blue sky"]];
-    rlAdd("Breakout Desk", ord.map(([k, n]) => ({ id: "r:bo_" + k, name: n,
-      syms: (by[k] || []).sort((p, q) => BO_RANK[p.stage] - BO_RANK[q.stage]).map(r => r.sym), x,
-      about: `${n} stocks on our Breakout Desk from the latest scan: fresh breakouts first, then climbing, then forming a base. Updates with the Breakout Desk.` })));
+    const RK = Object.assign({ played: 3 }, BO_RANK), best = {}, x = {};
+    for (const r of BOD.rows || []) { if (RK[r.stage] == null) continue; const k = r.screen + "|" + r.sym;
+      if (!best[k] || RK[r.stage] < RK[best[k].stage]) best[k] = r; }
+    const by = {}; for (const k in best) { const r = best[k]; ((by[r.screen] = by[r.screen] || {})[r.stage] = by[r.screen][r.stage] || []).push(r.sym);
+      const i = boInfo(r.sym); if (i) x[r.sym] = i.text; }
+    const ST = [["fresh", "Fresh breakouts"], ["climbing", "Climbing"], ["forming", "Forming base"], ["played", "Played out"]];
+    for (const [k, n] of [["vcp", "VCP"], ["multiyear", "Multi-year"], ["ipo", "IPO base"], ["bluesky", "Blue sky"]])
+      rlAdd("Breakout Desk|" + n, ST.map(([st, sn]) => ({ id: "r:bo_" + k + "_" + st, name: n + " · " + sn, short: sn, syms: (by[k] || {})[st] || [], x,
+        about: `${n} pattern, ${sn.toLowerCase()}, from the latest Breakout Desk scan. Updates with the Breakout Desk.` })));
     wlDraw();
   }
   const WK = "mmwl", MAIN = "bo_watch";
@@ -1200,11 +1212,30 @@ body.popped #po{display:none}
   const wlSyms = l => { if (l.ro) return l.syms; if (l.id === "main") { try { const a = JSON.parse(localStorage.getItem(MAIN) || "[]"); return Array.isArray(a) ? a : []; } catch (e) { return []; } } return l.syms || (l.syms = []); };
   const wlSet = (l, arr) => { if (l.ro) return; arr = [...new Set(arr)]; if (l.id === "main") { try { localStorage.setItem(MAIN, JSON.stringify(arr)); } catch (e) {} } else l.syms = arr; wlSave(); };
   const pxOf = s => { const L = MM._liveNow && MM._liveNow(); if (L && L.s && L.s[s]) return { p: L.s[s][0], c: L.s[s][1] }; const r = BY[s]; return r ? { p: r.p, c: r.c } : {}; };
-  const wlShown = () => { const s = wlSyms(wlCur()).slice();
+  // filters for the stocks in the open list: today up / down, on the Breakout Desk, near the 52-week high, company size
+  P.wf = Object.assign({ d: "", bo: 0, hi: 0, cap: "" }, P.wf || {});
+  const wfOn = () => { const f = P.wf || {}; return !!(f.d || f.bo || f.hi || f.cap); };
+  const CAP = { large: [1e5, Infinity], mid: [3e4, 1e5], small: [0, 3e4] };            // market cap in ₹ crore
+  function wfKeep(sym) { const f = P.wf, r = BY[sym] || {}, c = pxOf(sym).c;
+    if (f.d === "up" && !(c > 0)) return false; if (f.d === "dn" && !(c < 0)) return false;
+    if (f.bo && !BOS[sym]) return false; if (f.hi && !(r.fh != null && r.fh >= -5)) return false;
+    if (f.cap) { const [a, b] = CAP[f.cap], m = r.m; if (m == null || m < a || m >= b) return false; }
+    return true; }
+  function wfDraw(n, all) { const f = P.wf || {};
+    $("#wfl").innerHTML = [["d", "up", "▲ Up today"], ["d", "dn", "▼ Down today"], ["bo", 1, "Breakout Desk"], ["hi", 1, "Near 52W high"]]
+      .map(([k, v, t]) => `<button data-f="${k}" data-v="${v}" class="${f[k] == v ? "on" : ""}" title="${k === "hi" ? "Within 5% of its 52-week high" : k === "bo" ? "On a Breakout Desk screen now" : ""}">${t}</button>`).join("")
+      + `<select data-cap class="${f.cap ? "on" : ""}" aria-label="Company size"><option value="">All sizes</option><option value="large" ${f.cap === "large" ? "selected" : ""}>Large cap</option><option value="mid" ${f.cap === "mid" ? "selected" : ""}>Mid cap</option><option value="small" ${f.cap === "small" ? "selected" : ""}>Small cap</option></select>`
+      + (wfOn() ? `<span class="cnt">${n} of ${all}</span><button class="clr" data-clr>Clear</button>` : ""); }
+  $("#wfl").addEventListener("click", e => { const b = e.target.closest("[data-f]"), c = e.target.closest("[data-clr]");
+    if (c) { P.wf = { d: "", bo: 0, hi: 0, cap: "" }; save(); wlDraw(); return; }
+    if (!b) return; const k = b.dataset.f, v = k === "d" ? b.dataset.v : 1; P.wf[k] = P.wf[k] == v ? (k === "d" ? "" : 0) : v; save(); wlDraw(); });
+  $("#wfl").addEventListener("change", e => { if (e.target.matches("[data-cap]")) { P.wf.cap = e.target.value; save(); wlDraw(); } });
+  const wlShown = () => { let s = wlSyms(wlCur()).slice(); if (wfOn()) s = s.filter(wfKeep);
     if (W.sort === "name") s.sort(); else if (W.sort === "chg") s.sort((a, b) => (pxOf(b).c ?? -1e9) - (pxOf(a).c ?? -1e9));
     else if (W.sort === "chgup") s.sort((a, b) => (pxOf(a).c ?? 1e9) - (pxOf(b).c ?? 1e9)); return s; };
   function wlDraw() {
     const l = wlCur(), syms = wlShown(), own = wlOwn(), inOwn = new Set(wlSyms(own));
+    wfDraw(syms.length, wlSyms(l).length);
     const opt = x => `<option value="${esc(x.id)}" ${x.id === l.id ? "selected" : ""}>${esc(x.name)}</option>`;
     $("#wsel").innerHTML = `<optgroup label="My lists">${W.lists.map(opt).join("")}<option value="+new">＋ Create a new list…</option></optgroup>`
       + RL.map(g => `<optgroup label="${esc(g.g)}">${g.lists.map(opt).join("")}</optgroup>`).join("");
@@ -1214,11 +1245,11 @@ body.popped #po{display:none}
       <span>Auto-updated daily</span><button class="bt" data-copyall>Copy to my lists</button></div>` : "";
     $("#wlist").innerHTML = ro + (syms.length ? syms.map(s => { const r = BY[s] || {}, x = pxOf(s), note = l.ro && l.x && l.x[s];
       const inN = W.lists.filter(o => wlSyms(o).includes(s)).length;
-      return `<div class="wrow ${l.ro ? "" : "two"} ${s === SYM ? "on" : ""}" data-s="${esc(s)}" draggable="${W.sort || l.ro ? "false" : "true"}"><span><b>${esc(s)}</b>${BOS[s] ? `<em class="wbo" title="On Breakout Desk">${BO_ST[BOS[s]]}</em>` : ""}<small title="${esc(r.n || "")}">${esc(note || r.n || "")}</small></span>
+      return `<div class="wrow ${l.ro ? "" : "two"} ${s === SYM ? "on" : ""}" data-s="${esc(s)}" draggable="${W.sort || l.ro || wfOn() ? "false" : "true"}"><span><b>${esc(s)}</b>${BOS[s] ? `<em class="wbo" title="On Breakout Desk">${BO_ST[BOS[s]]}</em>` : ""}<small title="${esc(r.n || "")}">${esc(note || r.n || "")}</small></span>
         <span class="p">${x.p != null ? num(x.p) : "–"}</span><span class="c ${MM.cls(x.c)}">${x.c != null ? sgn(x.c, 2) : ""}</span>
         <button class="wcp ${(l.ro ? inN : inN > 1) ? "in" : ""}" data-cp="${esc(s)}" title="Add to / move to my other lists${inN ? ` (in ${inN} of my lists)` : ""}" aria-label="Choose lists for ${esc(s)}">${(l.ro ? inN : inN > 1) ? "✓" : "+"}</button>
         ${l.ro ? "" : `<button class="rm" data-rm="${esc(s)}" title="Remove from this list" aria-label="Remove ${esc(s)}">×</button>`}</div>`; }).join("")
-      : `<div class="wempty">No stocks yet. Use the box above, <b>Alt+W</b>, or <b>⋯</b> → Add from screenshot / file.</div>`);
+      : wfOn() && wlSyms(l).length ? `<div class="wempty">No stock in this list matches the filters. <a href="#" data-clr2>Clear filters</a></div>` : `<div class="wempty">No stocks yet. Use the box above, <b>Alt+W</b>, or <b>⋯</b> → Add from screenshot / file.</div>`);
     const inL = SYM && inOwn.has(SYM);
     $("#wst").textContent = inL ? "★" : "☆"; $("#wst").classList.toggle("on", !!inL);
     const nIn = SYM ? W.lists.filter(o => wlSyms(o).includes(SYM)).length : 0;
@@ -1243,6 +1274,16 @@ body.popped #po{display:none}
     const o = {}; for (const x of (j && j.indices) || []) o[x.id] = Object.assign({}, x.r || {}, x.official && x.official.chg != null ? { "1D": x.official.chg } : {});
     IXS = o; if (!$("#wpk").hidden) wpDraw(); return o; }).catch(() => (IXS = {})));
   const ixR = l => IXS && IXS[String(l.id).replace(/^r:ix_/, "")];
+  const isIx = l => /^r:ix_/.test(l.id);
+  // a list's return: an index = its official move; any other list = average of its stocks (equal weight)
+  const RK2 = { "1W": "r1w", "1M": "r1m", "3M": "r3m", "1Y": "r1y" };
+  function lsRet(l) {
+    if (isIx(l)) return ixR(l) || null;
+    const syms = (l.ro ? l.syms : wlSyms(l)) || []; if (!syms.length) return null;
+    const out = {}, avg = f => { let t = 0, n = 0; for (const s of syms) { const v = f(s); if (v != null && isFinite(v)) { t += v; n++; } } return n ? t / n : null; };
+    out["1D"] = avg(s => pxOf(s).c); for (const k in RK2) out[k] = avg(s => (BY[s] || {})[RK2[k]]);
+    return out;
+  }
   function wpPick(id) {
     $("#wpk").hidden = true;
     if (id === "+new") { const n = (prompt("Name for your new list:", "List " + W.lists.length) || "").trim(); if (n) { wlNew(n, []); hint("Created " + n + ". Add stocks with the box above or + on any list"); } wlDraw(); return; }
@@ -1252,21 +1293,36 @@ body.popped #po{display:none}
     const cur = wlCur(), q = $("#wpq").value.trim().toLowerCase(), per = P.wp.per, so = P.wp.sort;
     const hit = l => !q || l.name.toLowerCase().includes(q);
     const pc = v => v == null ? "" : sgn(v, 1);
-    const row = (l, ix) => { const r = ix ? ixR(l) : null;
-      return `<button class="wpr ${ix ? "ix" : ""} ${l.id === cur.id ? "on" : ""}" data-id="${esc(l.id)}"><span class="n" title="${esc(l.name)}">${esc(l.name)}</span>`
-        + (ix ? `<span class="c ${MM.cls(r && r["1D"])}">${pc(r && r["1D"])}</span><span class="c ${MM.cls(r && r[per])}">${pc(r && r[per])}</span>` : "") + `</button>`; };
+    const isOpen = (key, def) => q ? true : key in P.wp.open ? !!P.wp.open[key] : def;
+    const sortL = ls => so ? ls.slice().sort((a, b) => ((lsRet(b) || {})[so] ?? -1e9) - ((lsRet(a) || {})[so] ?? -1e9)) : ls;
+    const row = (l, cls = "") => { const r = lsRet(l);
+      return `<button class="wpr ix ${cls} ${l.id === cur.id ? "on" : ""}" data-id="${esc(l.id)}" ${cls === "mine" ? `draggable="true" title="Drag to change the order"` : ""}><span class="n" title="${esc(l.name)}">${esc(l.short || l.name)}</span>`
+        + `<span class="c ${MM.cls(r && r["1D"])}">${pc(r && r["1D"])}</span><span class="c ${MM.cls(r && r[per])}">${pc(r && r[per])}</span></button>`; };
+    const head = (key, label, n, open, sub) => `<button class="wpg ${open ? "op" : ""} ${sub ? "sub" : ""}" data-g="${esc(key)}"><i>▸</i><span>${esc(label)}</span><span class="k">${n}</span></button>`
+      + (open ? `<div class="wph ${sub ? "sub" : ""}"><span></span><span>Day</span><span>${per}</span></div>` : "");
     let h = "";
     const mine = W.lists.filter(hit);
-    if (mine.length || !q) h += `<div class="wpg op" style="cursor:default"><span>My lists</span><span class="k">${W.lists.length}</span></div>` + mine.map(l => row(l)).join("") + (q ? "" : `<button class="wpr add" data-id="+new">＋ Create a new list…</button>`);
+    if (mine.length || !q) { const op = isOpen("My lists", true); h += head("My lists", "My lists", W.lists.length, op);
+      if (op) h += (q || so ? sortL(mine).map(l => row(l)) : mine.map(l => row(l, "mine"))).join("") + (q ? "" : `<button class="wpr add" data-id="+new">＋ Create a new list…</button>`); }
+    const seenP = {};
     for (const g of RL) {
-      const ix = IXG.has(g.g); let ls = g.lists.filter(hit); if (!ls.length) continue;
-      if (ix && so) ls = ls.slice().sort((a, b) => ((ixR(b) || {})[so] ?? -1e9) - ((ixR(a) || {})[so] ?? -1e9));
-      const open = !!q || !!P.wp.open[g.g] || ls.some(l => l.id === cur.id);
-      h += `<button class="wpg ${open ? "op" : ""}" data-g="${esc(g.g)}"><i>▸</i><span>${esc(g.g)}</span><span class="k">${g.lists.length}</span></button>`;
-      if (open) h += (ix ? `<div class="wph"><span></span><span>Day</span><span>${per}</span></div>` : "") + ls.map(l => row(l, ix)).join("");
+      const [par, sub] = g.g.split("|"); let ls = g.lists.filter(l => hit(l) && (!q || true)); if (!ls.length) continue;
+      const has = x => x.lists.some(l => l.id === cur.id);
+      if (sub) {
+        if (!seenP[par]) { seenP[par] = 1; const kids = RL.filter(x => x.g.startsWith(par + "|"));
+          const n = kids.reduce((t, x) => t + x.lists.filter(l => l.syms && l.syms.length).length, 0);
+          seenP[par] = isOpen(par, kids.some(has)) ? 2 : 1;
+          h += `<button class="wpg ${seenP[par] === 2 ? "op" : ""}" data-g="${esc(par)}"><i>▸</i><span>${esc(par)}</span><span class="k">${n}</span></button>`; }
+        if (seenP[par] !== 2) continue;
+        const op = isOpen(g.g, has(g)); h += head(g.g, sub, ls.length, op, 1);
+        if (op) h += sortL(ls).map(l => row(l, "sub")).join("");
+        continue;
+      }
+      const op = isOpen(g.g, has(g)); h += head(g.g, g.g, g.lists.length, op);
+      if (op) h += sortL(ls).map(l => row(l)).join("");
     }
     $("#wpb").innerHTML = h || `<div class="wpe">No list matches “${esc(q)}”.</div>`;
-    $("#wpt").innerHTML = `Index moves:` + ["1W", "1M", "3M", "1Y"].map(k => `<button data-per="${k}" class="${per === k ? "on" : ""}">${k}</button>`).join("")
+    $("#wpt").innerHTML = `Returns:` + ["1W", "1M", "3M", "1Y"].map(k => `<button data-per="${k}" class="${per === k ? "on" : ""}">${k}</button>`).join("")
       + `<span class="sp"></span>Sort:` + [["", "A–Z"], ["1D", "Today"], [per, per]].map(([k, t]) => `<button data-so="${k}" class="${so === k ? "on" : ""}">${t}</button>`).join("");
   }
   $("#wpick").onclick = e => { e.stopPropagation(); const k = $("#wpk"); if (!k.hidden) { k.hidden = true; return; }
@@ -1278,10 +1334,20 @@ body.popped #po{display:none}
     if (matchMedia("(pointer:fine)").matches) $("#wpq").focus(); };
   $("#wpk").onclick = e => { e.stopPropagation();
     const r = e.target.closest("[data-id]"); if (r) { wpPick(r.dataset.id); return; }
-    const g = e.target.closest("[data-g]"); if (g) { const n = g.dataset.g; P.wp.open[n] = !g.classList.contains("op"); if (!P.wp.open[n]) delete P.wp.open[n]; save(); wpDraw(); return; }
+    const g = e.target.closest("[data-g]"); if (g) { const n = g.dataset.g; P.wp.open[n] = !g.classList.contains("op"); save(); wpDraw(); return; }
     const pr = e.target.closest("[data-per]"); if (pr) { if (P.wp.sort === P.wp.per) P.wp.sort = pr.dataset.per; P.wp.per = pr.dataset.per; save(); wpDraw(); return; }
     const so = e.target.closest("[data-so]"); if (so) { P.wp.sort = so.dataset.so; save(); wpDraw(); } };
   $("#wpq").oninput = wpDraw;
+  // drag your lists into the order you like (open the picker, drag a list up or down)
+  let wpDragId = null;
+  $("#wpb").addEventListener("dragstart", e => { const r = e.target.closest(".wpr.mine"); if (!r) return; wpDragId = r.dataset.id; r.classList.add("dragging"); e.dataTransfer.effectAllowed = "move"; });
+  $("#wpb").addEventListener("dragover", e => { const r = e.target.closest(".wpr.mine"); if (!r || !wpDragId) return; e.preventDefault();
+    document.querySelectorAll(".wpr.dragover").forEach(x => x.classList.remove("dragover")); r.classList.add("dragover"); });
+  $("#wpb").addEventListener("drop", e => { const r = e.target.closest(".wpr.mine"); if (!r || !wpDragId) return; e.preventDefault();
+    const from = W.lists.findIndex(l => l.id === wpDragId), to = W.lists.findIndex(l => l.id === r.dataset.id);
+    if (from >= 0 && to >= 0 && from !== to) { const [m] = W.lists.splice(from, 1); W.lists.splice(to, 0, m); wlSave(); wlDraw(); hint("List order saved"); }
+    wpDragId = null; wpDraw(); });
+  $("#wpb").addEventListener("dragend", () => { wpDragId = null; document.querySelectorAll(".wpr.dragover,.wpr.dragging").forEach(x => x.classList.remove("dragover", "dragging")); });
   $("#wpk").addEventListener("keydown", e => { if (e.key === "Escape") { e.stopPropagation(); $("#wpk").hidden = true; $("#wpick").focus(); }
     else if (e.key === "Enter" && e.target.id === "wpq") { const f = $("#wpb [data-id]"); if (f) wpPick(f.dataset.id); } });
   document.addEventListener("click", e => { if (!e.target.closest("#wpk")) $("#wpk").hidden = true; });
@@ -1290,6 +1356,7 @@ body.popped #po{display:none}
   $("#wadd").onclick = () => wlToggle(SYM, true);
   $("#wst").onclick = e => { e.stopPropagation(); lpOpen(SYM, $("#wst")); };
   MM.attachSearch($("#wq"), r => { const l = wlOwn(); if (!wlSyms(l).includes(r.s)) { wlSet(l, wlSyms(l).concat(r.s)); hint(`Added ${r.s} to ${l.name}`); } wlDraw(); });
+  $("#wlist").addEventListener("click", e => { if (e.target.closest("[data-clr2]")) { e.preventDefault(); P.wf = { d: "", bo: 0, hi: 0, cap: "" }; save(); wlDraw(); } });
   $("#wlist").onclick = e => { const rm = e.target.closest("[data-rm]"), cp = e.target.closest("[data-cp]");
     if (rm) { e.stopPropagation(); const l = wlCur(); wlSet(l, wlSyms(l).filter(x => x !== rm.dataset.rm)); wlDraw(); return; }
     if (cp) { e.stopPropagation(); lpOpen(cp.dataset.cp, cp); return; }
