@@ -68,7 +68,7 @@
       return JSON.stringify(Object.assign({}, A, B, { lists: out }));
     }
     if (k === "mmalerts" && A && B && Array.isArray(A.list) && Array.isArray(B.list)) {
-      const key = x => x.id || [x.s, x.op, x.v].join("|"), seen = new Set(B.list.map(key));
+      const key = x => [x.s, x.op, x.v].join("|"), seen = new Set(B.list.map(key));   // same stock + condition + price = same alert, whatever its id
       return JSON.stringify(Object.assign({}, A, B, { list: B.list.concat(A.list.filter(x => !seen.has(key(x)))) }));
     }
     if (k.startsWith("mmkd:") && Array.isArray(A) && Array.isArray(B)) { const s = new Set(B.map(x => JSON.stringify(x))); return JSON.stringify(B.concat(A.filter(x => !s.has(JSON.stringify(x))))); }
