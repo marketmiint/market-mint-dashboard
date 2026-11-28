@@ -478,7 +478,7 @@ td.cust{max-width:300px;white-space:normal;text-align:left;font-size:13px}
     $("cnt").textContent = `${(st.v === "quiet" ? current : rs).length} orders · ${perLbl()}${pxDay ? ` · share moves to ${fmtShort(pxDay)} close` : ""}`;
     side(rs); saveURL();
   }
-  function setPer() { document.querySelectorAll("#per button").forEach(x => x.classList.toggle("on", +x.dataset.p === st.p)); }
+  function setPer() { document.querySelectorAll("#per button").forEach(x => x.classList.toggle("on", +x.dataset.p === st.p && !st.fy)); }
   function setView(v) { st.v = v; st.shown = 40; document.querySelectorAll("#views button").forEach(b => b.classList.toggle("on", b.dataset.v === v)); draw(); }
 
   // ---------- controls
@@ -505,6 +505,7 @@ td.cust{max-width:300px;white-space:normal;text-align:left;font-size:13px}
   $("fysel").value = st.fy;
   $("fysel").onchange = async () => {
     st.fy = $("fysel").value; st.mo = ""; st.shown = 40;
+    setPer();
     if (st.fy) { st.p = 0; setPer(); $("cnt").textContent = "Loading older orders…"; await loadOld(); }
     $("secsel").innerHTML = '<option value="">All sectors</option>' + [...new Set(all.map(o => o.sec || "Other"))].sort().map(s => `<option>${esc(s)}</option>`).join(""); $("secsel").value = st.sec;
     draw();
