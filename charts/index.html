@@ -1228,6 +1228,7 @@ body.popped #po{display:none}
     let L = BARS; if (!L.length) return; const w = $("#kc").clientWidth - 70;
     const cnt = () => { const last = L[L.length - 1].timestamp; return Math.max(20, L.filter(k => k.timestamp >= last - days * DAY).length); };
     let n = cnt();
+    if (PER === "d" && n > w) { setPer("w"); L = BARS; n = cnt(); }            // too many days to fit: weekly candles
     if (PER === "w" && n > w / 1.5) { setPer("m"); L = BARS; n = cnt(); }       // too many weeks to fit: monthly candles
     chart.setBarSpace(Math.max(1, Math.min(40, w / (n + 4)))); chart.scrollToRealTime(); };
   $("#ty").onchange = () => { P.ty = $("#ty").value; save(); chart.setStyles({ candle: { type: P.ty === "heikin" ? "candle_solid" : P.ty } });
